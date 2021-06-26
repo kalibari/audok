@@ -128,11 +128,11 @@ class TabConverter:
       if self.settings['Debug']==1:
          print ('def get_destination_filename destination_dir: %s pathfile: %s newprefix: %s' % (destination_dir, pathfile, newprefix))
 
-      # destination_dir: /MyDisc/Audio/Neu filename: /MyDisc/Audio/Neu/parecord-20.wav oldprefix: .wav newprefix: .mp3
+      # destination_dir: /MyDisc/Audio/Neu filename: /MyDisc/Audio/Neu/pw-record-20.wav oldprefix: .wav newprefix: .mp3
 
       self.filescan(destination_dir)
 
-      # ('parecord-24','.wav')
+      # ('pw-record-24','.wav')
       (newpart1,newpart2) = os.path.splitext(os.path.basename(pathfile))
 
       num=0
@@ -142,7 +142,7 @@ class TabConverter:
          newpart1pre = x.group(1)
          num = int(x.group(2))
 
-      # parecord
+      # pw-record
       if self.settings['Debug']==1:
          print ('def get_destination_filename newpart1pre: %s num: %s' % (newpart1pre,str(num)))
 
@@ -279,10 +279,10 @@ class TabConverter:
 
                if self.main.process_database[item]['job']=='record2wav':
 
-                  if self.main.process_database[item]['identifier']=='pacmd':
+                  if self.main.process_database[item]['identifier']=='pw-cli':
                      self.textbuffer_output.set_text('%s\n' % self.main.process_database[item]['output'])
 
-                  if self.main.process_database[item]['identifier']=='parecord':
+                  if self.main.process_database[item]['identifier']=='pw-record':
 
                      #erg = self.add_OUTPUT_TEXTCTRL.GetValue()
                      #if hasattr(self, 'textctrl_loop1'):
@@ -342,13 +342,13 @@ class TabConverter:
 
 
                if self.main.process_database[item]['job']=='record2wav':
-                  if self.main.process_database[item]['identifier']=='pacmd':
+                  if self.main.process_database[item]['identifier']=='pw-cli':
                      self.main.process_database[item]['status']='inactive'
                      if self.main.process_database[item]['result']==True:
-                        self.start_parecord(self.main.process_database[item])
+                        self.start_record(self.main.process_database[item])
                      else:
                         self.textbuffer_output.set_text('-- job: %s aborted\n' % self.main.process_database[item]['job'])
-                  if self.main.process_database[item]['identifier']=='parecord':
+                  if self.main.process_database[item]['identifier']=='pw-record':
                      self.main.process_database[item]['status']='inactive'
 
 
@@ -387,10 +387,10 @@ class TabConverter:
 
 
 
-   def start_parecord(self, process_database):
+   def start_record(self, process_database):
 
       if self.settings['Debug']==1:
-         print ('def start_parecord - start job: %s' % process_database['job'])
+         print ('def start_record - start job: %s' % process_database['job'])
 
 
       output_device=''
@@ -442,17 +442,17 @@ class TabConverter:
                      num=int(x.group(1))
             newfilename='%s-%d.wav' % (filename, (num+1))
 
-            self.timer_parecord = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
+            self.timer_record = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
 
             #self.refresh_timer = wx.Timer(self)
             #self.Bind(wx.EVT_TIMER, self.refresh_output_textctrl_timer, self.refresh_timer)
             #self.refresh_timer.Start(1000)
 
-            # parecord --verbose --record --channels=2 --format=s24le --rate=48000 --file-format=wav /MyDisc/Audio/Neu/test.wav
-            cmd=['parecord','--verbose','--record','--channels=2', '--format=s24le', '--rate=48000', '--file-format=wav', '--volume=60000',\
+            # pw-record --verbose --record --channels=2 --format=s24le --rate=48000 --file-format=wav /MyDisc/Audio/Neu/test.wav
+            cmd=['pw-record','--verbose','--record','--channels=2', '--format=s24le', '--rate=48000', '--file-format=wav', '--volume=60000',\
             '--device=%s' % output_device, '%s/%s' % (self.settings['Directory_New'],newfilename)]
             cwd=self.settings['Directory_New']
-            self.main.process_starter(cmd=cmd, cwd=cwd, job='record2wav', identifier='parecord', source='')
+            self.main.process_starter(cmd=cmd, cwd=cwd, job='record2wav', identifier='pw-record', source='')
 
 
 
@@ -561,10 +561,10 @@ class TabConverter:
 
 
 
-      # pacmd stat | grep "Default sink name"
-      cmd=['pacmd','stat']
+      # pw-cli stat | grep "Default sink name"
+      cmd=['pw-cli','stat']
       cwd='/usr/bin'
-      self.main.process_starter(cmd=cmd, cwd=cwd, job='record2wav', identifier='pacmd', source='')
+      self.main.process_starter(cmd=cmd, cwd=cwd, job='record2wav', identifier='pw-cli', source='')
 
 
 
@@ -713,7 +713,7 @@ class TabConverter:
                # destination_dir  pathfile  newprefix
                dest_filename = self.get_destination_filename(self.settings['Directory_New'], pathfile, '.flac')
 
-               # flac --compression-level-8 --replay-gain -s /MyDisc/Audio/Neu/parecord-4.mp3 --output-name  /MyDisc/Audio/Neu/test.flac
+               # flac --compression-level-8 --replay-gain -s /MyDisc/Audio/Neu/pw-record-4.mp3 --output-name  /MyDisc/Audio/Neu/test.flac
                cwd=self.settings['Directory_New']
                cmd=['nice','-n','19','flac', '--no-delete-input-file', '--compression-level-8','--replay-gain','-s', pathfile, '--output-name',dest_filename]
                self.main.process_starter(cmd=cmd, cwd=cwd, job='wav2flac', identifier='', source=pathfile)
@@ -730,8 +730,8 @@ class TabConverter:
          GObject.source_remove(self.timer_wav2flac)
       if hasattr(self, 'timer_record2wav'):
          GObject.source_remove(self.timer_record2wav)
-      if hasattr(self, 'timer_parecord'):
-         GObject.source_remove(self.timer_parecord)
+      if hasattr(self, 'timer_pw-record'):
+         GObject.source_remove(self.timer_record)
       if hasattr(self, 'timer_file2mp3'):
          GObject.source_remove(self.timer_file2mp3)
       if hasattr(self, 'timer_you2mp3_update'):
@@ -744,7 +744,7 @@ class TabConverter:
       self.main.process_job_killer(job='you2mp3_update')
       self.main.process_job_killer(job='you2mp3')
       self.main.process_job_killer(job='record2wav')
-      self.main.process_job_killer(job='parecord')
+      self.main.process_job_killer(job='pw-record')
       self.main.process_job_killer(job='file2mp3')
       self.main.process_job_killer(job='wav2flac')
 

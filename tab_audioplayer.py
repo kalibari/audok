@@ -12,8 +12,8 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 gi.require_version('GLib', '2.0')
 from gi.repository import GLib
-#gi.require_version('Gdk', '3.0')
-#from gi.repository import Gdk
+gi.require_version('Gdk', '3.0')
+from gi.repository import Gdk
 
 class TabAudioPlayer:
 
@@ -74,68 +74,69 @@ class TabAudioPlayer:
             print('ERROR: Could not create player')
             sys.exit(1)
 
+
          self.source = Gst.ElementFactory.make('filesrc', 'file-source')
          self.sink = Gst.ElementFactory.make('pulsesink','asink')
          self.conv = Gst.ElementFactory.make('audioconvert', 'audioconvert')
          self.queue = Gst.ElementFactory.make('queue', 'queue')
-         self.audioresample = Gst.ElementFactory.make('audioresample', 'audioresample')
-         self.inputselector = Gst.ElementFactory.make('input-selector', 'input-selector')
-         self.streamsynchronizer = Gst.ElementFactory.make('streamsynchronizer', 'streamsynchronizer')
-         self.identity = Gst.ElementFactory.make('identity', 'identity')
-         self.tee = Gst.ElementFactory.make('tee', 'tee')
+         #self.audioresample = Gst.ElementFactory.make('audioresample', 'audioresample')
+         #self.inputselector = Gst.ElementFactory.make('input-selector', 'input-selector')
+         #self.streamsynchronizer = Gst.ElementFactory.make('streamsynchronizer', 'streamsynchronizer')
+         #self.identity = Gst.ElementFactory.make('identity', 'identity')
+         #self.tee = Gst.ElementFactory.make('tee', 'tee')
 
-         self.mad_decoder = Gst.ElementFactory.make('mad', 'mad')
+         #self.mad_decoder = Gst.ElementFactory.make('mad', 'mad')
          self.mp3_demuxer = Gst.ElementFactory.make('id3demux', 'id3demux')
          #self.mp3v2_demuxer = Gst.ElementFactory.make('id3v2mux', 'id3v2mux')
          #self.mp3v2_demuxer.connect('pad-added', self.mp3v2_demuxer_callback)
-         #self.ogg_demuxer = Gst.ElementFactory.make('oggdemux', 'demuxer')
+         #self.ogg_demuxer = Gst.ElementFactory.make('oggdemux', 'oggdemux')
          #self.ogg_demuxer.connect('pad-added', self.ogg_demuxer_callback)
          #self.lame_decoder = Gst.ElementFactory.make('lamemp3enc', 'lamemp3enc')
          #self.lame_decoder.set_property('quality', 0)
-         #self.mpg123_decoder = Gst.ElementFactory.make('mpg123audiodec', 'mpg123audiodec')
-         #self.vorbis_decoder = Gst.ElementFactory.make('vorbisdec','vorbisdec')
+         self.mpg123_decoder = Gst.ElementFactory.make('mpg123audiodec', 'mpg123audiodec')
+         self.vorbis_decoder = Gst.ElementFactory.make('vorbisdec','vorbisdec')
 
          #self.decodebin = Gst.ElementFactory.make('decodebin', 'decodebin')
-         self.mpegaudioparse = Gst.ElementFactory.make('mpegaudioparse', 'mpegaudioparse')
+         #self.mpegaudioparse = Gst.ElementFactory.make('mpegaudioparse', 'mpegaudioparse')
 
 
-         self.player.add(self.audioresample)
+         #self.player.add(self.audioresample)
          self.player.add(self.queue)
-         self.player.add(self.mpegaudioparse)
+         #self.player.add(self.mpegaudioparse)
 
          #self.player.add(self.ogg_demuxer)
          #self.player.add(self.mp3v2_demuxer)
          self.player.add(self.source)
-         self.player.add(self.mad_decoder)
+         #self.player.add(self.mad_decoder)
          #self.player.add(self.lame_decoder)
-         #self.player.add(self.vorbis_decoder)
+         self.player.add(self.vorbis_decoder)
          #self.player.add(self.decodebin)
          self.player.add(self.conv)
          self.player.add(self.sink)
-         self.player.add(self.inputselector)
-         self.player.add(self.streamsynchronizer)
-         self.player.add(self.identity)
-         self.player.add(self.tee)
+         #self.player.add(self.inputselector)
+         #self.player.add(self.streamsynchronizer)
+         #self.player.add(self.identity)
+         #self.player.add(self.tee)
          self.player.add(self.mp3_demuxer)
 
 
-         self.source.link(self.mad_decoder)
+         #self.source.link(self.mad_decoder)
          #self.source.link(self.lame_decoder)
-         #self.source.link(self.mpg123_decoder)
+         self.source.link(self.mpg123_decoder)
          #self.source.link(self.decodebin)
          #self.source.link(self.mpegaudioparse)
          #self.source.link(self.inputselector)
          #self.source.link(self.streamsynchronizer)
-         self.source.link(self.identity)
-         self.source.link(self.tee)
+         #self.source.link(self.identity)
+         #self.source.link(self.tee)
          self.source.link(self.mp3_demuxer)
 
 
 
 
          self.conv.link(self.sink)
-         self.mad_decoder.link(self.conv)
-         #self.vorbis_decoder.link(self.conv)
+         #self.mad_decoder.link(self.conv)
+         self.vorbis_decoder.link(self.conv)
          #self.lame_decoder.link(self.conv)
          #self.decodebin.link(self.conv)
 
@@ -885,6 +886,9 @@ class TabAudioPlayer:
             self.player.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, start_time_s * Gst.SECOND)
 
          self.player.set_state(Gst.State.PLAYING)
+
+         if self.settings['Debug']==1:
+            print ('def play_file set state: Gst.State.PLAYING')
 
 
 

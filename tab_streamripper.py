@@ -8,7 +8,6 @@ import math
 import cairo
 
 
-
 class TabStreamRipper:
 
    def __init__(self, main, settings, stationlist):

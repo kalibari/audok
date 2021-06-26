@@ -10,7 +10,6 @@ import pwd
 import xml.etree.ElementTree
 import main
 import gi
-
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
 gi.require_version('Gdk', '3.0')
@@ -231,7 +230,7 @@ def settings_xml():
                   'Choice_Random_Time': '0,10-30,30-50,50-70,70-90',
                   'File2mp3_Bitrate': '192k',
                   'Choice_File2mp3_Bitrate': '128k,192k,224k,320k',
-                  'Record2wav_Default_Wav_Filename': 'parecord'}
+                  'Record2wav_Default_Wav_Filename': 'pwrecord'}
 
    return settings
 
@@ -250,7 +249,7 @@ if __name__ == '__main__':
    settings['Random_Time'] = '0'
    settings['Play_Time'] = '0'
    settings['Loop'] = 'True'
-   settings['Version'] = '0.6.5'
+   settings['Version'] = '0.6.6'
    if sys.stdin.isatty():
       settings['Debug'] = 1
 
@@ -323,25 +322,16 @@ if __name__ == '__main__':
       stationlist = stations_xml()
 
 
-      css = b"""
-.scale.trough {
-    background-color: #ff0000;
-    color: #ff0000;
-}
-.scale.trough.highlight {
-    /*background-color: #df784e;*/
-    background-color: #02FF00;
-    background-image: none;
-    background-clip: content-box;
-}
-      """
 
 
-      #style_provider = Gtk.CssProvider()
-      #style_provider.load_from_data(css)
+
 
       Gtk.init()
+
       #Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(),style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+      #col = Gtk.Gdk.Color('#0f0')
+
+
       
       win = main.Music_Admin_Start(settings, playlist, stationlist)
       win.connect('destroy', Gtk.main_quit)
