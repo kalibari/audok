@@ -471,11 +471,10 @@ class TabSettings:
 
       f = open('%s/.config/audok/settings.xml' % os.environ['HOME'], 'w')
 
-
       f.write('<?xml version="1.0"?>\n')
       f.write('<data>\n')
-      for item1 in self.settings:
-         f.write('\t<' + str(item1) + '>' + str(self.settings[item1]) + '</' + str(item1) + '>\n')
+      for item in self.settings:
+         f.write('\t<' + str(item) + '>' + str(self.settings[item]) + '</' + str(item) + '>\n')
       f.write('</data>\n')
 
       f.close()

@@ -393,21 +393,26 @@ class TabConverter:
          print ('def start_record - start job: %s' % process_database['job'])
 
 
-      output_device=''
+      idnum=''
+      device_target='41'
       for item in process_database['output']:
-         x1 = re.search('\s*Default sink name:\s*(alsa_output.*)', item)
-         if x1 and x1.group(1):
-            output_device=x1.group(1)
+
+         x = re.search('^\s*id (\d+), type ', item)
+         if x and x.group(1):
+            idnum=x.group(1)
+
+         x = re.search('^\s*object\.path\ \=\ "%s"' % self.settings['Pwcli_object_path'], item)
+         if x:
+            device_target=idnum
             break
 
 
-      if not output_device:
-         self.textbuffer_output.set_text('-- job: %s cannot find a output_device' % process_database['job'])
-      else:
-         self.textbuffer_output.set_text('-- job: %s output_device: %s\n' % (process_database['job'],output_device))
 
-         if not 'monitor' in output_device:
-            output_device = '%s.monitor' % output_device
+      if not device_target:
+         self.textbuffer_output.set_text('-- job: %s cannot find a device target' % process_database['job'])
+      else:
+         self.textbuffer_output.set_text('-- job: %s device target: %s\n' % (process_database['job'],device_target))
+
 
          filename = self.textbuffer_input.get_text()
          #start_iter = self.textbuffer_input.get_start_iter()
@@ -448,9 +453,10 @@ class TabConverter:
             #self.Bind(wx.EVT_TIMER, self.refresh_output_textctrl_timer, self.refresh_timer)
             #self.refresh_timer.Start(1000)
 
-            # pw-record --verbose --record --channels=2 --format=s24le --rate=48000 --file-format=wav /MyDisc/Audio/Neu/test.wav
-            cmd=['pw-record','--verbose','--record','--channels=2', '--format=s24le', '--rate=48000', '--file-format=wav', '--volume=60000',\
-            '--device=%s' % output_device, '%s/%s' % (self.settings['Directory_New'],newfilename)]
+            # pw-record --verbose --record --channels=2 --format=s32 --rate=48000 --volume=0.99 --target=41  /MyDisc/Audio/Neu/test.wav
+
+            cmd=[self.settings['Bin_Pwrecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99',\
+            '--target=%s' % device_target, '%s/%s' % (self.settings['Directory_New'],newfilename)]
             cwd=self.settings['Directory_New']
             self.main.process_starter(cmd=cmd, cwd=cwd, job='record2wav', identifier='pw-record', source='')
 
@@ -478,37 +484,38 @@ class TabConverter:
       # youtube-dl --no-warnings --no-call-home --audio-quality=4 --extract-audio --audio-format=mp3 --title https://www.youtube.com/watch?v=w7BE3inS-NM
 
 
-
       source = self.textbuffer_input.get_text()
       #start_iter = self.textbuffer_input.get_start_iter()
       #end_iter = self.textbuffer_input.get_end_iter()
       #source = self.textbuffer_input.get_text(start_iter, end_iter, True)   
 
       source=source.strip()
+
       if not source:
 
+         self.textbuffer_output.set_text('please insert a input URL')
+
+         """
+         Disable Update:
          if self.settings['Debug']==1:
             print ('def START_YOU2MP3_BUTTON - no source')
 
-
          # /opt/audok/youtube-dl --update
-
 
          self.textbuffer_output.set_text('start you2mp3 update\nplease wait...')
 
          self.timer_you2mp3_update = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
 
-         cmd=['%s/youtube-dl' % self.settings['Path'],'--update']
+         cmd=[self.settings['Bin_Youtubedl'],'--update']
          cwd=self.settings['Directory_New']
          self.main.process_starter(cmd=cmd, cwd=cwd, job='you2mp3_update', identifier='', source='')
-
+         """
 
          self.button_you2mp3.set_sensitive(True)
          self.button_record2wav.set_sensitive(True)
          self.button_file2mp3.set_sensitive(True)
          self.button_wav2flac.set_sensitive(True)
          self.button_stop.set_sensitive(False)
-
 
 
       else:
@@ -528,7 +535,7 @@ class TabConverter:
 
          # youtube-dl --audio-quality=4 --no-warnings --no-call-home --extract-audio --audio-format=mp3 --exec 'echo done' --title https://www.youtube.com/watch....
 
-         cmd=['%s/youtube-dl' % self.settings['Path'],'--audio-quality=4','--no-warnings','--no-call-home','--extract-audio','--audio-format=mp3','--exec','exit 0','--title',source]
+         cmd=[self.settings['Bin_Youtubedl'],'--audio-quality=4','--no-warnings','--no-call-home','--extract-audio','--audio-format=mp3','--exec','exit 0','--title',source]
          cwd=self.settings['Directory_New']
          self.main.process_starter(cmd=cmd, cwd=cwd, job='you2mp3', identifier='', source='')
 
@@ -559,11 +566,8 @@ class TabConverter:
       #self.Bind(wx.EVT_TIMER, self.refresh_output_textctrl_timer, self.refresh_timer)
       #self.refresh_timer.Start(1000)
 
-
-
-      # pw-cli stat | grep "Default sink name"
-      cmd=['pw-cli','stat']
-      cwd='/usr/bin'
+      cmd=[self.settings['Bin_Pwcli'],'list-objects']
+      cwd=os.path.dirname(self.settings['Bin_Pwcli'])
       self.main.process_starter(cmd=cmd, cwd=cwd, job='record2wav', identifier='pw-cli', source='')
 
 
@@ -653,7 +657,7 @@ class TabConverter:
                dest_filename = self.get_destination_filename(self.settings['Directory_New'], pathfile, '.mp3')
 
                cwd=self.settings['Directory_New']
-               cmd=['nice','-n','19','ffmpeg','-v','error','-i',pathfile,'-ab', '%s' % str(self.settings['File2mp3_Bitrate']),'-n',dest_filename]
+               cmd=[self.settings['Bin_Nice'],'-n','19',self.settings['Bin_Ffmpeg'],'-v','error','-i',pathfile,'-ab', '%s' % str(self.settings['File2mp3_Bitrate']),'-n',dest_filename]
                self.main.process_starter(cmd=cmd, cwd=cwd, job='file2mp3', identifier='', source=pathfile)
 
 
@@ -715,7 +719,7 @@ class TabConverter:
 
                # flac --compression-level-8 --replay-gain -s /MyDisc/Audio/Neu/pw-record-4.mp3 --output-name  /MyDisc/Audio/Neu/test.flac
                cwd=self.settings['Directory_New']
-               cmd=['nice','-n','19','flac', '--no-delete-input-file', '--compression-level-8','--replay-gain','-s', pathfile, '--output-name',dest_filename]
+               cmd=['nice','-n','19',self.settings['Bin_Flac'], '--no-delete-input-file', '--compression-level-8','--replay-gain','-s', pathfile, '--output-name',dest_filename]
                self.main.process_starter(cmd=cmd, cwd=cwd, job='wav2flac', identifier='', source=pathfile)
 
 
@@ -754,4 +758,3 @@ class TabConverter:
       self.button_file2mp3.set_sensitive(True)
       self.button_wav2flac.set_sensitive(True)
       self.button_stop.set_sensitive(False)
-

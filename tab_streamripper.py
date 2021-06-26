@@ -361,7 +361,7 @@ class TabStreamRipper:
 
             # streamripper http://www.top100station.de/switch/r3472.pls -u WinampMPEG/5.0 -d /MyDisc/Audio/Neu/Streamtuner/
 
-            cmd=['streamripper','%s' % self.station_liststore[i][5],'-u','WinampMPEG/5.0','-d','%s' % self.settings['Directory_Streamripper']]
+            cmd=[self.settings['Bin_Streamripper'], self.station_liststore[i][5],'-u','WinampMPEG/5.0','-d','%s' % self.settings['Directory_Streamripper']]
             cwd=self.settings['Directory_Streamripper']
             self.main.process_starter(cmd=cmd, cwd=cwd, job='streamripper', identifier=str(i), source=self.station_liststore[i][5])
             ##item.set_property("editable", True)
