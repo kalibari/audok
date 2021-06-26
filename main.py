@@ -1,394 +1,376 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
-import wx
 import os
 import re
+import sys
 import threading
 import signal
 import socket
 import subprocess
-import tabone
-import tabtwo
-import tabthree
-import tabfour
+import tab_audioplayer
+import tab_coverter
+import tab_streamripper
+import tab_settings
+import tab_about
+import gi
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk
+gi.require_version('Gst', '1.0')
+from gi.repository import Gst
+gi.require_version('GLib', '2.0')
+from gi.repository import GLib
 
-class Music_Admin_GUI(wx.Notebook):
 
-	def __init__(self, p2, panel):
+class Music_Admin_Start(Gtk.Window):
 
-		wx.Notebook.__init__(self, panel, id=wx.ID_ANY, style=wx.BK_DEFAULT)
+   def __init__(self, settings, playlist, stationlist):
+      Gtk.Window.__init__(self, title='Audok')
 
 
-		self.p2 = p2
+      self.set_border_width(3)
+      self.settings = settings
+      self.playlist = playlist
+      self.stationlist = stationlist
 
-		signal.signal(signal.SIGUSR1, self.signal_handler_sigusr1)
-		signal.signal(signal.SIGUSR2, self.signal_handler_sigusr2)
 
-		self.pnum = 0
+      self.set_default_size(settings['Size_X'],settings['Size_Y'])
+      #self.set_size_request(settings['Size_X'],settings['Size_Y'])
+      self.move(settings['Position_X'], settings['Position_Y'])
+      self.set_resizable(True) 
 
-		self.process_database = {}
-		# self.process_database[item]['status'] -> active, inactive, killed  necessary for refresh_output_textctrl_timer
-		# self.process_database[item]['todo']   -> show, nooutput, result
-		# self.process_database[item]['result'] -> True, False
 
+      self.set_icon_from_file('%s/audok.png' % settings['Path'])
 
-		self.tab_one = tabone.TabOne(self)
-		self.AddPage(self.tab_one, 'Audio Player')
+      self.pnum = 0
 
-		self.tab_two = tabtwo.TabTwo(self)
-		self.AddPage(self.tab_two, 'Converter')
+      self.process_database = {}
+      # self.process_database[item]['status'] -> active, inactive, killed
+      # self.process_database[item]['todo']   -> show, nooutput, result
+      # self.process_database[item]['result'] -> True, False
 
-		self.tab_three = tabthree.TabThree(self)
-		self.AddPage(self.tab_three , 'Streamripper')
 
-		self.tab_four = tabfour.TabFour(self)
-		self.AddPage(self.tab_four, 'Settings')
+      self.notebook = Gtk.Notebook()
+      self.add(self.notebook)
 
 
+      self.notebook_tab_audioplayer = tab_audioplayer.TabAudioPlayer(self, settings, playlist)
+      self.notebook_tab_coverter = tab_coverter.TabConverter(self, settings)
+      self.notebook_tab_streamripper = tab_streamripper.TabStreamRipper(self, settings, stationlist)
+      self.notebook_tab_settings = tab_settings.TabSettings(self, settings)
+      self.notebook_tab_about = tab_about.TabAbout(self, settings)
 
 
-		if self.p2.p1.settings['Debug']==1:
-			print 'def init - Main add signal handlers'
+      self.notebook.append_page(self.notebook_tab_audioplayer.box, Gtk.Label('Audio Player'))
+      self.notebook.append_page(self.notebook_tab_coverter.box, Gtk.Label('Converter'))
+      self.notebook.append_page(self.notebook_tab_streamripper.hbox, Gtk.Label('Streamripper'))
+      self.notebook.append_page(self.notebook_tab_settings.box, Gtk.Label('Settings'))
+      self.notebook.append_page(self.notebook_tab_about.box, Gtk.Image.new_from_icon_name("help-about",Gtk.IconSize.MENU))
 
 
-		try:
-			thread = threading.Thread(target=self.ipc_server)
-			thread.setDaemon(True)
-			thread.start()
-		except Exception as e:
-			if self.p2.p1.settings['Debug']==1:
-				print 'def init - PanelOne ipc_server error: %s' % str(e)
+      try:
+         thread = threading.Thread(target=self.ipc_server)
+         thread.setDaemon(True)
+         thread.start()
+      except Exception as e:
+         if self.settings['Debug']==1:
+            print ('def init - PanelOne ipc_server error: %s' % str(e))
 
 
-		self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnPageChanged)
-		self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.OnPageChanging)
-		self.Bind(wx.EVT_SIZE, self.ReSize)
+      signal.signal(signal.SIGUSR1, self.signal_handler_sigusr1)
+      signal.signal(signal.SIGUSR2, self.signal_handler_sigusr2)
 
 
+      GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, self.signal_handler_sigint)
 
-	def ReSize(self, event):
-		size = event.GetSize()
-		self.p2.p1.settings['Size_X']=size.width
-		self.p2.p1.settings['Size_Y']=(size.height + 37)
 
-		# resize scroll window
-		self.tab_three.scroll.SetSize((self.p2.p1.settings['Size_X']-20, self.p2.p1.settings['Size_Y']-50))
-		self.tab_three.scroll.SetScrollbars(noUnitsX=0, noUnitsY=5, pixelsPerUnitX=0, pixelsPerUnitY=100)
-		self.tab_three.Refresh()
 
-		
+   def signal_handler_sigusr1(self, signal, frame):
+      if self.settings['Debug']==1:
+         print ('def signal_handler_sigusr1 start')
 
+      if self.playlist:
+         self.notebook_tab_audioplayer.play_file(newplaylist=self.playlist)
 
-	def OnPageChanged(self, event):
-		old = event.GetOldSelection()
-		new = event.GetSelection()
-		self.active_panel = self.GetSelection()
-		event.Skip()
-		if self.p2.p1.settings['Debug']==1:
-			print 'OnPageChanged - self.active_panel: %d' % self.active_panel
 
 
+   def signal_handler_sigusr2(self, signal, frame):
+      
+      if self.settings['Debug']==1:
+         print ('def signal_handler_sigusr2 start')
 
-	def OnPageChanging(self, event):
-		event.GetOldSelection()
-		event.GetSelection()
-		self.GetSelection()
-		event.Skip()
 
+      if self.notebook_tab_audioplayer.checkbutton_loop.get_active():
+         self.notebook_tab_audioplayer.choose_song(choose='repeat')
+      elif len(self.notebook_tab_audioplayer.playlist)>=2:
+         self.notebook_tab_audioplayer.choose_song(choose='next')
 
 
-	def signal_handler_sigusr1(self, signal, frame):
-		if self.p2.p1.settings['Debug']==1:
-			print 'def signal_handler_sigusr1 start'
 
-		self.p2.p1.settings['Play']='file'
-		
-		self.tab_one.play_song()
+   def signal_handler_sigint(self):
 
+      if self.settings['Debug']==1:
+         print ('def signal_handler_sigint start (Ctrl+C)')
 
 
-	def signal_handler_sigusr2(self, signal, frame):
-		
-		if self.p2.p1.settings['Debug']==1:
-			print 'def signal_handler_sigusr2 start'
-		self.p2.p1.settings['Play']='database'
+      if hasattr(self.notebook_tab_audioplayer, 'glib_timer'):
+         GLib.source_remove(self.notebook_tab_audioplayer.glib_timer)
 
-		self.tab_one.next_song()
 
+      if self.notebook_tab_audioplayer.player:
+         self.notebook_tab_audioplayer.player.set_state(Gst.State.NULL)
+         self.notebook_tab_audioplayer.player = None
 
+      self.notebook_tab_audioplayer.play_timer_stop()
 
+      self.process_all_killer()
 
-	def process_all_killer(self):
-	
-		if self.p2.p1.settings['Debug']==1:
-			print 'def process_all_killer - start'
+      Gtk.main_quit()
 
-		for item in self.process_database:
-			if self.process_database[item]['status']=='active':
-				try:
-					os.kill(int(self.process_database[item]['pid']), signal.SIGINT)
-				except:
-					pass
 
 
+   def ReSize(self, widget, data):
 
+      (width,height) = self.get_size()
+      (position_x, position_y) = self.get_position()
 
-	def process_job_killer(self, job):
+      #if self.settings['Debug']==1:
+      #   print ('def Resize - width: %s height: %s position_x: %s position_y: %s' % (width, height, position_x, position_y))
 
-		if self.p2.p1.settings['Debug']==1:
-			print 'def process_job_killer - start'
+      self.settings['Temp_Size_X']=width
+      self.settings['Temp_Size_Y']=height
+      self.settings['Temp_Position_X'] = position_x
+      self.settings['Temp_Position_Y'] = position_y
 
-		for item in self.process_database:
-			if self.process_database[item]['status']=='active':
-				if self.process_database[item]['job']==job:
-					try:
-						os.kill(int(self.process_database[item]['pid']), signal.SIGINT)
-						self.process_database[item]['status']='killed'
-					except:
-						pass
 
-					if self.p2.p1.settings['Debug']==1:
-						if self.process_database[item]['status']=='killed':
-							print 'def process_job_killer - job: %s killed pid: %s' % (self.process_database[item]['job'],self.process_database[item]['pid'])
-						else:
-							print 'def process_job_killer - job: %s cannot kill pid: %s' % (self.process_database[item]['job'],self.process_database[item]['pid'])
 
+   def on_destroy(self, data, event):
+      if self.settings['Debug']==1:
+         print ('def on_destroy - start')
+      self.clean_shutdown()
 
 
+   def on_reset_close(self):
+      if self.settings['Debug']==1:
+         print ('def on_reset_close - start')
+      self.clean_shutdown()
+      sys.exit()
 
-	def process_starter(self, cmd=[], cwd='', job='', identifier='', source=''):
 
-		self.pnum+=1
-		k = {self.pnum: {	'status': 'active',
-								'job': job,
-								'todo': '',
-								'source': source,
-								'identifier': identifier,
-								'output': []}}
 
-		self.process_database.update(k)
+   def clean_shutdown(self):
 
+      if hasattr(self.notebook_tab_audioplayer, 'glib_timer_refresh_slider'):
+         GLib.source_remove(self.notebook_tab_audioplayer.glib_timer_refresh_slider)
 
-		if self.p2.p1.settings['Debug']==1:
-			print 'def process_starter start'
+      if hasattr(self.notebook_tab_streamripper, 'glib_timer_streamripper'):
+         GLib.source_remove(self.notebook_tab_streamripper.glib_timer_streamripper)
 
-		try:
-			thread = threading.Thread(target=self.process, args=(cmd, cwd, self.pnum, self.process_database))
-			thread.setDaemon(True)
-			thread.start()
-		except Exception as e:
-			if self.p2.p1.settings['Debug']==1:
-				print 'def process_starter error: %s' % str(e)
 
+      if self.notebook_tab_audioplayer.player:
+         self.notebook_tab_audioplayer.player.set_state(Gst.State.NULL)
+         self.notebook_tab_audioplayer.player = None
 
+      self.notebook_tab_audioplayer.play_timer_stop()
+      self.process_all_killer()
 
-	def process(self, cmd=[], cwd='', pnum='', process_database={}):
 
-		if self.p2.p1.settings['Debug']==1:
-			print 'def process start cmd: %s cwd: %s' % (cmd,cwd)
 
+   def process_all_killer(self):
+   
+      if self.settings['Debug']==1:
+         print ('def process_all_killer - start')
 
-		output_list=[]
-		output_str=''
-		process_pid=''
-		i=0
+      for item in self.process_database:
+         if self.process_database[item]['status']=='active':
+            try:
+               os.kill(int(self.process_database[item]['pid']), signal.SIGINT)
+            except:
+               pass
 
-		try:			
-			process = subprocess.Popen(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False, close_fds=True)
 
-			# add PID
-			if self.p2.p1.settings['Debug']==1:
-				print 'def process: add pid %s' % process.pid
-			process_database[pnum]['pid']=process.pid
 
 
-			while True:
+   def process_job_killer(self, job):
 
-				line = process.stdout.readline(20)
-				output_str=output_str+str(line)
+      if self.settings['Debug']==1:
+         print ('def process_job_killer - start')
 
-				out = output_str.split('\n')
-				if len(out)<2:
-					out = output_str.split('\r')
+      for item in self.process_database:
+         if self.process_database[item]['status']=='active':
+            if self.process_database[item]['job']==job:
+               try:
+                  os.kill(int(self.process_database[item]['pid']), signal.SIGINT)
+                  self.process_database[item]['status']='killed'
+               except:
+                  pass
 
-				if len(out)>=2:
-					output_list.extend(out[:-1])
-					for item in out[:-1]:
-						process_database[pnum]['todo']='show'
-						process_database[pnum]['output'].extend([item])
+               if self.settings['Debug']==1:
+                  if self.process_database[item]['status']=='killed':
+                     print ('def process_job_killer - job: %s killed pid: %s' % (self.process_database[item]['job'],self.process_database[item]['pid']))
+                  else:
+                     print ('def process_job_killer - job: %s cannot kill pid: %s' % (self.process_database[item]['job'],self.process_database[item]['pid']))
 
-					output_str=out[-1]
 
-				if not line:
-					if process_database[pnum]['todo']!='nooutput':
-						process_database[pnum]['todo']='nooutput'
 
-						if self.p2.p1.settings['Debug']==1:
-							print 'def process - break'
-						break
 
 
-			wait_erg=process.wait()
-			if wait_erg==0:
-				process_database[pnum]['result']=True
-			else:
-				process_database[pnum]['result']=False
+   def process_starter(self, cmd=[], cwd='', job='', identifier='', source=''):
 
+      self.pnum+=1
+      k = {self.pnum: { 'status': 'active',
+                        'job': job,
+                        'todo': '',
+                        'source': source,
+                        'identifier': identifier,
+                        'output': []}}
 
-		except Exception as e:
-			if self.p2.p1.settings['Debug']==1:
-				print 'def process error: %s job: %s' % (str(e),process_database[pnum]['job'])
+      self.process_database.update(k)
 
 
-		if self.p2.p1.settings['Debug']==1:
-			print 'def process job %s done' % process_database[pnum]['job']
-		process_database[pnum]['todo']='result'
+      if self.settings['Debug']==1:
+         print ('def process_starter start')
 
 
 
+      try:
+         thread = threading.Thread(target=self.process, args=(cmd, cwd, self.pnum, self.process_database))
+         thread.setDaemon(True)
+         thread.start()
+      except Exception as e:
+         if self.settings['Debug']==1:
+            print ('def process_starter error: %s' % str(e))
 
 
 
-	def ipc_server(self):
-		if self.p2.p1.settings['Debug']==1:
-			print 'def ipc_server - thread start'
 
-		for num in range(0,10):
+   def process(self, cmd=[], cwd='', pnum='', p_database={}):
 
-			self.p2.p1.settings['Ipc_Port'] = self.p2.p1.settings['Ipc_Port'] + num
+      if self.settings['Debug']==1:
+         print ('def process start cmd: %s cwd: %s' % (cmd,cwd))
 
-			try:
-				sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-				sock.bind(('localhost', self.p2.p1.settings['Ipc_Port']))
-				sock.listen(1)
-				#sock.setblocking(0)
-				#sock.settimeout(10)
-				break
-			except:
-				if self.p2.p1.settings['Debug']==1:
-					print 'def ipc_server - thread port is probably blocked -> try next port'
 
+      output_list=[]
+      output_str=''
+      process_pid=''
+      i=0
 
-		if self.p2.p1.settings['Debug']==1:
-			print 'def ipc_server - thread listen on port: %s' % self.p2.p1.settings['Ipc_Port']
+      # cmd: ['streamripper', 'http://stream.freefm.de:8100/listen.pls', '-u', 'WinampMPEG/5.0', '-d', '/MyDisc/Audio/Neu/Streamripper']
+      # cwd: /MyDisc/Audio/Neu/Streamripper
 
 
+      try:
+ 
+         process = subprocess.Popen(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False, close_fds=True)
 
-		while True:
+         # add PID
+         if self.settings['Debug']==1:
+            print ('def process: add pid %s' % process.pid)
+         p_database[pnum]['pid']=process.pid
 
-			os.kill(self.p2.p1.settings['Mainpid'], signal.SIGUSR1)
 
-			connection, client_address = sock.accept()
 
-			try:
-				while True:
-					data = connection.recv(130)
-					if data:
-						if self.p2.p1.settings['Debug']==1:
-							print 'def ipc_server - thread received "%s"' % data
-						self.p2.p1.settings['Play_Num'] = 1
-						self.p2.p1.playlist = {self.p2.p1.settings['Play_Num']:data}
-					else:
-						if self.p2.p1.settings['Debug']==1:
-							print 'def ipc_server - thread send SIGUSR1 to pid: %s type: %s' % (self.p2.p1.settings['Mainpid'],type(self.p2.p1.settings['Mainpid']))
-						# play one song
-						break
+         while True:
 
-				if self.p2.p1.settings['Debug']==1:
-					print 'def ipc_server - thread wait...'
+            line = process.stdout.readline(20)
 
-			finally:
-				connection.close()
+            line = line.decode("utf-8", 'ignore')
 
 
+            output_str = output_str + line
 
-class Music_Admin_Frame(wx.Frame):
+            out = output_str.split('\n')
+            if len(out)<2:
+               out = output_str.split('\r')
 
-	def __init__(self, p1):
-		self.p1 = p1
+            if len(out)>=2:
+               output_list.extend(out[:-1])
+               for item in out[:-1]:
+                  p_database[pnum]['todo']='show'
+                  p_database[pnum]['output'].extend([item])
 
-		wx.Frame.__init__(self, None, wx.ID_ANY, self.p1.settings['Name'].title())
+               output_str=out[-1]
 
-		self.Bind(wx.EVT_CLOSE, self.OnClose)
-		self.Bind(wx.EVT_MOVE, self.OnMove)
+            if not line:
+               if p_database[pnum]['todo']!='nooutput':
+                  p_database[pnum]['todo']='nooutput'
 
-		panel = wx.Panel(self)
-		self.admin_gui = Music_Admin_GUI(self, panel)
+                  if self.settings['Debug']==1:
+                     print ('def process - break')
+                  break
 
-		sizer = wx.BoxSizer(wx.VERTICAL)
 
-		sizer.Add(self.admin_gui, 1, wx.EXPAND, 5)
+         wait_erg=process.wait()
+         if wait_erg==0:
+            p_database[pnum]['result']=True
+         else:
+            p_database[pnum]['result']=False
 
-		panel.SetSizer(sizer)
-		self.Layout()
-		self.Show()
+ 
+      except Exception as e:
+         if self.settings['Debug']==1:
+            print ('def process error: %s job: %s' % (str(e),p_database[pnum]['job']))
 
 
-	def OnMove(self, event):
-		self.p1.settings['Position_X'], self.p1.settings['Position_Y'] = event.GetPosition()
 
+    
 
+      if self.settings['Debug']==1:
+         print ('def process job %s done' % p_database[pnum]['job'])
+      p_database[pnum]['todo']='result'
 
-	def OnClose(self, event):
 
-		if self.p1.settings['Debug']==1:
-			print 'def OnClose - start'
 
-		self.admin_gui.tab_one.mediaPlayer.Stop()
-		self.admin_gui.tab_one.mediaPlayer.Close()
+      
+   def ipc_server(self):
+      if self.settings['Debug']==1:
+         print ('def ipc_server - thread start')
 
-		self.admin_gui.tab_one.play_timer_stop()
-		self.admin_gui.tab_one.slider_timer.Stop()
+      for num in range(0,10):
 
-		if hasattr(self.admin_gui.tab_two, 'refresh_timer'):
-			self.admin_gui.tab_two.refresh_timer.Stop()
-		if hasattr(self.admin_gui.tab_three, 'refresh_timer'):
-			self.admin_gui.tab_three.refresh_timer.Stop()
-		if hasattr(self.admin_gui.tab_four, 'refresh_timer'):
-			self.admin_gui.tab_four.refresh_timer.Stop()
+         self.settings['Ipc_Port'] = self.settings['Ipc_Port'] + num
 
+         try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.bind(('localhost', self.settings['Ipc_Port']))
+            sock.listen(1)
+            #sock.setblocking(0)
+            #sock.settimeout(10)
+            break
+         except:
+            if self.settings['Debug']==1:
+               print ('def ipc_server - thread port is probably blocked -> try next port')
 
-		self.admin_gui.process_all_killer()
 
+      if self.settings['Debug']==1:
+         print ('def ipc_server - thread listen on port: %s' % self.settings['Ipc_Port'])
 
-		# Save new Size / Position
-		if not os.path.exists('%s/.config/%s' % (os.environ['HOME'], self.p1.settings['Name'])):
-			os.mkdir('%s/.config/%s' % (os.environ['HOME'], self.p1.settings['Name']), 0755 );
-		f = open('%s/.config/%s/settings.xml' % (os.environ['HOME'], self.p1.settings['Name']), 'w')
-		f.write('<?xml version="1.0"?>\n')
-		f.write('<data>\n')
-		for item1 in self.p1.settings:
-			f.write('\t<' + str(item1) + '>' + str(self.p1.settings[item1]) + '</' + str(item1) + '>\n')
-		f.write('</data>\n')
-		f.close()
 
 
-		if self.p1.settings['Debug']==1:
-			print 'def OnClose - try to destroy'
+      while True:
 
-		self.Destroy()
+         os.kill(self.settings['Mainpid'], signal.SIGUSR1)
 
+         (connection, client_address) = sock.accept()
 
+         try:
+            while True:
+               data = connection.recv(130)
+               if data:
+                  data = data.decode()
+                  if self.settings['Debug']==1:
+                     print ('def ipc_server - thread received "%s"' % data)
+                  self.settings['Play_Num'] = 1
+                  self.playlist = {self.settings['Play_Num']:data}
+                  if self.settings['Debug']==1:
+                     print ('def ipc_server - new playlist "%s"' % str(self.playlist))
+               else:
+                  if self.settings['Debug']==1:
+                     print ('def ipc_server - thread send SIGUSR1 to pid: %s type: %s' % (self.settings['Mainpid'],type(self.settings['Mainpid'])))
+                  # play one song
+                  break
 
-class Music_Admin_Start():
+            if self.settings['Debug']==1:
+               print ('def ipc_server - thread wait...')
 
-	def __init__(self, settings, playlist, stationlist):
-		self.settings = settings
-		self.playlist = playlist
-		self.stationlist = stationlist
-
-
-	def start(self):
-
-		self.app = wx.App()
-		self.frame = Music_Admin_Frame(self)
-
-		self.frame.SetIcon(wx.Icon('%s/audok.ico' % self.settings['Path'] , wx.BITMAP_TYPE_ICO))
-		self.frame.Show(True)
-		self.frame.SetDimensions(self.settings['Position_X'],self.settings['Position_Y'],self.settings['Size_X'],self.settings['Size_Y'])
-
-
-		self.app.MainLoop()
+         finally:
+            connection.close()
 
 

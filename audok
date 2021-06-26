@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 import os
@@ -9,294 +9,345 @@ import subprocess
 import pwd
 import xml.etree.ElementTree
 import main
+import gi
+
+gi.require_version('Gst', '1.0')
+from gi.repository import Gst
+gi.require_version('Gdk', '3.0')
+from gi.repository import Gdk
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk
 
 
 
 def startup_notification_workaround():
-	# https://specifications.freedesktop.org/startup-notification-spec/startup-notification-0.1.txt
-	import gi
-	gi.require_version('Gdk', '3.0')
-	from gi.repository import Gdk
-	Gdk.notify_startup_complete()
+   # https://specifications.freedesktop.org/startup-notification-spec/startup-notification-0.1.txt
+   Gdk.notify_startup_complete()
 
 
 
 def stations_xml():
 
-	if os.path.exists('%s/.config/audok/stations.xml' % os.environ['HOME']):
+   if os.path.exists('%s/.config/audok/stations.xml' % os.environ['HOME']):
 
-		stationlist = []
+      if settings['Debug']==1:
+         print ('def stations_xml - read stations.xml')
 
-		try:
-			tree = xml.etree.ElementTree.parse('%s/.config/audok/stations.xml' % os.environ['HOME'])
-			root = tree.getroot()
+      stationlist = []
 
-			for child in root:
+      try:
+         tree = xml.etree.ElementTree.parse('%s/.config/audok/stations.xml' % os.environ['HOME'])
+         root = tree.getroot()
 
-				try:
-					child[0].text.strip()
-					child[1].text.strip()
-					child[2].text.strip()
-				except:
-					pass
+         for child in root:
 
-				stationlist.extend([[child[0].text,child[1].text,child[2].text]])
+            try:
+               child[0].text.strip()
+               child[1].text.strip()
+               child[2].text.strip()
+            except:
+               pass
 
-		except:
-			if settings['Debug']==1:
-				print '- main wrong format stations.xml -> backup'
-			for i in range(1,100):
-				if not os.path.exists('%s/.config/audok/stations.xml.%s.bak' % (os.environ['HOME'],str(i))):
-					os.rename('%s/.config/audok/stations.xml' % os.environ['HOME'], '%s/.config/audok/stations.xml.%s.bak' % (os.environ['HOME'],i))
-					break
+            stationlist.extend([[child[0].text,child[1].text,child[2].text]])
+
+      except:
+         if settings['Debug']==1:
+            print ('- main wrong format stations.xml -> backup')
+         for i in range(1,100):
+            if not os.path.exists('%s/.config/audok/stations.xml.%s.bak' % (os.environ['HOME'],str(i))):
+               os.rename('%s/.config/audok/stations.xml' % os.environ['HOME'], '%s/.config/audok/stations.xml.%s.bak' % (os.environ['HOME'],i))
+               break
 
 
 
-	if not os.path.exists('%s/.config/audok/stations.xml' % os.environ['HOME']):
+   if not os.path.exists('%s/.config/audok/stations.xml' % os.environ['HOME']):
 
-		stationlist =  [['Alternative', 'Radio freeFM Ulm', 'http://stream.freefm.de:8100/listen.pls'],
-								['Alternative', 'FM 4 at', 'http://mp3stream1.apasf.apa.at'],
-								['Alternative', 'Zeilsteen Radio', 'http://62.212.74.223:7052'],
+      if settings['Debug']==1:
+         print ('use predifined stations instead of stations.xml')
 
-								['Mix', 'Pirate Radio Bayern', 'http://78.46.126.219:8000/stream'],
-								['Mix', '1.FM - Gorilla FM', 'http://185.33.21.112:80/gorillafm_128'],
+      stationlist =  [  ['Alternative', 'Radio freeFM Ulm', 'http://stream.freefm.de:8100/listen.pls'],
+                        ['Alternative', 'FM 4 at', 'http://mp3stream1.apasf.apa.at'],
+                        ['Alternative', 'Zeilsteen Radio', 'http://62.212.74.223:7052'],
 
-								['Electro', 'radio Top 40 Weimar Clubsound', 'http://antenne-th.divicon-stream.net/antth_top40electro_JlSz-mp3-192?sABC=58p2q700%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
-								['Electro', 'Sunshine Live','http://sunshinelive.hoerradar.de/sunshinelive-live-mp3-hq'],
+                        ['Mix', 'Pirate Radio Bayern', 'http://78.46.126.219:8000/stream'],
+                        ['Mix', '1.FM - Gorilla FM', 'http://185.33.21.112:80/gorillafm_128'],
 
-								['Chipc_serverarts', 'radio Top 40 Weimar Charts', 'http://antenne-th.divicon-stream.net/antth_top40char_0f6x-mp3-192?sABC=58p2q6s8%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
-								['Charts', 'Top 100 Station','http://www.top100station.de/switch/r3472.pls'],
-								['Charts', 'radio Top 40 Weimar Live', 'http://antenne-th.divicon-stream.net/antth_top40live_SeJx-mp3-192?sABC=58p2q6rq%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
-								['Charts', '"TOP 20" Radio', 'http://listen.radionomy.com:80/-TOP20-Radio'],
+                        ['Electro', 'radio Top 40 Weimar Clubsound', 'http://antenne-th.divicon-stream.net/antth_top40electro_JlSz-mp3-192?sABC=58p2q700%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
+                        ['Electro', 'Sunshine Live','http://sunshinelive.hoerradar.de/sunshinelive-live-mp3-hq'],
 
-								['80s', '80s New Wave','http://yp.shoutcast.com/sbin/tunein-station.pls?id=99180471'],
+                        ['Chipc_serverarts', 'radio Top 40 Weimar Charts', 'http://antenne-th.divicon-stream.net/antth_top40char_0f6x-mp3-192?sABC=58p2q6s8%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
+                        ['Charts', 'Top 100 Station','http://www.top100station.de/switch/r3472.pls'],
+                        ['Charts', 'radio Top 40 Weimar Live', 'http://antenne-th.divicon-stream.net/antth_top40live_SeJx-mp3-192?sABC=58p2q6rq%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
+                        ['Charts', '"TOP 20" Radio', 'http://listen.radionomy.com:80/-TOP20-Radio'],
 
-								['Pop', 'Pophits Station', 'http://yp.shoutcast.com/sbin/tunein-station.pls?id=99183408'],
-								['Pop', 'Bailiwick Radio_00s', 'http://listen.radionomy.com:80/BailiwickRadio-00s'],
-								['Pop', 'Antenne 1','http://stream.antenne1.de/stream1/livestream.mp3'],
-								['Pop', 'Antenne Bayern Fresh4You', 'http://mp3channels.webradio.antenne.de/fresh'],
+                        ['80s', '80s New Wave','http://yp.shoutcast.com/sbin/tunein-station.pls?id=99180471'],
 
-								['Rap', 'WHOA UK!!!!', 'http://listen.radionomy.com:80/WHOAUK----'],
+                        ['Pop', 'Pophits Station', 'http://yp.shoutcast.com/sbin/tunein-station.pls?id=99183408'],
+                        ['Pop', 'Bailiwick Radio_00s', 'http://listen.radionomy.com:80/BailiwickRadio-00s'],
+                        ['Pop', 'Antenne 1','http://stream.antenne1.de/stream1/livestream.mp3'],
+                        ['Pop', 'Antenne Bayern Fresh4You', 'http://mp3channels.webradio.antenne.de/fresh'],
 
-								['None', '', ''],
-								['None', '', ''],
-								['None', '', ''],
-								['None', '', '']]
+                        ['Rap', 'WHOA UK!!!!', 'http://listen.radionomy.com:80/WHOAUK----'],
 
-	return stationlist
+                        ['None', '', ''],
+                        ['None', '', ''],
+                        ['None', '', ''],
+                        ['None', '', '']]
+
+   return stationlist
 
 
 
 
 def settings_xml():
 
-	if os.path.exists('%s/.config/audok/settings.xml' % os.environ['HOME']):
-
-		settings = {}
-
-		try:
-			tree = xml.etree.ElementTree.parse('%s/.config/audok/settings.xml' % os.environ['HOME'])
-			root = tree.getroot()
-
-			for child in root:
+   if os.path.exists('%s/.config/audok/settings.xml' % os.environ['HOME']):
 
 
-				if child.text is None:
-					child.text=''
-				child.text.strip()
+      settings = {}
 
-			
-				if child.tag=='Name':
-					settings['Name']=child.text
-				if child.tag=='Path':
-					settings['Path']=child.text		
-				if child.tag=='Play_Num':
-					try:
-						settings['Play_Num']=int(child.text)
-					except:
-						settings['Play_Num']=0
-				if child.tag=='Mainpid':
-					try:
-						settings['Mainpid']=int(child.text)
-					except:
-						settings['Mainpid']=0
-				if child.tag=='Play':
-					settings['Play']=child.text
-				if child.tag=='Loop':
-					settings['Loop']=child.text
-				if child.tag=='Auto_mv_Old':
-					settings['Auto_mv_Old']=child.text
-				if child.tag=='Play_Time':
-					settings['Play_Time']=child.text
-				if child.tag=='Random_Time':
-					settings['Random_Time']=child.text
-				if child.tag=='Choice_Random_Time':
-					settings['Choice_Random_Time']=child.text
-				if child.tag=='Choice_Play_Time':
-					settings['Choice_Play_Time']=child.text
-				if child.tag=='Choice_File2mp3_Bitrate':
-					settings['Choice_File2mp3_Bitrate']=child.text
-				if child.tag=='Record2wav_Default_Wav_Filename':
-					settings['Record2wav_Default_Wav_Filename']=child.text
-				if child.tag=='Version':
-					settings['Version']=child.text
-				if child.tag=='Debug':
-					try:
-						settings['Debug']=int(child.text)
-					except:
-						settings['Debug']=0
-				if child.tag=='Ipc_Port':
-					try:
-						settings['Ipc_Port']=int(child.text)
-					except:
-						settings['Ipc_Port']=0
-				if child.tag=='Dlna_Filter':
-					settings['Dlna_Filter']=child.text
-				if child.tag=='Dlna_Port':
-					try:
-						settings['Dlna_Port']=int(child.text)
-					except:
-						settings['Dlna_Port']=0
-				if child.tag=='Directory_New':
-					settings['Directory_New']=child.text
-				if child.tag=='Directory_Old':
-					settings['Directory_Old']=child.text
-				if child.tag=='Directory_Streamripper':
-					settings['Directory_Streamripper']=child.text
-				if child.tag=='Directory_Open_Filebrowser':
-					settings['Directory_Open_Filebrowser']=child.text
-				if child.tag=='File2mp3_Bitrate':
-					settings['File2mp3_Bitrate']=child.text
-				if child.tag=='Size_X':
-					try:
-						settings['Size_X']=int(child.text)
-					except:
-						settings['Size_X']=0
-				if child.tag=='Size_Y':
-					try:
-						settings['Size_Y']=int(child.text)
-					except:
-						settings['Size_Y']=0
-				if child.tag=='Position_X':
-					try:
-						settings['Position_X']=int(child.text)
-					except:
-						settings['Position_X']=0
-				if child.tag=='Position_Y':
-					try:
-						settings['Position_Y']=int(child.text)
-					except:
-						settings['Position_Y']=0
+      try:
+         tree = xml.etree.ElementTree.parse('%s/.config/audok/settings.xml' % os.environ['HOME'])
+         root = tree.getroot()
+
+         for child in root:
 
 
-		except:
-			for i in range(1,100):
-				if not os.path.exists('%s/.config/audok/settings.xml.%s.bak' % (os.environ['HOME'],i)):
-					os.rename('%s/.config/audok/settings.xml' % os.environ['HOME'], '%s/.config/audok/settings.xml.%s.bak' % (os.environ['HOME'],i))
-					break
+            if child.text is None:
+               child.text=''
+            child.text.strip()
+
+         
+            if child.tag=='Name':
+               settings['Name']=child.text
+            if child.tag=='Path':
+               settings['Path']=child.text      
+            if child.tag=='Play_Num':
+               try:
+                  settings['Play_Num']=int(child.text)
+               except:
+                  settings['Play_Num']=0
+            if child.tag=='Mainpid':
+               try:
+                  settings['Mainpid']=int(child.text)
+               except:
+                  settings['Mainpid']=0
+            if child.tag=='Loop':
+               settings['Loop']=child.text
+            if child.tag=='Play_Time':
+               settings['Play_Time']=child.text
+            if child.tag=='Random_Time':
+               settings['Random_Time']=child.text
+            if child.tag=='Choice_Random_Time':
+               settings['Choice_Random_Time']=child.text
+            if child.tag=='Choice_Play_Time':
+               settings['Choice_Play_Time']=child.text
+            if child.tag=='Choice_File2mp3_Bitrate':
+               settings['Choice_File2mp3_Bitrate']=child.text
+            if child.tag=='Record2wav_Default_Wav_Filename':
+               settings['Record2wav_Default_Wav_Filename']=child.text
+            if child.tag=='Version':
+               settings['Version']=child.text
+            if child.tag=='Debug':
+               try:
+                  settings['Debug']=int(child.text)
+               except:
+                  settings['Debug']=0
+            if child.tag=='Ipc_Port':
+               try:
+                  settings['Ipc_Port']=int(child.text)
+               except:
+                  settings['Ipc_Port']=0
+            if child.tag=='Dlna_Filter':
+               settings['Dlna_Filter']=child.text
+            if child.tag=='Dlna_Port':
+               try:
+                  settings['Dlna_Port']=int(child.text)
+               except:
+                  settings['Dlna_Port']=0
+            if child.tag=='Directory_New':
+               settings['Directory_New']=child.text
+            if child.tag=='Directory_Old':
+               settings['Directory_Old']=child.text
+            if child.tag=='Directory_Streamripper':
+               settings['Directory_Streamripper']=child.text
+            if child.tag=='File2mp3_Bitrate':
+               settings['File2mp3_Bitrate']=child.text
+            if child.tag=='Size_X':
+               try:
+                  settings['Size_X']=int(child.text)
+               except:
+                  settings['Size_X']=0
+            if child.tag=='Size_Y':
+               try:
+                  settings['Size_Y']=int(child.text)
+               except:
+                  settings['Size_Y']=0
+            if child.tag=='Position_X':
+               try:
+                  settings['Position_X']=int(child.text)
+               except:
+                  settings['Position_X']=0
+            if child.tag=='Position_Y':
+               try:
+                  settings['Position_Y']=int(child.text)
+               except:
+                  settings['Position_Y']=0
 
 
-	if not os.path.exists('%s/.config/audok/settings.xml' % os.environ['HOME']):
+      except:
+         for i in range(1,100):
+            if not os.path.exists('%s/.config/audok/settings.xml.%s.bak' % (os.environ['HOME'],i)):
+               os.rename('%s/.config/audok/settings.xml' % os.environ['HOME'], '%s/.config/audok/settings.xml.%s.bak' % (os.environ['HOME'],i))
+               break
 
-		settings = {'Name': 'audok',
-						'Version': '',
-						'Path': '/opt/audok',
-						'Debug': 0,
-						'Loop': 'True',
-						'Auto_mv_Old': 'True',
-						'Play_Num': 1,
-						'Play': 'file',
-						'Size_X': 980,
-						'Size_Y': 400,
-						'Position_X': 0,
-						'Position_Y': 0,
-						'Mainpid': os.getpid(),
-						'Ipc_Port': 10000,
-						'Directory_New': '/home/%s/Musik/New' % pwd.getpwuid(os.getuid())[0],
-						'Directory_Old': '/home/%s/Musik/Old' % pwd.getpwuid(os.getuid())[0],
-						'Directory_Streamripper': '/home/%s/Music/Streamripper' % pwd.getpwuid(os.getuid())[0],
-						'Directory_Open_Filebrowser':  '',
-						'Dlna_Port': 10921,
-						'Dlna_Filter': '',
-						'Play_Time': '0',
-						'Choice_Play_Time': '0,20,35,50,65',
-						'Random_Time': '0',
-						'Choice_Random_Time': '0,10-30,30-50,50-70,70-90',
-						'File2mp3_Bitrate': '192k',
-						'Choice_File2mp3_Bitrate': '128k,192k,224k,320k',
-						'Record2wav_Default_Wav_Filename': 'parecord'}
 
-	return settings
+   if not os.path.exists('%s/.config/audok/settings.xml' % os.environ['HOME']):
+
+      settings = {'Name': 'audok',
+                  'Version': '',
+                  'Path': '/opt/audok',
+                  'Debug': 0,
+                  'Loop': 'True',
+                  'Play_Num': 1,
+                  'Size_X': 1000,
+                  'Size_Y': 500,
+                  'Position_X': 0,
+                  'Position_Y': 0,
+                  'Temp_Size_X': 0,
+                  'Temp_Size_Y': 0,
+                  'Temp_Position_X': 0,
+                  'Temp_Position_Y': 0,
+                  'Mainpid': os.getpid(),
+                  'Ipc_Port': 10001,
+                  'Directory_New': '/home/%s/Musik/New' % pwd.getpwuid(os.getuid())[0],
+                  'Directory_Old': '/home/%s/Musik/Old' % pwd.getpwuid(os.getuid())[0],
+                  'Directory_Streamripper': '/home/%s/Music/Streamripper' % pwd.getpwuid(os.getuid())[0],
+                  'Dlna_Port': 10921,
+                  'Dlna_Filter': '',
+                  'Play_Time': '0',
+                  'Choice_Play_Time': '0,20,35,50,65',
+                  'Random_Time': '0',
+                  'Choice_Random_Time': '0,10-30,30-50,50-70,70-90',
+                  'File2mp3_Bitrate': '192k',
+                  'Choice_File2mp3_Bitrate': '128k,192k,224k,320k',
+                  'Record2wav_Default_Wav_Filename': 'parecord'}
+
+   return settings
 
 
 
 
 if __name__ == '__main__':
 
-	playlist = {}
+   playlist = {}
 
-	settings = settings_xml()
-
-	# overwrite
-	settings['Mainpid'] = os.getpid()
-	settings['Debug'] = 0
-	#settings['Debug'] = 1
-	settings['Random_Time'] = '0'
-	settings['Play_Time'] = '0'
-	settings['Loop'] = 'True'
-	settings['Auto_mv_Old'] = 'True'
-	settings['Version'] = '0.6.4'
+   settings = settings_xml()
 
 
-	(p1,p2) = os.path.split(os.path.realpath(sys.argv[0]))
-	settings['Path'] = p1
-
-	
-	if settings['Debug']==1:
-		print '- main version: %s path: %s pid: %s cwd: %s' % (settings['Version'],settings['Path'],settings['Mainpid'],os.getcwd())
+   # overwrite
+   settings['Mainpid'] = os.getpid()
+   settings['Random_Time'] = '0'
+   settings['Play_Time'] = '0'
+   settings['Loop'] = 'True'
+   settings['Version'] = '0.6.5'
+   if sys.stdin.isatty():
+      settings['Debug'] = 1
 
 
 
-	if len(sys.argv)>=2:
-		if os.path.join(sys.argv[1]):
-			playlist = {settings['Play_Num']:sys.argv[1]}
+
+   #Test dialogWindow:
+   #dialogWindow = Gtk.MessageDialog(self, Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.QUESTION, Gtk.ButtonsType.OK_CANCEL, "test")
+   #dialogWindow.show_all()
+
+
+   (p1,p2) = os.path.split(os.path.realpath(sys.argv[0]))
+   settings['Path'] = p1
+
+   
+   if settings['Debug']==1:
+      print ('- main version: %s path: %s pid: %s cwd: %s' % (settings['Version'],settings['Path'],settings['Mainpid'],os.getcwd()))
 
 
 
-	# pidof
-	pids=[]
-	try:
-		erg = subprocess.check_output(['pidof','-x',settings['Name']],shell=False, close_fds=True)
-		pids = erg.split()
-		pids.remove(str(settings['Mainpid']))
-	except Exception as e:
-		if settings['Debug']==1:
-			print '- main pidof error: %s' % str(e)
+   if len(sys.argv)>=2:
+      if os.path.join(sys.argv[1]):
+         playlist = {settings['Play_Num']:sys.argv[1]}
 
 
-	# if audok is running + playlist
-	if len(pids)>0 and len(playlist)>0:
+   # pidof
+   pids=[]
+   try:
+      erg = subprocess.check_output(['pidof','-x',settings['Name']], shell=False, close_fds=True)
+      if settings['Debug']==1:
+         print ('- main pidof erg: %s' % str(erg))
+      erg = erg.decode()
+      pids = erg.split()
+      if settings['Debug']==1:
+         print ('- main pidof pids: %s' % str(pids))
 
-		if settings['Debug']==1:
-			print '- main %s is already running -> try send file: %s via socket' % (settings['Name'],playlist[settings['Play_Num']])
+      pids.remove(str(settings['Mainpid']))
+   except Exception as e:
+      if settings['Debug']==1:
+         print ('- main pidof error: %s' % str(e))
 
-		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		sock.connect(('localhost', settings['Ipc_Port']))
-		try:
-			sock.sendall(playlist[settings['Play_Num']])
-		finally:
-			sock.close()
 
-		startup_notification_workaround()
-		sys.exit(0)
 
-	else:
+   # if audok is running + playlist
+   if len(pids)>0 and len(playlist)>0:
 
-		if settings['Debug']==1:
-			print '- main %s try to start -> Music_Admin_Start' % settings['Name']
 
-		stationlist = stations_xml()
+      if settings['Debug']==1:
+         print ('- main %s is already running -> try send file: %s via socket' % (settings['Name'],playlist[settings['Play_Num']]))
 
-		madmin = main.Music_Admin_Start(settings, playlist, stationlist)
-		madmin.start()
 
+
+      sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      sock.connect(('localhost', settings['Ipc_Port']))
+      try:
+         sock.sendall(playlist[settings['Play_Num']].encode())
+      finally:
+         sock.close()
+
+
+      startup_notification_workaround()
+      sys.exit(0)
+
+   else:
+
+      if settings['Debug']==1:
+         print ('- main %s try to start -> Music_Admin_Start' % settings['Name'])
+
+
+      stationlist = stations_xml()
+
+
+      css = b"""
+.scale.trough {
+    background-color: #ff0000;
+    color: #ff0000;
+}
+.scale.trough.highlight {
+    /*background-color: #df784e;*/
+    background-color: #02FF00;
+    background-image: none;
+    background-clip: content-box;
+}
+      """
+
+
+      #style_provider = Gtk.CssProvider()
+      #style_provider.load_from_data(css)
+
+      Gtk.init()
+      #Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(),style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+      
+      win = main.Music_Admin_Start(settings, playlist, stationlist)
+      win.connect('destroy', Gtk.main_quit)
+      win.connect('delete-event', win.on_destroy)
+      win.connect('configure-event', win.ReSize)
+
+
+      win.show_all()
+      Gtk.main()

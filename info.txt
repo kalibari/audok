@@ -1,26 +1,29 @@
 Start:
-cd /MyDisc/Entwicklung/Python/Python-Audok/audok/
+cd /MyDisc/Entwicklung/Python/Python-Audok/trunk/
 ./audok
 
 
 
+
+#https://developer.gnome.org/gtk3/stable/ch03.html
+#http://python-gtk-3-tutorial.readthedocs.io/en/latest/layout.html
+#http://brettviren.github.io/pygst-tutorial-org/pygst-tutorial.html
+#https://gstreamer.freedesktop.org/data/doc/gstreamer/head/gst-plugins-base-plugins/html/gst-plugins-base-plugins-playbin.html
+#https://github.com/gkralik/python-gst-tutorial/blob/master/basic-tutorial-5.py
+#https://stackoverflow.com/questions/37230155/big-raw-video-file-seeking-in-python-gstreamer
+
+
 Test direct play:
-cd /MyDisc/Entwicklung/Python/Python-Audok/audok/
-./audok '/MyDisc/Audio/Pop/C/Christie - Iron Horse.mp3'
+cd /MyDisc/Entwicklung/Python/Python-Audok/trunk/
+./audok '/MyDisc/Audio/Neu/Rea Garvey - Is It Love ft. Kool Savas.mp3'
 
-
-cd /MyDisc/Entwicklung/Python/Python-Audok/audok/
+cd /MyDisc/Entwicklung/Python/Python-Audok/trunk/
 ./audok '/MyDisc/Audio/Rock/ACDC/ACDC - Thunderstruck.mp3'
 
 
-rm -I /home/japplo/.config/audok/settings.xml
-rm -I /home/japplo/.config/audok/stations.xml
-
-
-Problems:
-Problem with gstreamer playback if MPEG passthrough is enabled in pavcontrol
-XFCE: Media playback error: Could not initialise Xv output
-Parole X-Window-Sytsem (No XV)
+#Reset:
+#rm -I /home/japplo/.config/audok/settings.xml
+#rm -I /home/japplo/.config/audok/stations.xml
 
 
 # Help:
@@ -28,46 +31,40 @@ Parole X-Window-Sytsem (No XV)
 # get ('parecord-1','.wav') -> os.path.splitext(os.path.basename('/MyDisc/Audio/Neu/parecord-1.wav'))
 # get parecord-1.wav ->  os.path.basename('/MyDisc/Audio/Neu/parecord-1.wav')
 
-
 --------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------SVN---------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
 #cd /MyDisc/Entwicklung/Python/Python-Audok
 #svnadmin create svnrepo
 #svn import /MyDisc/Entwicklung/Python/Python-Audok/0.6.0 file:///MyDisc/Entwicklung/Python/Python-Audok/svnrepo/trunk -m "version 0.6.0"
-#svn checkout -r 1 file:///MyDisc/Entwicklung/Python/Python-Audok/svnrepo/trunk /MyDisc/Entwicklung/Python/Python-Audok/audok
+#svn checkout -r 1 file:///MyDisc/Entwicklung/Python/Python-Audok/svnrepo/trunk /MyDisc/Entwicklung/Python/Python-Audok/trunk
 
 
-#cd /MyDisc/Entwicklung/Python/Python-Audok/audok
-#cp -r /MyDisc/Entwicklung/Python/Python-Audok/0.6.1/* /MyDisc/Entwicklung/Python/Python-Audok/audok/
+#cd /MyDisc/Entwicklung/Python/Python-Audok/trunk
+#cp -r /MyDisc/Entwicklung/Python/Python-Audok/0.6.1/* /MyDisc/Entwicklung/Python/Python-Audok/trunk/
 #svn add --force * --auto-props --parents --depth infinity -q
 #svn commit -m "Version 0.6.1"
 #svn status
 
 
-#svn log
-#svn checkout -r 1 file:///MyDisc/Entwicklung/Python/Python-Audok/svnrepo/trunk /MyDisc/Entwicklung/Python/Python-Audok/test/
-
-
-cd /MyDisc/Entwicklung/Python/Python-Audok/audok
-svn list
-svn delete .git
-svn delete *.pyc
-svn delete help
-svn add info.txt
-svn commit -m "version 0.6.4, change to svn, update URL for FM4 at, add new stations CampusFM + Zeilsteen Radio"
+#svn checkout -r 5 file:///MyDisc/Entwicklung/Python/Python-Audok/svnrepo/trunk /MyDisc/Entwicklung/Python/Python-Audok/trunk/
+#svn checkout -r 6 file:///MyDisc/Entwicklung/Python/Python-Audok/svnrepo/trunk /MyDisc/Entwicklung/Python/Python-Audok/tags/0.6.4/
 
 
 Create New Version:
 -> change Version in file audok
 -> change README.md Version
 
+
+cd /MyDisc/Entwicklung/Python/Python-Audok/trunk
+svn list
+svn log
+svn status
+svn commit -m "switch to python3"
 #svn update -r 6
 svn update
-svn status
 svn log
+svn delete file
 svn add file
-
-
 
 

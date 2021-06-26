@@ -1,0 +1,757 @@
+import os
+import re
+import gi
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk
+gi.require_version('Gdk', '3.0')
+from gi.repository import Gdk, GObject
+
+
+class TabConverter:
+
+   def __init__(self, main, settings):
+      self.main = main
+      self.settings = settings
+
+      self.box = Gtk.Box()
+      self.box.set_border_width(10)
+
+
+      self.file_database = {}
+
+      #############################
+      box_outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
+
+      row1 = Gtk.ListBoxRow()
+      hbox1 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+      hbox1.set_hexpand(True)
+      row1.add(hbox1)
+
+      label1 = Gtk.Label("Audio", xalign=0)
+      label1.set_size_request(50, -1)
+
+
+      self.button_you2mp3 = Gtk.Button(label="you2mp3")
+      self.button_you2mp3.connect("clicked", self.START_YOU2MP3_BUTTON)
+
+
+      self.button_record2wav = Gtk.Button(label="record2wav")
+      self.button_record2wav.connect("clicked", self.START_RECORD2WAV_BUTTON)
+
+
+      self.button_file2mp3 = Gtk.Button(label="file2mp3")
+      self.button_file2mp3.connect("clicked", self.START_FILE2MP3_BUTTON)
+
+
+      self.button_wav2flac = Gtk.Button(label="wav2flac")
+      self.button_wav2flac.connect("clicked", self.START_WAV2FLAC_BUTTON)
+
+
+      self.button_stop = Gtk.Button(label="stop")
+      self.button_stop.connect("clicked", self.STOP_BUTTON)
+      self.button_stop.set_sensitive(False)
+
+
+      hbox1.pack_start(label1, False, True, 10)
+      hbox1.pack_start(self.button_you2mp3, True, True, 0)
+      hbox1.pack_start(self.button_record2wav, True, True, 0)
+      hbox1.pack_start(self.button_file2mp3, True, True, 0)
+      hbox1.pack_start(self.button_wav2flac, True, True, 0)
+      hbox1.pack_start(self.button_stop, True, True, 0)
+
+      #############################
+
+      row2 = Gtk.ListBoxRow()
+      hbox2= Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+      hbox2.set_hexpand(True)
+      row2.add(hbox2)
+
+
+      label2 = Gtk.Label("Input", xalign=0)
+      #label2.set_line_wrap(True)
+      label2.set_size_request(50, -1)
+
+      self.textbuffer_input = Gtk.Entry()
+
+      self.textbuffer_input.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
+      
+
+      hbox2.pack_start(label2, False, True, 10)
+      hbox2.pack_start(self.textbuffer_input, True, True, 0)
+
+
+      #############################
+
+      row3 = Gtk.ListBoxRow()
+      hbox3 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+      hbox3.set_hexpand(True)
+      row3.add(hbox3)
+
+      label3 = Gtk.Label("Ouput", xalign=0)
+      label3.set_size_request(50, -1)
+
+
+      self.scrolledwindow3 = Gtk.ScrolledWindow()
+      textview = Gtk.TextView()
+      textview.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
+      textview.set_editable(False)
+      self.textbuffer_output = textview.get_buffer()
+      self.scrolledwindow3.add(textview)
+
+
+
+      hbox3.pack_start(label3, False, True, 10)
+      hbox3.pack_start(self.scrolledwindow3, True, True, 0)
+
+
+
+      box_outer.pack_start(row1, False, False, 2)
+      box_outer.pack_start(row2, False, False, 2)
+      box_outer.pack_start(row3, True, True, 2)
+      self.box.add(box_outer)
+
+      ###################################################################################
+
+
+
+
+   def get_database_files(self, value):
+      files = []
+      for k in self.file_database:
+         if self.file_database[k][0]==value:
+            files.extend([k])
+      return files
+
+
+
+   def get_destination_filename(self, destination_dir, pathfile, newprefix):
+      if self.settings['Debug']==1:
+         print ('def get_destination_filename destination_dir: %s pathfile: %s newprefix: %s' % (destination_dir, pathfile, newprefix))
+
+      # destination_dir: /MyDisc/Audio/Neu filename: /MyDisc/Audio/Neu/parecord-20.wav oldprefix: .wav newprefix: .mp3
+
+      self.filescan(destination_dir)
+
+      # ('parecord-24','.wav')
+      (newpart1,newpart2) = os.path.splitext(os.path.basename(pathfile))
+
+      num=0
+      newpart1pre = newpart1
+      x = re.search('^(.*)-(\d+)$', newpart1pre)
+      if x and x.group(1) and x.group(2):
+         newpart1pre = x.group(1)
+         num = int(x.group(2))
+
+      # parecord
+      if self.settings['Debug']==1:
+         print ('def get_destination_filename newpart1pre: %s num: %s' % (newpart1pre,str(num)))
+
+      for item in self.all_files_in_dir:
+         x = re.search('^(%s)-(\d+)%s' % (newpart1pre, newprefix), item)
+         if x and x.group(1) and x.group(2):
+            if self.settings['Debug']==1:
+               print ('def get_destination_filename found file %s -> increase num' % item)
+            if int(x.group(2))>=num:
+               num=int(x.group(2))
+
+      num+=1
+      dest_filename='%s-%s%s' % (newpart1pre,num,newprefix)
+
+      if self.settings['Debug']==1:
+         print ('def get_destination_filename dest_filename: %s' % dest_filename)
+
+      return dest_filename
+
+
+
+
+
+   def filescan(self, path):
+      if self.settings['Debug']==1:
+         print ('def filescan - part: %s' % path)
+
+
+      # reset
+      self.file_database = {}
+      self.all_files_in_dir = []
+
+      for root, dirs, files in os.walk(path):
+
+         for item in files:
+
+            if root==path:
+               self.all_files_in_dir.extend([item])
+
+            if 'incomplete' in root:
+               pass
+            elif root==self.settings['Directory_Old']:
+               pass
+            else:
+
+               m1 = re.search('\.ts$', item, re.IGNORECASE)
+               if m1:
+                  f = {'%s/%s' % (root,item) : ['.ts', item]}
+                  self.file_database.update(f)
+
+               m2 = re.search('\.flv$', item, re.IGNORECASE)
+               if m2:
+                  f = {'%s/%s' % (root,item) : ['.flv', item]}
+                  self.file_database.update(f)
+
+               m3 = re.search('\.flac$', item, re.IGNORECASE)
+               if m3:
+                  f = {'%s/%s' % (root,item) : ['.flac', item]}
+                  self.file_database.update(f)
+
+               m4 = re.search('\.m4a$', item, re.IGNORECASE)
+               if m4:
+                  f = {'%s/%s' % (root,item) : ['.m4a', item]}
+                  self.file_database.update(f)
+
+               m5 = re.search('\.mp3$', item, re.IGNORECASE)
+               if m5:
+                  f = {'%s/%s' % (root,item) : ['.mp3', item]}
+                  self.file_database.update(f)
+
+               m6 = re.search('\.wav$', item, re.IGNORECASE)
+               if m6:
+                  f = {'%s/%s' % (root,item) : ['.wav', item]}
+                  self.file_database.update(f)
+
+               m7 = re.search('\.mp4$' , item, re.IGNORECASE)
+               if m7:
+                  f = {'%s/%s' % (root,item) : ['.mp4', item]}
+                  self.file_database.update(f)
+
+               m8 = re.search('\.webm$' , item, re.IGNORECASE)
+               if m8:
+                  f = {'%s/%s' % (root,item) : ['.webm', item]}
+                  self.file_database.update(f)
+
+               m9 = re.search('\.mkv$' , item, re.IGNORECASE)
+               if m9:
+                  f = {'%s/%s' % (root,item) : ['.mkv', item]}
+                  self.file_database.update(f)
+
+
+
+
+
+
+   def refresh_output_textctrl_timer(self):
+
+      if self.settings['Debug']==1:
+         print ('\ndef refresh_output_textctrl_timer start')
+
+
+      inactive_processes=0
+
+      # copy dict to prevent ->  RuntimeError: dictionary changed size during iteration
+      loop_process_database = dict(self.main.process_database)
+
+      for item in loop_process_database:
+
+         if self.settings['Debug']==1:
+            print ('\ndef refresh_output_textctrl_timer process_database: %s' % str(self.main.process_database[item]))
+
+
+         if self.main.process_database[item]['status']=='inactive':
+            inactive_processes+=1
+
+
+         if self.main.process_database[item]['status']=='active' or self.main.process_database[item]['status']=='killed':
+
+            if self.main.process_database[item]['status']=='killed':
+               self.main.process_database[item]['status']='inactive'
+
+
+            ############
+            ### show ###
+            ############
+            if self.main.process_database[item]['todo']=='show':
+
+               if self.main.process_database[item]['job']=='you2mp3':
+
+                  if self.main.process_database[item]['output']:
+                     self.textbuffer_output.set_text('%s\n' % '\n'.join(self.main.process_database[item]['output']))
+                     self.main.process_database[item]['output']=[]
+
+
+               if self.main.process_database[item]['job']=='record2wav':
+
+                  if self.main.process_database[item]['identifier']=='pacmd':
+                     self.textbuffer_output.set_text('%s\n' % self.main.process_database[item]['output'])
+
+                  if self.main.process_database[item]['identifier']=='parecord':
+
+                     #erg = self.add_OUTPUT_TEXTCTRL.GetValue()
+                     #if hasattr(self, 'textctrl_loop1'):
+                     #   self.add_OUTPUT_TEXTCTRL.SetValue(self.textctrl_loop1)
+                     #self.textctrl_loop1 = self.add_OUTPUT_TEXTCTRL.GetValue()
+
+                     if self.main.process_database[item]['output']:
+                        self.textbuffer_output.set_text('%s\n' % self.main.process_database[item]['output'][-1])
+                        self.main.process_database[item]['output']=[]
+
+
+               if self.main.process_database[item]['job']=='file2mp3':
+                  if self.main.process_database[item]['output']:
+                     self.textbuffer_output.set_text('%s\n' % '\n'.join(self.main.process_database[item]['output']))
+                     self.main.process_database[item]['output']=[]
+
+
+               if self.main.process_database[item]['job']=='wav2flac':
+                  if self.main.process_database[item]['output']:
+                     self.textbuffer_output.set_text('%s\n' % '\n'.join(self.main.process_database[item]['output']))
+                     self.main.process_database[item]['output']=[]
+
+
+            ##############
+            ### result ###
+            ##############
+            if self.main.process_database[item]['todo']=='result':
+
+               # enable buttons, stop refreh timer
+               self.button_you2mp3.set_sensitive(True)
+               self.button_record2wav.set_sensitive(True)
+               self.button_file2mp3.set_sensitive(True)
+               self.button_wav2flac.set_sensitive(True)
+               self.button_stop.set_sensitive(False)
+
+
+               #self.refresh_timer.Stop()
+
+
+               if self.main.process_database[item]['job']=='you2mp3_update':
+                  self.main.process_database[item]['status']='inactive'
+                  if self.main.process_database[item]['result']==True:
+                     self.textbuffer_output.set_text('%s\n-- job: %s successfully done\n' % ('\n'.join(self.main.process_database[item]['output']),self.main.process_database[item]['job']))
+                  else:
+                     self.textbuffer_output.set_text('-- job: %s error\n' % self.main.process_database[item]['job'])
+
+
+               if self.main.process_database[item]['job']=='you2mp3':
+                  self.main.process_database[item]['status']='inactive'
+                  if self.main.process_database[item]['result']==True:
+                     self.textbuffer_output.set_text('-- job: %s successfully done\n' % self.main.process_database[item]['job'])
+                     self.textbuffer_input.set_text('')
+                  else:
+                     self.textbuffer_output.set_text('-- job: %s error\n' % self.main.process_database[item]['job'])
+
+
+
+
+               if self.main.process_database[item]['job']=='record2wav':
+                  if self.main.process_database[item]['identifier']=='pacmd':
+                     self.main.process_database[item]['status']='inactive'
+                     if self.main.process_database[item]['result']==True:
+                        self.start_parecord(self.main.process_database[item])
+                     else:
+                        self.textbuffer_output.set_text('-- job: %s aborted\n' % self.main.process_database[item]['job'])
+                  if self.main.process_database[item]['identifier']=='parecord':
+                     self.main.process_database[item]['status']='inactive'
+
+
+
+               if self.main.process_database[item]['job']=='file2mp3':
+                  self.main.process_database[item]['status']='inactive'
+                  if self.main.process_database[item]['result']==True:
+                     self.textbuffer_output.set_text('-- job: %s filename: %s successfully converted\n' % (self.main.process_database[item]['job'],self.main.process_database[item]['source']))
+                     if (os.path.exists(self.settings['Directory_Old']))==False:
+                        os.mkdir(self.settings['Directory_Old'])
+                     oldfilename = os.path.basename(self.main.process_database[item]['source'])
+                     os.rename(self.main.process_database[item]['source'],'%s/%s' % (self.settings['Directory_Old'],oldfilename))
+                  else:
+                     self.textbuffer_output.set_text('-- job: %s filename: %s error: %s\n' % (self.main.process_database[item]['job'],self.main.process_database[item]['source'],self.main.process_database[item]['output']))
+
+
+
+               if self.main.process_database[item]['job']=='wav2flac':
+                  self.main.process_database[item]['status']='inactive'
+                  if self.main.process_database[item]['result']==True:
+                     self.textbuffer_output.set_text('-- job: %s filename: %s successfully converted\n' % (self.main.process_database[item]['job'],self.main.process_database[item]['source']))
+                     if (os.path.exists(self.settings['Directory_Old']))==False:
+                        os.mkdir(self.settings['Directory_Old'])
+                     oldfilename = os.path.basename(self.main.process_database[item]['source'])
+                     os.rename(self.main.process_database[item]['source'],'%s/%s' % (self.settings['Directory_Old'],oldfilename))
+                  else:
+                     self.textbuffer_output.set_text('-- job: %s filename: %s error: %s\n' % (self.main.process_database[item]['job'],self.main.process_database[item]['source'],self.main.process_database[item]['output']))
+
+
+
+      if len(self.main.process_database)==inactive_processes:
+			# timer stop
+         return False
+      else:
+         return True
+
+
+
+   def start_parecord(self, process_database):
+
+      if self.settings['Debug']==1:
+         print ('def start_parecord - start job: %s' % process_database['job'])
+
+
+      output_device=''
+      for item in process_database['output']:
+         x1 = re.search('\s*Default sink name:\s*(alsa_output.*)', item)
+         if x1 and x1.group(1):
+            output_device=x1.group(1)
+            break
+
+
+      if not output_device:
+         self.textbuffer_output.set_text('-- job: %s cannot find a output_device' % process_database['job'])
+      else:
+         self.textbuffer_output.set_text('-- job: %s output_device: %s\n' % (process_database['job'],output_device))
+
+         if not 'monitor' in output_device:
+            output_device = '%s.monitor' % output_device
+
+         filename = self.textbuffer_input.get_text()
+         #start_iter = self.textbuffer_input.get_start_iter()
+         #end_iter = self.textbuffer_input.get_end_iter()
+         #filename = self.textbuffer_input.get_text(start_iter, end_iter, True)   
+
+         if filename:
+            filename=(filename.encode('utf-8')).strip()
+         if not filename:
+            filename = self.settings['Record2wav_Default_Wav_Filename']
+
+
+         if '/' in filename:
+            self.textbuffer_output.set_text('-- job: %s / in filename is not allowed' % process_database['job'])
+         else:
+
+
+            self.button_you2mp3.set_sensitive(False)
+            self.button_record2wav.set_sensitive(False)
+            self.button_file2mp3.set_sensitive(False)
+            self.button_wav2flac.set_sensitive(False)
+            self.button_stop.set_sensitive(True)
+
+
+
+            wavfiles = self.get_database_files('.wav')
+            num=0
+            for item in wavfiles:
+               x = re.search('%s-(\d+).wav' % filename, os.path.basename(item))
+               if x and x.group(1):
+                  if int(x.group(1))>num:
+                     num=int(x.group(1))
+            newfilename='%s-%d.wav' % (filename, (num+1))
+
+            self.timer_parecord = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
+
+            #self.refresh_timer = wx.Timer(self)
+            #self.Bind(wx.EVT_TIMER, self.refresh_output_textctrl_timer, self.refresh_timer)
+            #self.refresh_timer.Start(1000)
+
+            # parecord --verbose --record --channels=2 --format=s24le --rate=48000 --file-format=wav /MyDisc/Audio/Neu/test.wav
+            cmd=['parecord','--verbose','--record','--channels=2', '--format=s24le', '--rate=48000', '--file-format=wav', '--volume=60000',\
+            '--device=%s' % output_device, '%s/%s' % (self.settings['Directory_New'],newfilename)]
+            cwd=self.settings['Directory_New']
+            self.main.process_starter(cmd=cmd, cwd=cwd, job='record2wav', identifier='parecord', source='')
+
+
+
+
+
+   ###### BUTTONS ######
+
+   def START_YOU2MP3_BUTTON(self, event):
+      if self.settings['Debug']==1:
+         print ('def START_YOU2MP3_BUTTON - start')
+
+
+      self.button_you2mp3.set_sensitive(False)
+      self.button_record2wav.set_sensitive(False)
+      self.button_file2mp3.set_sensitive(False)
+      self.button_wav2flac.set_sensitive(False)
+      self.button_stop.set_sensitive(True)
+
+
+      self.textbuffer_output.set_text('')
+
+      # youtube-dl --help
+      # youtube-dl --no-warnings --no-call-home --audio-quality=4 --extract-audio --audio-format=mp3 --title https://www.youtube.com/watch?v=w7BE3inS-NM
+
+
+
+      source = self.textbuffer_input.get_text()
+      #start_iter = self.textbuffer_input.get_start_iter()
+      #end_iter = self.textbuffer_input.get_end_iter()
+      #source = self.textbuffer_input.get_text(start_iter, end_iter, True)   
+
+      source=source.strip()
+      if not source:
+
+         if self.settings['Debug']==1:
+            print ('def START_YOU2MP3_BUTTON - no source')
+
+
+         # /opt/audok/youtube-dl --update
+
+
+         self.textbuffer_output.set_text('start you2mp3 update\nplease wait...')
+
+         self.timer_you2mp3_update = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
+
+         cmd=['%s/youtube-dl' % self.settings['Path'],'--update']
+         cwd=self.settings['Directory_New']
+         self.main.process_starter(cmd=cmd, cwd=cwd, job='you2mp3_update', identifier='', source='')
+
+
+         self.button_you2mp3.set_sensitive(True)
+         self.button_record2wav.set_sensitive(True)
+         self.button_file2mp3.set_sensitive(True)
+         self.button_wav2flac.set_sensitive(True)
+         self.button_stop.set_sensitive(False)
+
+
+
+      else:
+
+         self.textbuffer_output.set_text('-- job you2mp3 source: %s\n' % source)
+
+
+         self.timer_you2mp3 = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
+
+
+         #self.refresh_timer = wx.Timer(self)
+         #self.Bind(wx.EVT_TIMER, self.refresh_output_textctrl_timer, self.refresh_timer)
+         #self.refresh_timer.Start(1000)
+
+
+         # youtube-dl https://www.youtube.com/watch?v=fKopy74weus&index=2&list=PL6D4C31FFA7EBABB5
+
+         # youtube-dl --audio-quality=4 --no-warnings --no-call-home --extract-audio --audio-format=mp3 --exec 'echo done' --title https://www.youtube.com/watch....
+
+         cmd=['%s/youtube-dl' % self.settings['Path'],'--audio-quality=4','--no-warnings','--no-call-home','--extract-audio','--audio-format=mp3','--exec','exit 0','--title',source]
+         cwd=self.settings['Directory_New']
+         self.main.process_starter(cmd=cmd, cwd=cwd, job='you2mp3', identifier='', source='')
+
+
+
+
+
+   def START_RECORD2WAV_BUTTON(self, event):
+      if self.settings['Debug']==1:
+         print ('def START_RECORD2WAV_BUTTON - start')
+
+
+      self.button_you2mp3.set_sensitive(False)
+      self.button_record2wav.set_sensitive(False)
+      self.button_file2mp3.set_sensitive(False)
+      self.button_wav2flac.set_sensitive(False)
+      self.button_stop.set_sensitive(True)
+
+
+      self.filescan(self.settings['Directory_New'])
+
+      self.textbuffer_output.set_text('')
+
+
+      self.timer_record2wav = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
+
+      #self.refresh_timer = wx.Timer(self)
+      #self.Bind(wx.EVT_TIMER, self.refresh_output_textctrl_timer, self.refresh_timer)
+      #self.refresh_timer.Start(1000)
+
+
+
+      # pacmd stat | grep "Default sink name"
+      cmd=['pacmd','stat']
+      cwd='/usr/bin'
+      self.main.process_starter(cmd=cmd, cwd=cwd, job='record2wav', identifier='pacmd', source='')
+
+
+
+
+   def START_FILE2MP3_BUTTON(self, event):
+      if self.settings['Debug']==1:
+         print ('def START_FILE2MP3_BUTTON - start')
+
+
+      self.button_you2mp3.set_sensitive(False)
+      self.button_record2wav.set_sensitive(False)
+      self.button_file2mp3.set_sensitive(False)
+      self.button_wav2flac.set_sensitive(False)
+      self.button_stop.set_sensitive(True)
+
+
+
+
+      self.filescan(self.settings['Directory_New'])
+
+      self.textbuffer_output.set_text('')
+
+
+      allfiles = ([])
+
+      tsfiles = self.get_database_files('.ts')
+      allfiles.extend([['.ts', tsfiles]])
+
+      mp4files = self.get_database_files('.mp4')
+      allfiles.extend([['.mp4', mp4files]])
+
+      flvfiles = self.get_database_files('.flv')
+      allfiles.extend([['.flv', flvfiles]])
+
+      webmfiles = self.get_database_files('.webm')
+      allfiles.extend([['.webm', webmfiles]])
+
+      flacfiles = self.get_database_files('.flac')
+      allfiles.extend([['.flac', flacfiles]])
+
+      m4afiles = self.get_database_files('.m4a')
+      allfiles.extend([['.m4a', m4afiles]])
+
+      mkvfiles = self.get_database_files('.mkv')
+      allfiles.extend([['.mkv', mkvfiles]])
+
+      wavfiles = self.get_database_files('.wav')
+      allfiles.extend([['.wav', wavfiles]])
+
+
+
+      files_to_change = len(tsfiles) + len(mp4files) + len(flvfiles) + len(webmfiles) + len(flacfiles) + len(m4afiles) + len(mkvfiles) + len(wavfiles)
+
+      self.textbuffer_output.set_text('number of files to change: %s\n' % files_to_change)
+
+      if files_to_change==0:
+
+         if self.settings['Debug']==1:
+            print ('def START_FILE2MP3_BUTTON - no files to change')
+         
+
+         self.button_you2mp3.set_sensitive(True)
+         self.button_record2wav.set_sensitive(True)
+         self.button_file2mp3.set_sensitive(True)
+         self.button_wav2flac.set_sensitive(True)
+         self.button_stop.set_sensitive(False)
+
+
+      else:
+
+         if self.settings['Debug']==1:
+            print ('def START_FILE2MP3_BUTTON - try start_popen_thread')
+
+
+         self.timer_file2mp3 = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
+
+         #self.refresh_timer = wx.Timer(self)
+         #self.Bind(wx.EVT_TIMER, self.refresh_output_textctrl_timer, self.refresh_timer)
+         #self.refresh_timer.Start(1000)
+
+         for oldprefix,files in allfiles:
+
+            for pathfile in files:
+
+               # destination_dir  pathfile  newprefix
+               dest_filename = self.get_destination_filename(self.settings['Directory_New'], pathfile, '.mp3')
+
+               cwd=self.settings['Directory_New']
+               cmd=['nice','-n','19','ffmpeg','-v','error','-i',pathfile,'-ab', '%s' % str(self.settings['File2mp3_Bitrate']),'-n',dest_filename]
+               self.main.process_starter(cmd=cmd, cwd=cwd, job='file2mp3', identifier='', source=pathfile)
+
+
+
+
+   def START_WAV2FLAC_BUTTON(self, event):
+      if self.settings['Debug']==1:
+         print ('def START_WAV2FLAC_BUTTON - start')
+
+      self.button_you2mp3.set_sensitive(False)
+      self.button_record2wav.set_sensitive(False)
+      self.button_file2mp3.set_sensitive(False)
+      self.button_wav2flac.set_sensitive(False)
+      self.button_stop.set_sensitive(True)
+
+
+      self.filescan(self.settings['Directory_New'])
+
+      self.textbuffer_output.set_text('')
+
+      allfiles = []
+
+      wavfiles = self.get_database_files('.wav')
+      allfiles.extend([['.wav', wavfiles]])
+
+      files_to_change = len(wavfiles)
+
+      self.textbuffer_output.set_text('number of files to change: %s\n' % files_to_change)
+
+      if files_to_change==0:
+
+         if self.settings['Debug']==1:
+            print ('def START_WAV2FLAC_BUTTON - no files to change')
+
+         self.button_you2mp3.set_sensitive(True)
+         self.button_record2wav.set_sensitive(True)
+         self.button_file2mp3.set_sensitive(True)
+         self.button_wav2flac.set_sensitive(True)
+         self.button_stop.set_sensitive(False)
+
+      else:
+
+         if self.settings['Debug']==1:
+            print ('def START_WAV2FLAC_BUTTON - try start_popen_thread')
+
+         self.timer_wav2flac = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
+
+         #self.refresh_timer = wx.Timer(self)
+         #self.Bind(wx.EVT_TIMER, self.refresh_output_textctrl_timer, self.refresh_timer)
+         #self.refresh_timer.Start(1000)
+
+
+         for oldprefix,files in allfiles:
+
+            for pathfile in files:
+
+               # destination_dir  pathfile  newprefix
+               dest_filename = self.get_destination_filename(self.settings['Directory_New'], pathfile, '.flac')
+
+               # flac --compression-level-8 --replay-gain -s /MyDisc/Audio/Neu/parecord-4.mp3 --output-name  /MyDisc/Audio/Neu/test.flac
+               cwd=self.settings['Directory_New']
+               cmd=['nice','-n','19','flac', '--no-delete-input-file', '--compression-level-8','--replay-gain','-s', pathfile, '--output-name',dest_filename]
+               self.main.process_starter(cmd=cmd, cwd=cwd, job='wav2flac', identifier='', source=pathfile)
+
+
+
+   def STOP_BUTTON(self, event):
+
+      if self.settings['Debug']==1:
+         print ('def STOP_BUTTON - start')
+
+
+      if hasattr(self, 'timer_wav2flac'):
+         GObject.source_remove(self.timer_wav2flac)
+      if hasattr(self, 'timer_record2wav'):
+         GObject.source_remove(self.timer_record2wav)
+      if hasattr(self, 'timer_parecord'):
+         GObject.source_remove(self.timer_parecord)
+      if hasattr(self, 'timer_file2mp3'):
+         GObject.source_remove(self.timer_file2mp3)
+      if hasattr(self, 'timer_you2mp3_update'):
+         GObject.source_remove(self.timer_you2mp3_update)
+      if hasattr(self, 'timer_you2mp3'):
+         GObject.source_remove(self.timer_you2mp3)
+
+
+
+      self.main.process_job_killer(job='you2mp3_update')
+      self.main.process_job_killer(job='you2mp3')
+      self.main.process_job_killer(job='record2wav')
+      self.main.process_job_killer(job='parecord')
+      self.main.process_job_killer(job='file2mp3')
+      self.main.process_job_killer(job='wav2flac')
+
+
+      self.button_you2mp3.set_sensitive(True)
+      self.button_record2wav.set_sensitive(True)
+      self.button_file2mp3.set_sensitive(True)
+      self.button_wav2flac.set_sensitive(True)
+      self.button_stop.set_sensitive(False)
+
