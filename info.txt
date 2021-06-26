@@ -1,0 +1,73 @@
+Start:
+cd /MyDisc/Entwicklung/Python/Python-Audok/audok/
+./audok
+
+
+
+Test direct play:
+cd /MyDisc/Entwicklung/Python/Python-Audok/audok/
+./audok '/MyDisc/Audio/Pop/C/Christie - Iron Horse.mp3'
+
+
+cd /MyDisc/Entwicklung/Python/Python-Audok/audok/
+./audok '/MyDisc/Audio/Rock/ACDC/ACDC - Thunderstruck.mp3'
+
+
+rm -I /home/japplo/.config/audok/settings.xml
+rm -I /home/japplo/.config/audok/stations.xml
+
+
+Problems:
+Problem with gstreamer playback if MPEG passthrough is enabled in pavcontrol
+XFCE: Media playback error: Could not initialise Xv output
+Parole X-Window-Sytsem (No XV)
+
+
+# Help:
+# get parecord-1 -> os.path.splitext(os.path.basename('/MyDisc/Audio/Neu/parecord-1.wav'))[0]
+# get ('parecord-1','.wav') -> os.path.splitext(os.path.basename('/MyDisc/Audio/Neu/parecord-1.wav'))
+# get parecord-1.wav ->  os.path.basename('/MyDisc/Audio/Neu/parecord-1.wav')
+
+
+--------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------SVN---------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+#cd /MyDisc/Entwicklung/Python/Python-Audok
+#svnadmin create svnrepo
+#svn import /MyDisc/Entwicklung/Python/Python-Audok/0.6.0 file:///MyDisc/Entwicklung/Python/Python-Audok/svnrepo/trunk -m "version 0.6.0"
+#svn checkout -r 1 file:///MyDisc/Entwicklung/Python/Python-Audok/svnrepo/trunk /MyDisc/Entwicklung/Python/Python-Audok/audok
+
+
+#cd /MyDisc/Entwicklung/Python/Python-Audok/audok
+#cp -r /MyDisc/Entwicklung/Python/Python-Audok/0.6.1/* /MyDisc/Entwicklung/Python/Python-Audok/audok/
+#svn add --force * --auto-props --parents --depth infinity -q
+#svn commit -m "Version 0.6.1"
+#svn status
+
+
+#svn log
+#svn checkout -r 1 file:///MyDisc/Entwicklung/Python/Python-Audok/svnrepo/trunk /MyDisc/Entwicklung/Python/Python-Audok/test/
+
+
+cd /MyDisc/Entwicklung/Python/Python-Audok/audok
+svn list
+svn delete .git
+svn delete *.pyc
+svn delete help
+svn add info.txt
+svn commit -m "version 0.6.4, change to svn, update URL for FM4 at, add new stations CampusFM + Zeilsteen Radio"
+
+
+Create New Version:
+-> change Version in file audok
+-> change README.md Version
+
+#svn update -r 6
+svn update
+svn status
+svn log
+svn add file
+
+
+
+

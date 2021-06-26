@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=Audok
+Comment=Audok Gui
+Exec=/opt/audok/audok %F
+Icon=/opt/audok/audok.png
+Terminal=false
+StartupNotify=true
+Type=Application
+Categories=AudioVideo;Audio;Player;
+StartupWMClass=Audok
+MimeType=audio/mp4;audio/mpeg;audio/ogg;audio/x-flac;audio/x-mod;audio/x-mp3;audio/x-mpeg;audio/x-vorbis+ogg;audio/x-wav;
+Name[de_DE]=audok
