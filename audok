@@ -64,9 +64,11 @@ def stations_xml():
       if settings['Debug']==1:
          print ('use predifined stations instead of stations.xml')
 
-      stationlist =  [  ['Alternative', 'Radio freeFM Ulm', 'http://stream.freefm.de:8100/listen.pls'],
-                        ['Alternative', 'FM 4 at', 'http://mp3stream1.apasf.apa.at'],
-                        ['Alternative', 'Zeilsteen Radio', 'http://62.212.74.223:7052'],
+      # see https://directory.shoutcast.com/Search
+
+      stationlist =  [  ['Alternative', 'Radio freeFM Ulm', 'http://stream.freefm.de:7000/Studio'],
+                        ['Alternative', 'Radio FM 4 at', 'https://orf-live.ors-shoutcast.at/fm4-q2a'],
+                        ['Alternative', 'Zeilsteen Radio', 'http://live.zeilsteen.com:80'],
 
                         ['Mix', 'Pirate Radio Bayern', 'http://78.46.126.219:8000/stream'],
                         ['Mix', '1.FM - Gorilla FM', 'http://185.33.21.112:80/gorillafm_128'],
