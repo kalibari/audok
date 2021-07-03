@@ -510,7 +510,7 @@ class TabAudioPlayer:
       self.player.set_state(Gst.State.READY)
 
       if self.checkbutton_loop.get_active():
-         self.choose_song(choose='repeat')
+         self.choose_song(choose='keep')
       elif len(self.playlist)>=2:
          self.choose_song(choose='next')
 
@@ -733,83 +733,76 @@ class TabAudioPlayer:
       allfiles=allfiles[::-1]
 
       # reset
-      self.playlist = {}
+      self.playlist = []
 
-      i=0
       for item in allfiles:
-         i+=1
-         p = {i:item}
-         self.playlist.update(p)
-
-      self.settings['Play_Num'] = 1
+         self.playlist.extend([item])
 
 
       self.button_next.set_sensitive(False)
       self.button_back.set_sensitive(False)
       if len(self.playlist)>=1:
-         self.label_play_file.set_text('%s - %s' % (self.settings['Play_Num'],self.playlist[self.settings['Play_Num']]))
+         self.label_play_file.set_text('%s - %s' % ((self.settings['Play_Num']+1),self.playlist[self.settings['Play_Num']]))
 
 
       if self.settings['Debug']==1:
-         print ('def playlist_filescan - len(allfiles): %s' % len(allfiles))
+         print ('def playlist_filescan - len(playlist): %s' % len(self.playlist))
 
 
 
 
 
    def choose_song(self, choose='next'):
+
+      len_playlist = len(self.playlist)
+
       if self.settings['Debug']==1:
-         print ('def choose_song - start choose %s len(self.playlist): %s play_num: %s' % (choose,len(self.playlist),self.settings['Play_Num']))
-
-
-      # maybe the file is moved
-      if self.settings['Play_Num'] in self.playlist:
-         oldfile = [str(self.settings['Play_Num']), str(self.playlist[self.settings['Play_Num']])]
-         self.listmodel1.append(oldfile)
+         print ('def choose_song - start choose %s len_playlist: %s play_num: %s' % (choose,len_playlist,self.settings['Play_Num']))
 
 
 
-      if choose=='next':
+      if choose=='next' and (self.settings['Play_Num']+1)>=len_playlist:
+         if self.settings['Debug']==1:
+            print ('def choose_song last file -> rescan')
+         self.playlist_filescan()
+         self.settings['Play_Num']=0
+
+      elif choose=='back' and self.settings['Play_Num']<=0:
+         if self.settings['Debug']==1:
+            print ('def choose_song - goto last file')
+         self.playlist_filescan()
+         self.settings['Play_Num']=(len_playlist-1)
+
+      elif choose=='next':
          self.settings['Play_Num']+=1
 
       elif choose=='back':
          self.settings['Play_Num']-=1
 
-      elif choose=='repeat':
+      elif choose=='keep':
          pass
 
 
 
+      # change scrolled window
+      adj = self.scrolledwindow1.get_vadjustment()
+      upper_size = adj.get_upper()
+      page_size = adj.get_page_size()
+      set_size = (upper_size / len_playlist) * self.settings['Play_Num']
+      if self.settings['Debug']==1:
+         print ('def choose_song set_size: %s play_num: %s upper_size: %s page_size: %s' % (set_size,self.settings['Play_Num'],upper_size,page_size))
+      adj.set_value(set_size)
 
-      if len(self.playlist)==0:
-         if self.settings['Debug']==1:
-            print ('def choose_song - len(self.playlist): %s' % len(self.playlist))
-         self.playlist_filescan()
-         self.settings['Play_Num']=1
-
-
-      elif self.settings['Play_Num']==0:
-         if self.settings['Debug']==1:
-            print ('def choose_song - play_num: %s' % self.settings['Play_Num'])
-         self.playlist_filescan()
-         self.settings['Play_Num']=len(self.playlist)
-
-
-      elif self.settings['Play_Num']>len(self.playlist):
-         if self.settings['Debug']==1:
-            print ('def choose_song - len(self.playlist): %s play_num: %s' % (len(self.playlist),self.settings['Play_Num']))
-         self.playlist_filescan()
-         self.settings['Play_Num']=1
 
       self.play_file()
 
 
 
 
-   def play_file(self, newplaylist={}):
+   def play_file(self, newplaylist=[]):
 
       if self.settings['Debug']==1:
-         print ('def play_file start - newplaylist: %s' % (newplaylist))
+         print ('def play_file start - newplaylist: %s' % newplaylist)
 
 
       if not hasattr(self, 'glib_timer_refresh_slider'):
@@ -817,15 +810,8 @@ class TabAudioPlayer:
 
 
       if newplaylist:
-         self.settings['Play_Num'] = 1
-         self.playlist = dict(newplaylist)
-
-
-      if self.settings['Debug']==1:
-         if self.settings['Play_Num'] in self.playlist:
-            print ('def play_file play_num: %s play_file: %s' % (self.settings['Play_Num'],repr(os.path.join(self.playlist[self.settings['Play_Num']]))))
-         else:
-            print ('def play_file play_num: %s is not in playlist: %s' % (self.settings['Play_Num'],self.playlist))
+         self.settings['Play_Num'] = 0
+         self.playlist = list(newplaylist)
 
 
       if len(self.playlist)==1:
@@ -840,7 +826,7 @@ class TabAudioPlayer:
 
 
       if self.settings['Debug']==1:
-         print ('def play_file state: %s len(self.playlist): %s' % (self.state,len(self.playlist)))
+         print ('def play_file play_num: %s state: %s len(self.playlist): %s' % (self.settings['Play_Num'],self.state,len(self.playlist)))
 
 
       if self.state == Gst.State.PAUSED:
@@ -858,7 +844,7 @@ class TabAudioPlayer:
                self.player.set_property("uri", "file://%s" % self.playlist[self.settings['Play_Num']])
             elif self.player_style=='pipeline':
                self.player.get_by_name('file-source').set_property("location", filepath)
-            self.label_play_file.set_text('%s - %s' % (self.settings['Play_Num'],self.playlist[self.settings['Play_Num']]))
+            self.label_play_file.set_text('%s - %s' % ((self.settings['Play_Num']+1),self.playlist[self.settings['Play_Num']]))
 
 
 
@@ -905,18 +891,30 @@ class TabAudioPlayer:
 
 
    def move_old(self):
+
+      play_num = self.settings['Play_Num']
+      path_filename = self.playlist[self.settings['Play_Num']]
+
       if self.settings['Debug']==1:
-         print ('def move_old - start - play_num: %s' % self.settings['Play_Num'])
+         print ('def move_old - start - play_num: %s path_filename: %s' % ((self.settings['Play_Num']+1),path_filename))
+
+      self.listmodel1.clear()
 
       try:
-         filename = os.path.basename(self.playlist[self.settings['Play_Num']])
+         filename = os.path.basename(path_filename)
          if (os.path.exists(self.settings['Directory_Old']))==False:
             os.mkdir(self.settings['Directory_Old'])
-         os.rename(self.playlist[self.settings['Play_Num']],'%s/%s' % (self.settings['Directory_Old'],filename))
-         del self.playlist[self.settings['Play_Num']]
+         os.rename(path_filename,'%s/%s' % (self.settings['Directory_Old'],filename))
+         #del self.playlist[self.settings['Play_Num']]
+         self.playlist_filescan()
       except Exception as e:
          if self.settings['Debug']==1:
             print ('def move_old error: %s' % str(e))
+
+
+      for i,item in enumerate(self.playlist):
+         i+=1
+         self.listmodel1.append([str(i),str(item)])
 
 
 
@@ -939,9 +937,7 @@ class TabAudioPlayer:
 
 
    def treeview_size_changed(self, event1, event2):
-      adj = self.scrolledwindow1.get_vadjustment()
-      adj.set_value(adj.get_upper() - adj.get_page_size())
-
+      pass
 
 
    ###### COMBOBOX ######
@@ -970,6 +966,8 @@ class TabAudioPlayer:
    def SCAN_BUTTON(self, event):
       if self.settings['Debug']==1:
          print ('def SCAN_BUTTON - start')
+
+      self.settings['Play_Num'] = 0
 
       self.listmodel1.clear()
 
@@ -1000,6 +998,11 @@ class TabAudioPlayer:
          self.checkbutton_auto_move.set_sensitive(True)
          self.checkbutton_loop.set_sensitive(True)
          self.button_play.set_sensitive(True)
+
+         for i,item in enumerate(self.playlist):
+            i+=1
+            self.listmodel1.append([str(i),str(item)])
+
 
 
 
@@ -1041,7 +1044,7 @@ class TabAudioPlayer:
       if self.settings['Debug']==1:
          print ('def MOVE_OLD_BUTTON start')
       self.move_old()
-      self.choose_song(choose='next')
+      self.choose_song(choose='keep')
 
 
 
@@ -1049,5 +1052,5 @@ class TabAudioPlayer:
       if self.settings['Debug']==1:
          print ('def MOVE_NEW_BUTTON start')
       self.move_new()
-      self.choose_song(choose='next')
+      self.choose_song(choose='keep')
 

@@ -24,7 +24,6 @@ class Music_Admin_Start(Gtk.Window):
    def __init__(self, settings, playlist, stationlist):
       Gtk.Window.__init__(self, title='Audok')
 
-
       self.set_border_width(3)
       self.settings = settings
       self.playlist = playlist
@@ -357,8 +356,8 @@ class Music_Admin_Start(Gtk.Window):
                   data = data.decode()
                   if self.settings['Debug']==1:
                      print ('def ipc_server - thread received "%s"' % data)
-                  self.settings['Play_Num'] = 1
-                  self.playlist = {self.settings['Play_Num']:data}
+                  self.settings['Play_Num'] = 0
+                  self.playlist = [data]
                   if self.settings['Debug']==1:
                      print ('def ipc_server - new playlist "%s"' % str(self.playlist))
                else:
