@@ -9,6 +9,7 @@ import subprocess
 import pwd
 import xml.etree.ElementTree
 import main
+import tab_audioplayer
 import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
@@ -243,9 +244,20 @@ if __name__ == '__main__':
    settings['Temp_Position_Y'] = 0
 
 
+   settings['gst_player'] = 'playbin'
+   #settings['gst_player'] = 'pipeline'
+
+
+
    #Test dialogWindow:
    #dialogWindow = Gtk.MessageDialog(self, Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.QUESTION, Gtk.ButtonsType.OK_CANCEL, "test")
    #dialogWindow.show_all()
+
+
+   #tab_audioplayer = tab_audioplayer.TabAudioPlayer(settings)
+   #tab_audioplayer.player.set_property("uri", "file:///MyDisc/Audio/Neu/Knightlife_Dont_Stop.mp3")
+   #tab_audioplayer.player.set_state(Gst.State.PLAYING)
+
 
 
    (p1,p2) = os.path.split(os.path.realpath(sys.argv[0]))

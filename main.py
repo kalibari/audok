@@ -16,7 +16,7 @@ from gi.repository import Gtk
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
 gi.require_version('GLib', '2.0')
-from gi.repository import GLib
+from gi.repository import GLib, GObject
 
 
 class Music_Admin_Start(Gtk.Window):
@@ -50,7 +50,8 @@ class Music_Admin_Start(Gtk.Window):
       self.add(self.notebook)
 
 
-      self.notebook_tab_audioplayer = tab_audioplayer.TabAudioPlayer(self, settings, playlist)
+      self.notebook_tab_audioplayer = tab_audioplayer.TabAudioPlayer(self, settings)
+      self.notebook_tab_audioplayer.init_gui(self.playlist)
       self.notebook_tab_coverter = tab_coverter.TabConverter(self, settings)
       self.notebook_tab_streamripper = tab_streamripper.TabStreamRipper(self, settings, stationlist)
       self.notebook_tab_settings = tab_settings.TabSettings(self, settings)
@@ -226,7 +227,6 @@ class Music_Admin_Start(Gtk.Window):
 
       if self.settings['Debug']==1:
          print ('def process_starter start')
-
 
 
       try:

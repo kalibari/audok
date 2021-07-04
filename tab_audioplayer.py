@@ -17,19 +17,11 @@ from gi.repository import Gdk
 
 class TabAudioPlayer:
 
-   def __init__(self, main, settings, playlist):
+
+   def __init__(self, main, settings):
 
       self.main = main
       self.settings = settings
-      self.playlist = playlist
-
-      self.box = Gtk.Box()
-      self.box.set_border_width(10)
-
-      self.player_style='playbin'
-      #self.player_style='pipeline'
-
-
 
 
       ##################
@@ -37,11 +29,12 @@ class TabAudioPlayer:
       Gst.init(None)
 
       self.state = Gst.State.NULL
-      self.duration = Gst.CLOCK_TIME_NONE
+      self.duration = None
+      self.start_time_s = 0
 
 
       # PLAYBIN
-      if self.player_style=='playbin':
+      if self.settings['gst_player']=='playbin':
 
          self.player = Gst.ElementFactory.make("playbin", "player2")
          if not self.player:
@@ -58,16 +51,18 @@ class TabAudioPlayer:
 
          bus = self.player.get_bus()
          bus.add_signal_watch()
+         bus.enable_sync_message_emission()
          bus.connect("message::error", self.player_error)
          bus.connect("message::eos", self.player_eos)
          bus.connect("message::state-changed", self.player_state_changed)
          bus.connect("message::application", self.player_application_message)
          bus.connect('message::buffering', self.on_buffering)
-
+         bus.connect("sync-message::element", self.on_sync_message)
+   
 
 
       # Pipeline
-      elif self.player_style=='pipeline':
+      elif self.settings['gst_player']=='pipeline':
 
          self.player = Gst.Pipeline.new("player")
          if not self.player:
@@ -86,12 +81,13 @@ class TabAudioPlayer:
          #self.tee = Gst.ElementFactory.make('tee', 'tee')
 
          #self.mad_decoder = Gst.ElementFactory.make('mad', 'mad')
-         self.mp3_demuxer = Gst.ElementFactory.make('id3demux', 'id3demux')
+         #self.mp3_demuxer = Gst.ElementFactory.make('id3demux', 'id3demux')
          #self.mp3v2_demuxer = Gst.ElementFactory.make('id3v2mux', 'id3v2mux')
          #self.mp3v2_demuxer.connect('pad-added', self.mp3v2_demuxer_callback)
          #self.ogg_demuxer = Gst.ElementFactory.make('oggdemux', 'oggdemux')
          #self.ogg_demuxer.connect('pad-added', self.ogg_demuxer_callback)
-         #self.lame_decoder = Gst.ElementFactory.make('lamemp3enc', 'lamemp3enc')
+   
+         self.lame_decoder = Gst.ElementFactory.make('lamemp3enc', 'lamemp3enc')
          #self.lame_decoder.set_property('quality', 0)
          self.mpg123_decoder = Gst.ElementFactory.make('mpg123audiodec', 'mpg123audiodec')
          self.vorbis_decoder = Gst.ElementFactory.make('vorbisdec','vorbisdec')
@@ -108,7 +104,7 @@ class TabAudioPlayer:
          #self.player.add(self.mp3v2_demuxer)
          self.player.add(self.source)
          #self.player.add(self.mad_decoder)
-         #self.player.add(self.lame_decoder)
+         self.player.add(self.lame_decoder)
          self.player.add(self.vorbis_decoder)
          #self.player.add(self.decodebin)
          self.player.add(self.conv)
@@ -117,7 +113,7 @@ class TabAudioPlayer:
          #self.player.add(self.streamsynchronizer)
          #self.player.add(self.identity)
          #self.player.add(self.tee)
-         self.player.add(self.mp3_demuxer)
+         #self.player.add(self.mp3_demuxer)
 
 
          #self.source.link(self.mad_decoder)
@@ -129,10 +125,7 @@ class TabAudioPlayer:
          #self.source.link(self.streamsynchronizer)
          #self.source.link(self.identity)
          #self.source.link(self.tee)
-         self.source.link(self.mp3_demuxer)
-
-
-
+         #self.source.link(self.mp3_demuxer)
 
          self.conv.link(self.sink)
          #self.mad_decoder.link(self.conv)
@@ -141,15 +134,23 @@ class TabAudioPlayer:
          #self.decodebin.link(self.conv)
 
 
-
          bus = self.player.get_bus()
          bus.add_signal_watch()
          bus.connect("message::error", self.player_error)
          bus.connect("message::eos", self.player_eos)
          bus.connect("message::state-changed", self.player_state_changed)
          bus.connect("message::application", self.player_application_message)
+         bus.connect('message::info', self.on_info)
          bus.connect('message::buffering', self.on_buffering)
  
+
+   def init_gui(self, playlist):
+
+      self.playlist = playlist
+
+      self.box = Gtk.Box()
+      self.box.set_border_width(10)
+
 
       #############################
       box_outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
@@ -372,6 +373,7 @@ class TabAudioPlayer:
          self.button_pause.set_sensitive(False)
 
 
+
    def on_message(self, bus, message):
       t = message.type
       if t == Gst.MessageType.EOS:
@@ -421,6 +423,11 @@ class TabAudioPlayer:
          print('def on_buffering - start')
 
 
+   def on_sync_message(self, bus, message):
+      if self.settings['Debug']==1:
+         print('def on_sync_message - start')
+
+
 
    def refresh_slider(self):
 
@@ -429,60 +436,32 @@ class TabAudioPlayer:
 
       else:
 
-         # every second
-         #if self.settings['Debug']==1:
-         #   print('def refresh_slider update state: %s duration: %s' % (self.state,self.duration))
+         if self.duration is None:
+
+            ret, drt = self.player.query_duration(Gst.Format.TIME)
+            if ret:
+               self.duration=drt
+               set_range = self.duration / Gst.SECOND
+               if self.settings['Debug']==1:
+                  print('def refresh_slider - set range: %s' % set_range)
+
+               self.h_scale1.set_range(0, set_range)
+            else:
+               self.h_scale1.set_range(0, 300)
+               self.h_scale1.set_value(self.start_time_s)
 
 
-         ret, self.duration = self.player.query_duration(Gst.Format.TIME)
-         if not ret:
+         else:
 
+            ret, drt = self.player.query_position(Gst.Format.TIME)
+            if ret:
 
-            #if self.settings['Debug']==1:
-            #   print('ERROR: could not query current duration - state: %s - try it again' % self.state)
+               set_slider = drt / Gst.SECOND
+               self.h_scale1.handler_block(self.h_scale1_update)
+               self.h_scale1.set_value(set_slider)
+               self.h_scale1.handler_unblock(self.h_scale1_update)
 
-
-            time.sleep(0.08)
-
-            ret, self.duration = self.player.query_duration(Gst.Format.TIME)
-            if not ret:
-
-               #if self.settings['Debug']==1:
-               #   print('ERROR: could not query current duration - state: %s - try it once again' % self.state)
-
-               time.sleep(0.08)
-
-               ret, self.duration = self.player.query_duration(Gst.Format.TIME)
-               if not ret:
-
-                  if self.settings['Debug']==1:
-                     print('ERROR: query current duration - state: %s - failed' % self.state)
-
-                  if hasattr(self, 't'):
-                     if self.t.is_alive():
-                        self.t.cancel()
-
-
-         new_range = self.duration / Gst.SECOND
-         self.h_scale1.set_range(0, new_range)
-
-
-
-
-      current = -1
-      ret, current = self.player.query_position(Gst.Format.TIME)
-      if ret:
-
-         # every second
-         #if self.settings['Debug']==1:
-         #   print("def refresh_slider - query_position")
-
-
-         self.h_scale1.handler_block(self.h_scale1_update)
-         self.h_scale1.set_value(current / Gst.SECOND)
-         self.h_scale1.handler_unblock(self.h_scale1_update)
-
-      return True
+         return True
 
 
 
@@ -516,13 +495,16 @@ class TabAudioPlayer:
 
 
 
+   def on_info(self, bus, message):
+      print('info message -> {}'.format(message))
+
+
 
    def player_state_changed(self, bus, msg):
 
       (old, new, pending) = msg.parse_state_changed()
 
-
-      if msg.src == self.player:	
+      if msg.src == self.player:
 
          if self.settings['Debug']==1:
             print('def player_state_changed old: %s new: %s' % (old,new))
@@ -537,12 +519,12 @@ class TabAudioPlayer:
             self.refresh_slider()
 
 
-
-
-
       else:
+
          #if self.settings['Debug']==1:
-         #   print('def player_state_changed player_style: %s msg.src: %s' % (self.player_style,msg.src))
+         #   print('def player_state_changed msg.src: %s' % msg.src)
+
+
          """
          def player_state_changed player_style: playbin msg.src: <__gi__.GstPlaySinkAudioConvert object at 0x7f87bf77c480 (GstPlaySinkAudioConvert at 0x55ff2f825020)>
          def player_state_changed player_style: playbin msg.src: <Gst.Bin object at 0x7f87bf77c480 (GstBin at 0x7f87a004e090)>
@@ -754,7 +736,10 @@ class TabAudioPlayer:
 
    def choose_song(self, choose='next'):
 
+      self.duration=None
+
       len_playlist = len(self.playlist)
+
 
       if self.settings['Debug']==1:
          print ('def choose_song - start choose %s len_playlist: %s play_num: %s' % (choose,len_playlist,self.settings['Play_Num']))
@@ -840,9 +825,9 @@ class TabAudioPlayer:
 
             filepath = os.path.realpath(self.playlist[self.settings['Play_Num']])
 
-            if self.player_style=='playbin':
+            if self.settings['gst_player']=='playbin':
                self.player.set_property("uri", "file://%s" % self.playlist[self.settings['Play_Num']])
-            elif self.player_style=='pipeline':
+            elif self.settings['gst_player']=='pipeline':
                self.player.get_by_name('file-source').set_property("location", filepath)
             self.label_play_file.set_text('%s - %s' % ((self.settings['Play_Num']+1),self.playlist[self.settings['Play_Num']]))
 
@@ -856,7 +841,7 @@ class TabAudioPlayer:
 
          self.button_pause.set_sensitive(True)
 
-         start_time_s = 0
+         self.start_time_s = 0
 
          if self.settings['Random_Time']!='0':
             self.player.set_state(Gst.State.PAUSED)
@@ -864,12 +849,12 @@ class TabAudioPlayer:
             (random_t1,random_t2) = self.settings['Random_Time'].split('-')
             if self.settings['Debug']==1:
                print ('def play_file random_t1: %s random_t1: %s' % (random_t1,random_t2))
-            start_time_s=random.randint(int(random_t1),int(random_t2))
+            self.start_time_s=random.randint(int(random_t1),int(random_t2))
             if self.settings['Debug']==1:
-               print ('def play_file - start-time: %s s' % start_time_s)
+               print ('def play_file - start-time: %s s' % self.start_time_s)
 
             time.sleep(0.5)
-            self.player.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, start_time_s * Gst.SECOND)
+            self.player.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, self.start_time_s * Gst.SECOND)
 
          self.player.set_state(Gst.State.PLAYING)
 
@@ -937,7 +922,12 @@ class TabAudioPlayer:
 
 
    def treeview_size_changed(self, event1, event2):
+      #if self.settings['Debug']==1:
+      #   print ('def treeview_size_changed start')
       pass
+
+
+
 
 
    ###### COMBOBOX ######
