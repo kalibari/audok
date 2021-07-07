@@ -179,11 +179,11 @@ class TabAudioPlayer:
 
 
       image3 = Gtk.Image()
-      image3.set_from_file('%s/loop_small.png' % self.settings['Path'])
+      image3.set_from_file('%s/loop_small.png' % self.settings['Share_Path'])
       self.checkbutton_loop = Gtk.CheckButton()
 
       image4 = Gtk.Image()
-      image4.set_from_file('%s/auto_olddir_small.png' % self.settings['Path'])
+      image4.set_from_file('%s/auto_olddir_small.png' % self.settings['Share_Path'])
       self.checkbutton_auto_move = Gtk.CheckButton()
 
       button5 = Gtk.Button(label="Scan")
@@ -191,17 +191,17 @@ class TabAudioPlayer:
 
 
       image6 = Gtk.Image()
-      image6.set_from_file('%s/streamripperdir_small.png' % self.settings['Path'])
+      image6.set_from_file('%s/streamripperdir_small.png' % self.settings['Share_Path'])
       self.checkbutton_str = Gtk.CheckButton()
       self.checkbutton_str.set_active(1)
 
 
       image7 = Gtk.Image()
-      image7.set_from_file('%s/newdir_small.png' % self.settings['Path'])
+      image7.set_from_file('%s/newdir_small.png' % self.settings['Share_Path'])
       self.checkbutton_new = Gtk.CheckButton()
 
       image8 = Gtk.Image()
-      image8.set_from_file('%s/olddir_small.png' % self.settings['Path'])
+      image8.set_from_file('%s/olddir_small.png' % self.settings['Share_Path'])
       self.checkbutton_old = Gtk.CheckButton()
 
 
@@ -234,26 +234,26 @@ class TabAudioPlayer:
 
 
       image2 = Gtk.Image()
-      image2.set_from_file('%s/back_white.png' % self.settings['Path'])
+      image2.set_from_file('%s/back_white.png' % self.settings['Share_Path'])
       self.button_back = Gtk.Button()
       self.button_back.connect("clicked", self.BACK_BUTTON)
       self.button_back.set_image(image2)
 
 
       image3 = Gtk.Image()
-      image3.set_from_file('%s/play_white.png' % self.settings['Path'])
+      image3.set_from_file('%s/play_white.png' % self.settings['Share_Path'])
       self.button_play = Gtk.Button()
       self.button_play.connect("clicked", self.PLAY_BUTTON)
       self.button_play.set_image(image3)
 
       image4 = Gtk.Image()
-      image4.set_from_file('%s/pause_white.png' % self.settings['Path'])
+      image4.set_from_file('%s/pause_white.png' % self.settings['Share_Path'])
       self.button_pause = Gtk.Button()
       self.button_pause.connect("clicked", self.PAUSE_BUTTON)
       self.button_pause.set_image(image4)
 
       image5 = Gtk.Image()
-      image5.set_from_file('%s/next_white.png' % self.settings['Path'])
+      image5.set_from_file('%s/next_white.png' % self.settings['Share_Path'])
 
 
       self.button_next = Gtk.Button()
@@ -262,13 +262,13 @@ class TabAudioPlayer:
 
 
       image6 = Gtk.Image()
-      image6.set_from_file('%s/olddir.png' % self.settings['Path'])
+      image6.set_from_file('%s/olddir.png' % self.settings['Share_Path'])
       self.button_move_old = Gtk.Button()
       self.button_move_old.connect("clicked", self.MOVE_OLD_BUTTON)
       self.button_move_old.set_image(image6)
 
       image7 = Gtk.Image()
-      image7.set_from_file('%s/newdir.png' % self.settings['Path'])
+      image7.set_from_file('%s/newdir.png' % self.settings['Share_Path'])
       self.button_move_new = Gtk.Button()
       self.button_move_new.connect("clicked", self.MOVE_NEW_BUTTON)
       self.button_move_new.set_image(image7)
@@ -640,7 +640,7 @@ class TabAudioPlayer:
       if self.checkbutton_auto_move.get_active():
          self.move_old()
 
-      os.kill(self.settings['Mainpid'], signal.SIGUSR2)
+      os.kill(self.settings['Pid'], signal.SIGUSR2)
 
 
 
@@ -661,57 +661,59 @@ class TabAudioPlayer:
          print ('def playlist_filescan - start')
 
 
-      allfiles = []
+      allfiles = set()
 
       if self.checkbutton_new.get_active()==True:
 
          if self.settings['Debug']==1:
-            print ('def playlist_filescan - scan dir: %s' % self.settings['Directory_New'])
+            print ('def playlist_filescan - scan dir: %s/%s' % (self.settings['Music_Path'],self.settings['Directory_New']))
 
-         for root, dirs, files in os.walk(self.settings['Directory_New']):
+         for root, dirs, files in os.walk(self.settings['Music_Path'] + '/' + self.settings['Directory_New']):
             for item in files:
-               if re.search('^%s' % self.settings['Directory_Old'], root):
+               if re.search('^%s/%s' % (self.settings['Music_Path'],self.settings['Directory_Old']), root):
                   pass
-               elif re.search('^%s' % self.settings['Directory_Streamripper'], root):
+               elif re.search('^%s/%s' % (self.settings['Music_Path'],self.settings['Directory_Streamripper']), root):
                   pass
                else:
-                  allfiles.extend(['%s/%s' % (root,item)])
+                  allfiles.add('%s/%s' % (root,item))
 
 
 
       if self.checkbutton_old.get_active()==True:
 
          if self.settings['Debug']==1:
-            print ('def playlist_filescan - scan dir: %s' % self.settings['Directory_Old'])
+            print ('def playlist_filescan - scan dir: %s/%s' % (self.settings['Music_Path'],self.settings['Directory_Old']))
 
-         for root, dirs, files in os.walk(self.settings['Directory_Old']):
+         for root, dirs, files in os.walk(self.settings['Music_Path'] + '/' + self.settings['Directory_Old']):
             for item in files:
-               if root==self.settings['Directory_New']:
+               if re.search('^%s/%s' % (self.settings['Music_Path'],self.settings['Directory_New']), root):
                   pass
-               elif root==self.settings['Directory_Streamripper']:
+               elif re.search('^%s/%s' % (self.settings['Music_Path'],self.settings['Directory_Streamripper']), root):
                   pass
-               else:              
-                  allfiles.extend(['%s/%s' % (root,item)])
+               else:
+                  allfiles.add('%s/%s' % (root,item))
+
 
 
       if self.checkbutton_str.get_active()==True:
 
          if self.settings['Debug']==1:
-            print ('def playlist_filescan - scan dir: %s' % self.settings['Directory_Streamripper'])
+            print ('def playlist_filescan - scan dir: %s/%s' % (self.settings['Music_Path'],self.settings['Directory_Streamripper']))
 
-         for root, dirs, files in os.walk(self.settings['Directory_Streamripper']):
+         for root, dirs, files in os.walk(self.settings['Music_Path'] + '/' + self.settings['Directory_Streamripper']):
             for item in files:
-               if root==self.settings['Directory_Old']:
+               if re.search('^%s/%s' % (self.settings['Music_Path'],self.settings['Directory_Old']), root):
                   pass
-               elif root==self.settings['Directory_New']:
+               elif re.search('^%s/%s' % (self.settings['Music_Path'],self.settings['Directory_New']), root):
                   pass
                elif 'incomplete' in root:
                   pass
                else:
-                  allfiles.extend(['%s/%s' % (root,item)])
+                  allfiles.add('%s/%s' % (root,item))
 
 
       # reverse
+      allfiles=list(allfiles)
       allfiles=allfiles[::-1]
 
       # reset
@@ -887,10 +889,9 @@ class TabAudioPlayer:
 
       try:
          filename = os.path.basename(path_filename)
-         if (os.path.exists(self.settings['Directory_Old']))==False:
-            os.mkdir(self.settings['Directory_Old'])
-         os.rename(path_filename,'%s/%s' % (self.settings['Directory_Old'],filename))
-         #del self.playlist[self.settings['Play_Num']]
+         if not os.path.exists(self.settings['Music_Path'] + '/' + self.settings['Directory_Old']):
+            os.mkdir(self.settings['Music_Path'] + '/' + self.settings['Directory_Old'])
+         os.rename(path_filename,'%s/%s/%s' % (self.settings['Music_Path'],self.settings['Directory_Old'],filename))
          self.playlist_filescan()
       except Exception as e:
          if self.settings['Debug']==1:
@@ -910,10 +911,10 @@ class TabAudioPlayer:
 
       filename = os.path.basename(self.playlist[self.settings['Play_Num']])
       try:
-         if (os.path.exists(self.settings['Directory_New']))==False:
-            os.mkdir(self.settings['Directory_New'])
-         os.rename(self.playlist[self.settings['Play_Num']],'%s/%s' % (self.settings['Directory_New'],filename))
-         del self.playlist[self.settings['Play_Num']]
+         if not os.path.exists(self.settings['Music_Path'] + '/' + self.settings['Directory_New']):
+            os.mkdir(self.settings['Music_Path'] + '/' + self.settings['Directory_New'])
+         os.rename(self.playlist[self.settings['Play_Num']], '%s/%s/%s' % (self.settings['Music_Path'],self.settings['Directory_New'],filename))
+         self.playlist_filescan()
       except Exception as e:
          if self.settings['Debug']==1:
             print ('def move_new error: %s' % str(e))

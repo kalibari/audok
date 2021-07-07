@@ -4,8 +4,7 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 gi.require_version('GLib', '2.0')
 from gi.repository import GLib
-import math
-import cairo
+import main
 
 
 class TabStreamRipper:
@@ -201,25 +200,8 @@ class TabStreamRipper:
          print ('def SAVE_BUTTON start')
 
       self.button_save.set_sensitive(False)
-
-      # Save new Stations
-      if not os.path.exists('%s/.config/%s' % (os.environ['HOME'], self.settings['Name'])):
-         os.mkdir('%s/.config/%s' % (os.environ['HOME'], self.settings['Name']), 0o755);
-      f = open('%s/.config/%s/stations.xml' % (os.environ['HOME'], self.settings['Name']), 'w')
-      f.write('<?xml version="1.0"?>\n')
-      f.write('<data>\n')
-
-
-      for i, item in enumerate(self.station_liststore):
-         #print (self.stationlist[i][0])  # Alternative
-         #print (self.stationlist[i][1])  # Radio freeFM Ulm
-         #print (self.stationlist[i][2])  # http://stream.freefm.de:8100/listen.pls
-         f.write('\t<station>\n' + '\t\t<name>' + str(self.stationlist[i][0]) + '</name>\n'  + '\t\t<genre>' + str(self.stationlist[i][1]) + '</genre>\n'  + '\t\t<url>' + str(self.stationlist[i][2]) +  '</url>\n' +  '\t</station>\n')
-
-      f.write('</data>\n')
-
-      f.close()
-
+      files = main.Files()
+      files.update_file_stations(self.settings, self.stationlist, self.station_liststore)
 
 
 
@@ -227,8 +209,8 @@ class TabStreamRipper:
       if self.settings['Debug']==1:
          print ('def RESET_BUTTON - start')
 
-      if os.path.exists('%s/.config/audok/stations.xml' % os.environ['HOME']):
-         os.remove('%s/.config/audok/stations.xml' % os.environ['HOME'])
+      if os.path.exists('%s/%s' % (self.settings['Config_Path'],self.settings['Filename_Stations'])):
+         os.remove('%s/%s' % (self.settings['Config_Path'],self.settings['Filename_Stations']))
 
       self.main.on_reset_close()
 
@@ -342,8 +324,8 @@ class TabStreamRipper:
          self.glib_timer_streamripper = GLib.timeout_add_seconds(1, self.check_streamripper)
 
 
-      if (os.path.exists(self.settings['Directory_Streamripper']))==False:
-         os.mkdir(self.settings['Directory_Streamripper'])
+      if (os.path.exists(self.settings['Music_Path'] + '/' + self.settings['Directory_Streamripper']))==False:
+         os.mkdir(self.settings['Music_Path'] + '/' + self.settings['Directory_Streamripper'])
 
 
 
@@ -361,8 +343,8 @@ class TabStreamRipper:
 
             # streamripper http://www.top100station.de/switch/r3472.pls -u WinampMPEG/5.0 -d /MyDisc/Audio/Neu/Streamtuner/
 
-            cmd=[self.settings['Bin_Streamripper'], self.station_liststore[i][5],'-u','WinampMPEG/5.0','-d','%s' % self.settings['Directory_Streamripper']]
-            cwd=self.settings['Directory_Streamripper']
+            cmd=[self.settings['Bin_Streamripper'], self.station_liststore[i][5],'-u','WinampMPEG/5.0','-d','%s/%s' % (self.settings['Music_Path'],self.settings['Directory_Streamripper'])]
+            cwd=self.settings['Music_Path'] + '/' + self.settings['Directory_Streamripper']
             self.main.process_starter(cmd=cmd, cwd=cwd, job='streamripper', identifier=str(i), source=self.station_liststore[i][5])
             ##item.set_property("editable", True)
             ##self.station_liststore[i].SetEditable(False)

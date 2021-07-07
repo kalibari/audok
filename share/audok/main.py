@@ -19,6 +19,107 @@ gi.require_version('GLib', '2.0')
 from gi.repository import GLib, GObject
 
 
+class Files:
+
+   def get_default_stationlist(self):
+
+      default_stationlist =  [['Alternative', 'Radio freeFM Ulm', 'http://stream.freefm.de:7000/Studio'],
+                              ['Alternative', 'Radio FM 4 at', 'https://orf-live.ors-shoutcast.at/fm4-q2a'],
+                              ['Alternative', 'Zeilsteen Radio', 'http://live.zeilsteen.com:80'],
+
+                              ['Mix', 'Pirate Radio Bayern', 'http://78.46.126.219:8000/stream'],
+                              ['Mix', '1.FM - Gorilla FM', 'http://185.33.21.112:80/gorillafm_128'],
+
+                              ['Electro', 'radio Top 40 Weimar Clubsound', 'http://antenne-th.divicon-stream.net/antth_top40electro_JlSz-mp3-192?sABC=58p2q700%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
+                              ['Electro', 'Sunshine Live','http://sunshinelive.hoerradar.de/sunshinelive-live-mp3-hq'],
+
+                              ['Chipc_serverarts', 'radio Top 40 Weimar Charts', 'http://antenne-th.divicon-stream.net/antth_top40char_0f6x-mp3-192?sABC=58p2q6s8%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
+                              ['Charts', 'Top 100 Station','http://www.top100station.de/switch/r3472.pls'],
+                              ['Charts', 'radio Top 40 Weimar Live', 'http://antenne-th.divicon-stream.net/antth_top40live_SeJx-mp3-192?sABC=58p2q6rq%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
+                              ['Charts', '"TOP 20" Radio', 'http://listen.radionomy.com:80/-TOP20-Radio'],
+
+                              ['80s', '80s New Wave','http://yp.shoutcast.com/sbin/tunein-station.pls?id=99180471'],
+
+                              ['Pop', 'Pophits Station', 'http://yp.shoutcast.com/sbin/tunein-station.pls?id=99183408'],
+                              ['Pop', 'Bailiwick Radio_00s', 'http://listen.radionomy.com:80/BailiwickRadio-00s'],
+                              ['Pop', 'Antenne 1','http://stream.antenne1.de/stream1/livestream.mp3'],
+                              ['Pop', 'Antenne Bayern Fresh4You', 'http://mp3channels.webradio.antenne.de/fresh'],
+
+                              ['Rap', 'WHOA UK!!!!', 'http://listen.radionomy.com:80/WHOAUK----'],
+
+                              ['None', '', ''],
+                              ['None', '', ''],
+                              ['None', '', ''],
+                              ['None', '', '']]
+
+      return default_stationlist
+
+
+
+
+   def get_default_file_settings(self, settings):
+
+      default_file_settings = {  'Name': 'audok',
+                                 'Version': settings['Version'],
+                                 'Size_X': 1000,
+                                 'Size_Y': 500,
+                                 'Position_X': 0,
+                                 'Position_Y': 0,
+                                 'Directory_New': 'New',
+                                 'Directory_Old': 'Old',
+                                 'Directory_Streamripper': 'Streamripper',
+                                 'Bin_Youtubedl': '%s/youtube-dl' % settings['App_Bin_Path'],
+                                 'Bin_Streamripper': '%s/streamripper' % settings['App_Bin_Path'],
+                                 'Bin_Ffmpeg': '%s/ffmpeg' % settings['App_Bin_Path'],
+                                 'Bin_Pwrecord': '/usr/bin/pw-record',
+                                 'Pwrecord_Target': 41,
+                                 'Pwrecord_Default_Filename': 'pwrecord',
+                                 'Bin_Flac': '%s/flac' % settings['Bin_Path'], 
+                                 'Bin_Nice': '%s/nice' % settings['Bin_Path'], 
+                                 'Choice_Play_Time': '0,20,35,50,65',
+                                 'Choice_Random_Time': '0,10-30,30-50,50-70,70-90',
+                                 'Bitrate': '192k',
+                                 'Choice_Bitrate': '128k,192k,224k,320k'}
+
+      return default_file_settings
+
+
+
+   def update_file_settings(self, settings, file_settings):
+
+      if not os.path.exists(settings['Config_Path']):
+         os.mkdir(settings['Config_Path'], 0o755)
+
+      f = open('%s/%s' % (settings['Config_Path'],settings['Filename_Settings']), 'w')
+      f.write('<?xml version="1.0"?>\n')
+      f.write('<data>\n')
+      for item in file_settings:
+         f.write('\t<' + str(item) + '>' + str(file_settings[item]) + '</' + str(item) + '>\n')
+      f.write('</data>\n')
+      f.close()
+
+
+
+   def update_file_stations(self, settings, stationlist, station_liststore):
+
+      if not os.path.exists(settings['Config_Path']):
+         os.mkdir(settings['Config_Path'], 0o755)
+
+      f = open('%s/%s' % (settings['Config_Path'],settings['Filename_Stations']), 'w')
+      f.write('<?xml version="1.0"?>\n')
+      f.write('<data>\n')
+      for i, item in enumerate(station_liststore):
+         #print (stationlist[i][0])  # Alternative
+         #print (stationlist[i][1])  # Radio freeFM Ulm
+         #print (stationlist[i][2])  # http://stream.freefm.de:8100/listen.pls
+         f.write('\t<station>\n' + '\t\t<name>' + str(stationlist[i][0]) + '</name>\n'  + '\t\t<genre>' + str(stationlist[i][1]) + '</genre>\n'  + '\t\t<url>' + str(stationlist[i][2]) +  '</url>\n' +  '\t</station>\n')
+      f.write('</data>\n')
+      f.close()
+
+
+
+
+
 class Music_Admin_Start(Gtk.Window):
 
    def __init__(self, settings, playlist, stationlist):
@@ -36,7 +137,7 @@ class Music_Admin_Start(Gtk.Window):
       self.set_resizable(True) 
 
 
-      self.set_icon_from_file('%s/audok.png' % settings['Path'])
+      self.set_icon_from_file('%s/audok_large.png' % settings['Share_Path'])
 
       self.pnum = 0
 
@@ -71,7 +172,7 @@ class Music_Admin_Start(Gtk.Window):
          thread.start()
       except Exception as e:
          if self.settings['Debug']==1:
-            print ('def init - PanelOne ipc_server error: %s' % str(e))
+            print ('def init - Main ipc_server error: %s' % str(e))
 
 
       signal.signal(signal.SIGUSR1, self.signal_handler_sigusr1)
@@ -134,10 +235,10 @@ class Music_Admin_Start(Gtk.Window):
       #if self.settings['Debug']==1:
       #   print ('def Resize - width: %s height: %s position_x: %s position_y: %s' % (width, height, position_x, position_y))
 
-      self.settings['Temp_Size_X']=width
-      self.settings['Temp_Size_Y']=height
-      self.settings['Temp_Position_X'] = position_x
-      self.settings['Temp_Position_Y'] = position_y
+      self.settings['Size_X']=width
+      self.settings['Size_Y']=height
+      self.settings['Position_X'] = position_x
+      self.settings['Position_Y'] = position_y
 
 
 
@@ -170,6 +271,11 @@ class Music_Admin_Start(Gtk.Window):
 
       self.notebook_tab_audioplayer.play_timer_stop()
       self.process_all_killer()
+
+      if os.path.exists('%s/%s' % (self.settings['Config_Path'],self.settings['Filename_Port'])):
+         os.remove('%s/%s' % (self.settings['Config_Path'],self.settings['Filename_Port']))
+
+
 
 
 
@@ -322,6 +428,9 @@ class Music_Admin_Start(Gtk.Window):
       if self.settings['Debug']==1:
          print ('def ipc_server - thread start')
 
+      if not os.path.exists(self.settings['Config_Path']):
+         os.mkdir(self.settings['Config_Path'], 0o755)
+
       for num in range(0,10):
 
          self.settings['Ipc_Port'] = self.settings['Ipc_Port'] + num
@@ -332,10 +441,16 @@ class Music_Admin_Start(Gtk.Window):
             sock.listen(1)
             #sock.setblocking(0)
             #sock.settimeout(10)
+            with open('%s/%s' % (self.settings['Config_Path'],self.settings['Filename_Port']),'w') as f:
+               f.write(str(self.settings['Ipc_Port']))
+               f.close()
+               if self.settings['Debug']==1:
+                  print ('def ipc_server - write %s/%s' % (self.settings['Config_Path'],self.settings['Filename_Port']))
             break
          except:
             if self.settings['Debug']==1:
                print ('def ipc_server - thread port is probably blocked -> try next port')
+
 
 
       if self.settings['Debug']==1:
@@ -345,7 +460,7 @@ class Music_Admin_Start(Gtk.Window):
 
       while True:
 
-         os.kill(self.settings['Mainpid'], signal.SIGUSR1)
+         os.kill(self.settings['Pid'], signal.SIGUSR1)
 
          (connection, client_address) = sock.accept()
 
@@ -362,7 +477,7 @@ class Music_Admin_Start(Gtk.Window):
                      print ('def ipc_server - new playlist "%s"' % str(self.playlist))
                else:
                   if self.settings['Debug']==1:
-                     print ('def ipc_server - thread send SIGUSR1 to pid: %s type: %s' % (self.settings['Mainpid'],type(self.settings['Mainpid'])))
+                     print ('def ipc_server - thread send SIGUSR1 to pid: %s type: %s' % (self.settings['Pid'],type(self.settings['Pid'])))
                   # play one song
                   break
 
