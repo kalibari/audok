@@ -162,7 +162,7 @@ class TabAudioPlayer:
 
       label1 = Gtk.Label("Play Time", xalign=0)
       self.combo_play_time = Gtk.ComboBoxText()
-      choice_play_time=self.settings['Choice_Play_Time'].split(',')
+      choice_play_time=self.settings['Choice_Play_Time']
       for i,item in enumerate(choice_play_time):
          self.combo_play_time.insert(i, "%s" %i, "%s" % item)
       self.combo_play_time.connect("changed", self.PLAY_TIME_COMBOBOX)
@@ -171,7 +171,7 @@ class TabAudioPlayer:
 
       label2 = Gtk.Label("Random Start", xalign=0)
       self.combo_random = Gtk.ComboBoxText()
-      choice_random_time=self.settings['Choice_Random_Time'].split(',')
+      choice_random_time=self.settings['Choice_Random_Time']
       for i,item in enumerate(choice_random_time):
          self.combo_random.insert(i, "%s" % item, "%s" % item) 
       self.combo_random.connect("changed", self.RANDOM_COMBOBOX)
@@ -772,13 +772,14 @@ class TabAudioPlayer:
 
 
       # change scrolled window
-      adj = self.scrolledwindow1.get_vadjustment()
-      upper_size = adj.get_upper()
-      page_size = adj.get_page_size()
-      set_size = (upper_size / len_playlist) * self.settings['Play_Num']
-      if self.settings['Debug']==1:
-         print ('def choose_song set_size: %s play_num: %s upper_size: %s page_size: %s' % (set_size,self.settings['Play_Num'],upper_size,page_size))
-      adj.set_value(set_size)
+      if len_playlist>0:
+         adj = self.scrolledwindow1.get_vadjustment()
+         upper_size = adj.get_upper()
+         page_size = adj.get_page_size()
+         set_size = (upper_size / len_playlist) * self.settings['Play_Num']
+         if self.settings['Debug']==1:
+            print ('def choose_song set_size: %s play_num: %s upper_size: %s page_size: %s' % (set_size,self.settings['Play_Num'],upper_size,page_size))
+         adj.set_value(set_size)
 
 
       self.play_file()
@@ -823,7 +824,10 @@ class TabAudioPlayer:
          self.entry_file_sum.set_text('%s' % len(self.playlist))
          self.player.set_state(Gst.State.NULL)
 
-         if len(self.playlist)>=1:
+         if len(self.playlist)==0:
+            self.label_play_file.set_text('')
+
+         elif len(self.playlist)>=1:
 
             filepath = os.path.realpath(self.playlist[self.settings['Play_Num']])
 

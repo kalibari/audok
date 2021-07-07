@@ -8,9 +8,7 @@ import socket
 import subprocess
 import pwd
 import xml.etree.ElementTree
-app_bin_path = os.path.dirname(os.path.realpath(__file__))
-app_path = os.path.dirname(app_bin_path)
-share_path = app_path + '/share/audok'
+share_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + '/share/audok'
 sys.path.insert(0, share_path)
 import main
 import tab_audioplayer
@@ -20,8 +18,7 @@ from gi.repository import Gst
 gi.require_version('Gdk', '3.0')
 from gi.repository import Gdk
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk
-from gi.repository import GLib
+from gi.repository import Gtk, GLib
 
 
 
@@ -58,9 +55,9 @@ if __name__ == '__main__':
    settings['Filename_Stations'] = 'stations.xml'
    settings['Filename_Port'] = 'ipc_port'
 
-   settings['Bin_Path'] = '/bin'
-   settings['App_Bin_Path'] = app_bin_path
-   settings['App_Path'] = app_path
+   settings['Choice_Pwrecord_Device'] = []
+   settings['Choice_Bitrate'] = []
+
    settings['Share_Path'] = share_path
    settings['Music_Path'] = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_MUSIC)
    settings['Config_Path'] = '%s/audok' % GLib.get_user_config_dir()
@@ -93,7 +90,7 @@ if __name__ == '__main__':
                elif isinstance(default_file_settings[element], str):
                   value = str(value.strip())
                elif isinstance(default_file_settings[element], list):
-                  value = list(value)
+                  value = value.split(',')
                elif isinstance(default_file_settings[element], float):
                   value = float(value)
    

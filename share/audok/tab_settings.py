@@ -1,6 +1,7 @@
 import os
 import re
 import gi
+import subprocess
 import main
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
@@ -143,40 +144,56 @@ class TabSettings:
 
       hbox_converter= Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
 
+      label_pwrecord = Gtk.Label("PWrecord Devices:", xalign=0)
+      label_pwrecord.set_size_request(160, -1)
+
+
+      self.combo_pwrecord = Gtk.ComboBoxText()
+      choice_pwrecord_device=self.settings['Choice_Pwrecord_Device']
+      choice_active=0
+      for i,item in enumerate(choice_pwrecord_device):
+         if item==self.settings['Pwrecord_Device']:
+            choice_active=i
+         self.combo_pwrecord.insert(i, str(i), item)
+      self.combo_pwrecord.set_active(choice_active)
+      self.combo_pwrecord.connect("changed", self.PWRECORD_COMBOBOX)
+
+
+
+      self.button_pwrecord_device_scan = Gtk.Button(label="Scan")
+      self.button_pwrecord_device_scan.connect("clicked", self.PWRECORD_DEVICE_SCAN_BUTTON)
+      self.button_pwrecord_device_scan.set_size_request(100, -1)
+
+
       label_empty = Gtk.Label("", xalign=0)
       label_empty.set_size_request(165, -1)
 
-      label_pwrecord = Gtk.Label("PWrecord Target:", xalign=0)
+      label_pwrecord = Gtk.Label("PWrecord Device:", xalign=0)
       label_pwrecord.set_size_request(160, -1)
 
-      self.entry_input_pwrecord_target = Gtk.Entry()
-      self.entry_input_pwrecord_target.set_size_request(-1, 10)
-      self.entry_input_pwrecord_target.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
-      self.entry_input_pwrecord_target.set_text(str(self.settings['Pwrecord_Target']))
-
-      label_bitrate = Gtk.Label("Bitrate:", xalign=30)
-      label_bitrate.set_size_request(100, -1)
+      label_bitrate = Gtk.Label("Bitrate:", xalign=0)
+      label_bitrate.set_size_request(80, -1)
 
       combo_bitrate = Gtk.ComboBoxText()
-      choice_bitrate=self.settings['Choice_Bitrate'].split(',')
-
-
+      choice_bitrate=self.settings['Choice_Bitrate']
       choice_active=0
- 
       for i,item in enumerate(choice_bitrate):
          if item==self.settings['Bitrate']:
             choice_active=i
-         combo_bitrate.insert(i, "%s" %i, "%s" % item)
-
+         combo_bitrate.insert(i, str(i), item)
       combo_bitrate.set_active(choice_active)
       combo_bitrate.connect("changed", self.BITRATE_COMBOBOX)
+ 
+      label_empty = Gtk.Label("", xalign=0)
+      label_empty.set_size_request(60, -1)
 
-      hbox_converter.pack_start(label_empty, False, False, 0)
       hbox_converter.pack_start(label_pwrecord, False, False, 0)
-      hbox_converter.pack_start(self.entry_input_pwrecord_target, False, False, 0)
+      hbox_converter.pack_start(self.combo_pwrecord, False, False, 0)
+      hbox_converter.pack_start(self.button_pwrecord_device_scan, False, False, 0)
+      hbox_converter.pack_start(label_empty, False, False, 0)
       hbox_converter.pack_start(label_bitrate, False, False, 0)
       hbox_converter.pack_start(combo_bitrate, False, False, 0)
-      
+
       grid.attach_next_to(hbox_converter, hbox_coverter, Gtk.PositionType.BOTTOM, 1, 1)
 
 
@@ -189,7 +206,6 @@ class TabSettings:
 
       hbox_window.pack_start(label_window, False, False, 0)
 
-      #grid.attach_next_to(hbox_window, hbox_youtube_dl, Gtk.PositionType.BOTTOM, 1, 1)
       grid.attach_next_to(hbox_window, hbox_converter, Gtk.PositionType.BOTTOM, 1, 1)
 
       #############################
@@ -249,10 +265,42 @@ class TabSettings:
       self.settings['Bitrate'] = event.get_active_text()
 
 
-   def START_UPDATE_YOUTUBE_DL_BUTTON(self, event):
-      if self.settings['Debug']==1:
-         print ('def START_UPDATE_YOUTUBE_DL_BUTTON - start')
 
+   def PWRECORD_COMBOBOX(self, event):
+      if self.settings['Debug']==1:
+         print ('def PWRECORD_COMBOBOX - start')
+
+      self.settings['Pwrecord_Device'] = event.get_active_text()
+
+
+
+   def PWRECORD_DEVICE_SCAN_BUTTON(self, event):
+      if self.settings['Debug']==1:
+         print ('def PWRECORD_DEVICE_SCAN_BUTTON - start')
+
+      audio_devices = set()
+
+      out = subprocess.check_output([self.settings['Bin_Pwcli'],'list-objects'])
+      if out:
+         output=out.decode('utf-8').split('\n')
+
+         for item in output:
+            x = re.search('^\s*node\.name\ \=\ "(.*)"\s*$', str(item))
+            if x and x.group(1):
+               if 'alsa' in x.group(1):
+                  audio_devices.add(x.group(1))
+
+
+      self.settings['Choice_Pwrecord_Device'] = []
+      self.combo_pwrecord.remove_all()
+
+      choice_active=0
+      for i,item in enumerate(list(audio_devices)):
+         if item==self.settings['Pwrecord_Device']:
+            choice_active=i
+         self.settings['Choice_Pwrecord_Device'].extend([item])
+         self.combo_pwrecord.insert(i, str(i), item)
+      self.combo_pwrecord.set_active(choice_active)
 
 
 
@@ -265,15 +313,14 @@ class TabSettings:
       files = main.Files()
       file_settings = files.get_default_file_settings(self.settings)
 
+      file_settings['Pwrecord_Device'] = self.settings['Pwrecord_Device']
+      file_settings['Bitrate'] = self.settings['Bitrate']
+      file_settings['Choice_Pwrecord_Device'] = self.settings['Choice_Pwrecord_Device']
+
+
       file_settings['Directory_New'] = self.entry_input_dir_new.get_text()
       file_settings['Directory_Old'] = self.entry_input_dir_old.get_text()
       file_settings['Directory_Streamripper'] = self.entry_input_dir_st.get_text()
-
-      try:
-         file_settings['Pwrecord_Target'] = int(self.entry_input_pwrecord_target.get_text().strip())
-         self.settings['Pwrecord_Target'] = file_settings['Pwrecord_Target']
-      except:
-         pass
 
       self.settings['Directory_New'] = file_settings['Directory_New']
       self.settings['Directory_Old'] = file_settings['Directory_Old']

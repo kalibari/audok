@@ -255,6 +255,7 @@ class TabConverter:
             print ('\ndef refresh_output_textctrl_timer process_database: %s' % str(self.main.process_database[item]))
 
 
+
          if self.main.process_database[item]['status']=='inactive':
             inactive_processes+=1
 
@@ -276,10 +277,15 @@ class TabConverter:
                      self.main.process_database[item]['output']=[]
 
 
+
                if self.main.process_database[item]['job']=='pwrecord':
-                  if self.main.process_database[item]['output']:
+                  if self.main.process_database[item]['identifier']=='pw-cli':
                      self.textbuffer_output.set_text('%s\n' % self.main.process_database[item]['output'])
-                     self.main.process_database[item]['output']=[]
+                  if self.main.process_database[item]['identifier']=='pw-record':
+                     if self.main.process_database[item]['output']:
+                        self.textbuffer_output.set_text('%s\n' % self.main.process_database[item]['output'])
+                        self.main.process_database[item]['output']=[]
+
 
 
                if self.main.process_database[item]['job']=='file2mp3':
@@ -317,14 +323,15 @@ class TabConverter:
                      self.textbuffer_output.set_text('-- job: %s error\n' % self.main.process_database[item]['job'])
 
 
-
                if self.main.process_database[item]['job']=='pwrecord':
-                  self.main.process_database[item]['status']='inactive'
-                  if self.main.process_database[item]['result']==True:
-                     self.textbuffer_output.set_text('-- job: %s successfully done\n' % self.main.process_database[item]['job'])
-                     self.textbuffer_input.set_text('')
-                  else:
-                     self.textbuffer_output.set_text('-- job: %s error: %s\n' % (self.main.process_database[item]['job'],self.main.process_database[item]['output']))
+                  if self.main.process_database[item]['identifier']=='pw-cli':
+                     self.main.process_database[item]['status']='inactive'
+                     if self.main.process_database[item]['result']==True:
+                        self.start_record(self.main.process_database[item])
+                     else:
+                        self.textbuffer_output.set_text('-- job: %s aborted: %s\n' % (self.main.process_database[item]['job'],self.main.process_database[item]['output']))
+                  if self.main.process_database[item]['identifier']=='pw-record':
+                     self.main.process_database[item]['status']='inactive'
 
 
 
@@ -380,16 +387,7 @@ class TabConverter:
 
       self.textbuffer_output.set_text('')
 
-      # youtube-dl --help
-      # youtube-dl --no-warnings --no-call-home --audio-quality=4 --extract-audio --audio-format=mp3 --title https://www.youtube.com/watch?v=w7BE3inS-NM
-
-
-      source = self.textbuffer_input.get_text()
-      #start_iter = self.textbuffer_input.get_start_iter()
-      #end_iter = self.textbuffer_input.get_end_iter()
-      #source = self.textbuffer_input.get_text(start_iter, end_iter, True)   
-
-      source=source.strip()
+      source = self.textbuffer_input.get_text().strip()
 
       if not source:
 
@@ -409,9 +407,76 @@ class TabConverter:
 
          self.timer_you2mp3 = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
 
+         # youtube-dl --no-warnings --no-call-home --audio-quality=4 --extract-audio --audio-format=mp3 --title https://www.youtube.com/watch?v=w7BE3inS-NM
+
          cmd=[self.settings['Bin_Youtubedl'],'--audio-quality=4','--no-warnings','--no-call-home','--extract-audio','--audio-format=mp3','--exec','exit 0','--title',source]
          cwd=self.settings['Music_Path'] + '/' + self.settings['Directory_New']
          self.main.process_starter(cmd=cmd, cwd=cwd, job='you2mp3', identifier='', source='')
+
+
+
+
+   def start_record(self, process_database):
+
+      if self.settings['Debug']==1:
+         print ('def start_record - start job: %s' % process_database['job'])
+
+      idnum=-1
+      device_target=-1
+      for item in process_database['output']:
+         x = re.search('^\s*id (\d+), type ', item)
+         if x and x.group(1):
+            idnum=int(x.group(1))
+         x = re.search('^\s*node\.name\ \=\ "%s"\s*$' % self.settings['Pwrecord_Device'], item)
+         if x:
+            device_target=idnum
+            break
+
+
+      if device_target<0:
+         self.textbuffer_output.set_text('-- job: %s cannot find a device target' % process_database['job'])
+      else:
+         self.textbuffer_output.set_text('-- job: %s device target: %s\n' % (process_database['job'],device_target))
+
+
+         filename = self.settings['Pwrecord_Default_Filename']
+         if self.textbuffer_input.get_text():
+            filename = self.textbuffer_input.get_text()
+
+         if '/' in filename:
+            self.textbuffer_output.set_text('-- job: %s / in filename is not allowed' % process_database['job'])
+         else:
+
+            filename=(filename.encode('utf-8')).strip()
+
+            wavfiles = self.get_database_files('.wav')
+            num=0
+            for item in wavfiles:
+               x = re.search('%s-(\d+).wav' % self.settings['Pwrecord_Default_Filename'], os.path.basename(item))
+               if x and x.group(1):
+                  if int(x.group(1))>num:
+                     num=int(x.group(1))
+            newfilename='%s-%d.wav' % (self.settings['Pwrecord_Default_Filename'], (num+1))
+
+
+            if not os.path.exists(self.settings['Music_Path'] + '/' + self.settings['Directory_New']):
+               os.mkdir(self.settings['Music_Path'] + '/' + self.settings['Directory_New'])
+
+
+            self.button_you2mp3.set_sensitive(False)
+            self.button_pwrecord.set_sensitive(False)
+            self.button_file2mp3.set_sensitive(False)
+            self.button_wav2flac.set_sensitive(False)
+            self.button_stop.set_sensitive(True)
+   
+
+            # pw-record --verbose --record --channels=2 --format=s32 --rate=48000 --volume=0.99 --target=41  /MyDisc/Audio/Neu/test.wav
+
+            cmd=[self.settings['Bin_Pwrecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99',\
+            '--target=%s' % device_target, '%s/%s/%s' % (self.settings['Music_Path'],self.settings['Directory_New'],newfilename)]
+            cwd=self.settings['Music_Path'] + '/' + self.settings['Directory_New']
+            self.main.process_starter(cmd=cmd, cwd=cwd, job='pwrecord', identifier='', source='')
+
 
 
 
@@ -431,33 +496,13 @@ class TabConverter:
 
       self.filescan(self.settings['Music_Path'] + '/' + self.settings['Directory_New'])
 
-      wavfiles = self.get_database_files('.wav')
-      num=0
-      for item in wavfiles:
-         x = re.search('%s-(\d+).wav' % self.settings['Pwrecord_Default_Filename'], os.path.basename(item))
-         if x and x.group(1):
-            if int(x.group(1))>num:
-               num=int(x.group(1))
-      newfilename='%s-%d.wav' % (self.settings['Pwrecord_Default_Filename'], (num+1))
-
-      if not os.path.exists(self.settings['Music_Path'] + '/' + self.settings['Directory_New']):
-         os.mkdir(self.settings['Music_Path'] + '/' + self.settings['Directory_New'])
-
-
       self.textbuffer_output.set_text('')
 
       self.timer_pwrecord = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
 
-
-      # pw-record --verbose --record --channels=2 --format=s32 --rate=48000 --volume=0.99 --target=41  /MyDisc/Audio/Neu/test.wav
-
-      cmd=[self.settings['Bin_Pwrecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99',\
-      '--target=%s' % self.settings['Pwrecord_Target'], '%s/%s/%s' % (self.settings['Music_Path'],self.settings['Directory_New'],newfilename)]
-      cwd=self.settings['Music_Path'] + '/' + self.settings['Directory_New']
-      self.main.process_starter(cmd=cmd, cwd=cwd, job='pwrecord', identifier='', source='')
-
-
-
+      cmd=[self.settings['Bin_Pwcli'],'list-objects']
+      cwd='/'
+      self.main.process_starter(cmd=cmd, cwd=cwd, job='pwrecord', identifier='pw-cli', source='')
 
 
 
@@ -472,8 +517,6 @@ class TabConverter:
       self.button_file2mp3.set_sensitive(False)
       self.button_wav2flac.set_sensitive(False)
       self.button_stop.set_sensitive(True)
-
-
 
 
       self.filescan(self.settings['Music_Path'] + '/' + self.settings['Directory_New'])
@@ -534,9 +577,6 @@ class TabConverter:
 
          self.timer_file2mp3 = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
 
-         #self.refresh_timer = wx.Timer(self)
-         #self.Bind(wx.EVT_TIMER, self.refresh_output_textctrl_timer, self.refresh_timer)
-         #self.refresh_timer.Start(1000)
 
          for oldprefix,files in allfiles:
 
@@ -546,7 +586,7 @@ class TabConverter:
                dest_filename = self.get_destination_filename((self.settings['Music_Path'] + '/' + self.settings['Directory_New']), pathfile, '.mp3')
 
                cwd=self.settings['Music_Path'] + '/' + self.settings['Directory_New']
-               cmd=[self.settings['Bin_Nice'],'-n','19',self.settings['Bin_Ffmpeg'],'-v','error','-i',pathfile,'-ab', '%s' % str(self.settings['File2mp3_Bitrate']),'-n',dest_filename]
+               cmd=[self.settings['Bin_Nice'],'-n','19',self.settings['Bin_Ffmpeg'],'-v','error','-i',pathfile,'-ab', '%s' % str(self.settings['Bitrate']),'-n',dest_filename]
                self.main.process_starter(cmd=cmd, cwd=cwd, job='file2mp3', identifier='', source=pathfile)
 
 
@@ -602,9 +642,9 @@ class TabConverter:
                # destination_dir  pathfile  newprefix
                dest_filename = self.get_destination_filename((self.settings['Music_Path'] + '/' + self.settings['Directory_New']), pathfile, '.flac')
 
-               # flac --compression-level-8 --replay-gain -s /MyDisc/Audio/Neu/pw-record-4.mp3 --output-name  /MyDisc/Audio/Neu/test.flac
+               # ffmpeg -y -i /MyDisc/Audio/Neu/New/pwrecord-1.wav -af aformat=s32:48000 /MyDisc/Audio/Neu/test.flac
                cwd=self.settings['Music_Path'] + '/' + self.settings['Directory_New']
-               cmd=['nice','-n','19',self.settings['Bin_Flac'], '--no-delete-input-file', '--compression-level-8','--replay-gain','-s', pathfile, '--output-name',dest_filename]
+               cmd=['nice','-n','19',self.settings['Bin_Ffmpeg'], '-y', '-i',  pathfile, '-af', 'aformat=s32:48000', dest_filename]
                self.main.process_starter(cmd=cmd, cwd=cwd, job='wav2flac', identifier='', source=pathfile)
 
 

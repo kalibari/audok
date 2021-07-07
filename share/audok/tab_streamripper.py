@@ -127,16 +127,6 @@ class TabStreamRipper:
 
 
 
-#   def my_title_cell_data_func(self, tree_column, cell, tree_model, iter, data):
-#      """ Eine eigene cell_data_func für Item.title"""
-#      obj = tree_model[iter][0]    # Objekt für aktuelle Zeile
-#      #cell.set_property('text', obj.title)
-#      print ('def kkkkkkkkkkkkkkkkk')
-
-
-
-
-
    def on_cell_toggled(self, widget, path):
       if self.settings['Debug']==1:
          print ('def on_cell_toggled start widget: %s path: %s' % (widget, path))
@@ -346,18 +336,8 @@ class TabStreamRipper:
             cmd=[self.settings['Bin_Streamripper'], self.station_liststore[i][5],'-u','WinampMPEG/5.0','-d','%s/%s' % (self.settings['Music_Path'],self.settings['Directory_Streamripper'])]
             cwd=self.settings['Music_Path'] + '/' + self.settings['Directory_Streamripper']
             self.main.process_starter(cmd=cmd, cwd=cwd, job='streamripper', identifier=str(i), source=self.station_liststore[i][5])
-            ##item.set_property("editable", True)
-            ##self.station_liststore[i].SetEditable(False)
-
-         #identifier+=1
 
       self.record_station = list(set(self.record_station))
-
-
-      #if checkbox_enabled==0:
-      #   self.add_STOP_RECORD_BUTTON.set_sensitive(False)
-      #   self.add_EDIT_BUTTON.Enable()
-      #   self.add_RESET_BUTTON.Enable()
 
 
 
@@ -365,17 +345,6 @@ class TabStreamRipper:
    def STOP_RECORD_BUTTON(self, event):
       if self.settings['Debug']==1:
          print ('def STOP_RECORD_BUTTON start')
-
-      #self.refresh_timer.Stop()
-
-      #self.add_START_RECORD_BUTTON.set_sensitive(True)
-      #self.add_STOP_RECORD_BUTTON.set_sensitive(False)
-
-      #self.add_EDIT_BUTTON.Enable()
-      #self.add_SAVE_BUTTON.Enable()
-      #self.add_RESET_BUTTON.Enable()
-
-
 
       # reset
       self.station_not_running = []
@@ -389,9 +358,4 @@ class TabStreamRipper:
          GLib.source_remove(self.glib_timer_streamripper)
          del self.glib_timer_streamripper
 
-
-      #for item in self.checkbox:
-      #   item.Enable()
-
       self.main.process_job_killer(job='streamripper')
-

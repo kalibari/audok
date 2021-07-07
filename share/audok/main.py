@@ -68,18 +68,20 @@ class Files:
                                  'Directory_New': 'New',
                                  'Directory_Old': 'Old',
                                  'Directory_Streamripper': 'Streamripper',
-                                 'Bin_Youtubedl': '%s/youtube-dl' % settings['App_Bin_Path'],
-                                 'Bin_Streamripper': '%s/streamripper' % settings['App_Bin_Path'],
-                                 'Bin_Ffmpeg': '%s/ffmpeg' % settings['App_Bin_Path'],
-                                 'Bin_Pwrecord': '/usr/bin/pw-record',
-                                 'Pwrecord_Target': 41,
+                                 'Bin_Youtubedl': 'youtube-dl',
+                                 'Bin_Streamripper': 'streamripper',
+                                 'Bin_Ffmpeg': 'ffmpeg',
+                                 'Bin_Pwcli': 'pw-cli',
+                                 'Bin_Pwrecord': 'pw-record',
+                                 'Pwrecord_Device': 'alsa_output.pci-0000:00:1f.3.analog-stereo',
                                  'Pwrecord_Default_Filename': 'pwrecord',
-                                 'Bin_Flac': '%s/flac' % settings['Bin_Path'], 
-                                 'Bin_Nice': '%s/nice' % settings['Bin_Path'], 
-                                 'Choice_Play_Time': '0,20,35,50,65',
-                                 'Choice_Random_Time': '0,10-30,30-50,50-70,70-90',
-                                 'Bitrate': '192k',
-                                 'Choice_Bitrate': '128k,192k,224k,320k'}
+                                 'Bin_Flac': 'flac', 
+                                 'Bin_Nice': 'nice', 
+                                 'Choice_Pwrecord_Device': ['alsa_output.pci-0000:00:1f.3.analog-stereo'],
+                                 'Choice_Play_Time': ['0','20','35','50','65'],
+                                 'Choice_Random_Time': ['0','10-30','30-50','50-70','70-90'],
+                                 'Choice_Bitrate': ['128k','192k','224k','320k'],
+                                 'Bitrate': '192k'}
 
       return default_file_settings
 
@@ -93,8 +95,21 @@ class Files:
       f = open('%s/%s' % (settings['Config_Path'],settings['Filename_Settings']), 'w')
       f.write('<?xml version="1.0"?>\n')
       f.write('<data>\n')
-      for item in file_settings:
-         f.write('\t<' + str(item) + '>' + str(file_settings[item]) + '</' + str(item) + '>\n')
+      for element in file_settings:
+
+         value=file_settings[element]
+
+         if element in settings:
+            if isinstance(settings[element], int):
+               value = int(value)
+            elif isinstance(settings[element], str):
+               value = str(value.strip())
+            elif isinstance(settings[element], list):
+               value = ','.join(value)
+            elif isinstance(settings[element], float):
+               value = float(value)
+
+         f.write('\t<' + str(element) + '>' + str(value) + '</' + str(element) + '>\n')
       f.write('</data>\n')
       f.close()
 
@@ -132,7 +147,6 @@ class Music_Admin_Start(Gtk.Window):
 
 
       self.set_default_size(settings['Size_X'],settings['Size_Y'])
-      #self.set_size_request(settings['Size_X'],settings['Size_Y'])
       self.move(settings['Position_X'], settings['Position_Y'])
       self.set_resizable(True) 
 
@@ -141,10 +155,10 @@ class Music_Admin_Start(Gtk.Window):
 
       self.pnum = 0
 
-      self.process_database = {}
       # self.process_database[item]['status'] -> active, inactive, killed
       # self.process_database[item]['todo']   -> show, nooutput, result
       # self.process_database[item]['result'] -> True, False
+      self.process_database = {}
 
 
       self.notebook = Gtk.Notebook()
