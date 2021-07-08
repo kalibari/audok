@@ -33,116 +33,28 @@ class TabAudioPlayer:
       self.start_time_s = 0
 
 
-      # PLAYBIN
-      if self.settings['gst_player']=='playbin':
+      self.player = Gst.ElementFactory.make("playbin3", self.settings['Name'])
+      if not self.player:
+         print('ERROR: Could not create player')
+         sys.exit(1)
 
-         self.player = Gst.ElementFactory.make("playbin", "player2")
-         if not self.player:
-            print('ERROR: Could not create player')
-            sys.exit(1)
-
-         # play only audio files
-         fakesink = Gst.ElementFactory.make('fakesink', 'fakesink')
-         self.player.set_property('video-sink', fakesink)
-
-         self.player.connect("video-tags-changed", self.player_tag_changed)
-         self.player.connect("audio-tags-changed", self.player_tag_changed)
-         self.player.connect("text-tags-changed", self.player_tag_changed)
-
-         bus = self.player.get_bus()
-         bus.add_signal_watch()
-         bus.enable_sync_message_emission()
-         bus.connect("message::error", self.player_error)
-         bus.connect("message::eos", self.player_eos)
-         bus.connect("message::state-changed", self.player_state_changed)
-         bus.connect("message::application", self.player_application_message)
-         bus.connect('message::buffering', self.on_buffering)
-         bus.connect("sync-message::element", self.on_sync_message)
-   
+      # play only audio files
+      fakesink = Gst.ElementFactory.make('fakesink', 'fakesink')
+      self.player.set_property('video-sink', fakesink)
 
 
-      # Pipeline
-      elif self.settings['gst_player']=='pipeline':
-
-         self.player = Gst.Pipeline.new("player")
-         if not self.player:
-            print('ERROR: Could not create player')
-            sys.exit(1)
-
-
-         self.source = Gst.ElementFactory.make('filesrc', 'file-source')
-         self.sink = Gst.ElementFactory.make('pulsesink','asink')
-         self.conv = Gst.ElementFactory.make('audioconvert', 'audioconvert')
-         self.queue = Gst.ElementFactory.make('queue', 'queue')
-         #self.audioresample = Gst.ElementFactory.make('audioresample', 'audioresample')
-         #self.inputselector = Gst.ElementFactory.make('input-selector', 'input-selector')
-         #self.streamsynchronizer = Gst.ElementFactory.make('streamsynchronizer', 'streamsynchronizer')
-         #self.identity = Gst.ElementFactory.make('identity', 'identity')
-         #self.tee = Gst.ElementFactory.make('tee', 'tee')
-
-         #self.mad_decoder = Gst.ElementFactory.make('mad', 'mad')
-         #self.mp3_demuxer = Gst.ElementFactory.make('id3demux', 'id3demux')
-         #self.mp3v2_demuxer = Gst.ElementFactory.make('id3v2mux', 'id3v2mux')
-         #self.mp3v2_demuxer.connect('pad-added', self.mp3v2_demuxer_callback)
-         #self.ogg_demuxer = Gst.ElementFactory.make('oggdemux', 'oggdemux')
-         #self.ogg_demuxer.connect('pad-added', self.ogg_demuxer_callback)
-   
-         self.lame_decoder = Gst.ElementFactory.make('lamemp3enc', 'lamemp3enc')
-         #self.lame_decoder.set_property('quality', 0)
-         self.mpg123_decoder = Gst.ElementFactory.make('mpg123audiodec', 'mpg123audiodec')
-         self.vorbis_decoder = Gst.ElementFactory.make('vorbisdec','vorbisdec')
-
-         #self.decodebin = Gst.ElementFactory.make('decodebin', 'decodebin')
-         #self.mpegaudioparse = Gst.ElementFactory.make('mpegaudioparse', 'mpegaudioparse')
+      bus = self.player.get_bus()
+      bus.add_signal_watch()
+      bus.connect('message::error', self.bus_player_error)
+      bus.connect('message::eos', self.bus_player_eos)
+      bus.connect('message::state-changed', self.bus_player_state_changed)
+      #bus.connect('message', self.bus_message_check)
 
 
-         #self.player.add(self.audioresample)
-         self.player.add(self.queue)
-         #self.player.add(self.mpegaudioparse)
 
-         #self.player.add(self.ogg_demuxer)
-         #self.player.add(self.mp3v2_demuxer)
-         self.player.add(self.source)
-         #self.player.add(self.mad_decoder)
-         self.player.add(self.lame_decoder)
-         self.player.add(self.vorbis_decoder)
-         #self.player.add(self.decodebin)
-         self.player.add(self.conv)
-         self.player.add(self.sink)
-         #self.player.add(self.inputselector)
-         #self.player.add(self.streamsynchronizer)
-         #self.player.add(self.identity)
-         #self.player.add(self.tee)
-         #self.player.add(self.mp3_demuxer)
+   def decode_src_created(self, element, pad):
+      pad.link(self.sink.get_static_pad("sink"))
 
-
-         #self.source.link(self.mad_decoder)
-         #self.source.link(self.lame_decoder)
-         self.source.link(self.mpg123_decoder)
-         #self.source.link(self.decodebin)
-         #self.source.link(self.mpegaudioparse)
-         #self.source.link(self.inputselector)
-         #self.source.link(self.streamsynchronizer)
-         #self.source.link(self.identity)
-         #self.source.link(self.tee)
-         #self.source.link(self.mp3_demuxer)
-
-         self.conv.link(self.sink)
-         #self.mad_decoder.link(self.conv)
-         self.vorbis_decoder.link(self.conv)
-         #self.lame_decoder.link(self.conv)
-         #self.decodebin.link(self.conv)
-
-
-         bus = self.player.get_bus()
-         bus.add_signal_watch()
-         bus.connect("message::error", self.player_error)
-         bus.connect("message::eos", self.player_eos)
-         bus.connect("message::state-changed", self.player_state_changed)
-         bus.connect("message::application", self.player_application_message)
-         bus.connect('message::info', self.on_info)
-         bus.connect('message::buffering', self.on_buffering)
- 
 
    def init_gui(self, playlist):
 
@@ -180,29 +92,43 @@ class TabAudioPlayer:
 
       image3 = Gtk.Image()
       image3.set_from_file('%s/loop_small.png' % self.settings['Share_Path'])
+      image3.set_tooltip_text('Loop through Directories')
       self.checkbutton_loop = Gtk.CheckButton()
+      self.checkbutton_loop.set_tooltip_text('Loop through Directories')
 
       image4 = Gtk.Image()
       image4.set_from_file('%s/auto_olddir_small.png' % self.settings['Share_Path'])
+      image4.set_tooltip_text('If file is finished, move to Directory: %s' % self.settings['Directory_Old'])
       self.checkbutton_auto_move = Gtk.CheckButton()
+      self.checkbutton_auto_move.set_tooltip_text('If file is finished, move to Directory: %s' % self.settings['Directory_Old'])
+
+      label_empty = Gtk.Label("", xalign=0)
 
       button5 = Gtk.Button(label="Scan")
       button5.connect("clicked", self.SCAN_BUTTON)
+      button5.set_tooltip_text('Scan Directories')
 
 
       image6 = Gtk.Image()
       image6.set_from_file('%s/streamripperdir_small.png' % self.settings['Share_Path'])
+      image6.set_tooltip_text('Scan Directory Streamripper')
       self.checkbutton_str = Gtk.CheckButton()
       self.checkbutton_str.set_active(1)
+      self.checkbutton_str.set_tooltip_text('Scan Directory Streamripper')
 
 
       image7 = Gtk.Image()
       image7.set_from_file('%s/newdir_small.png' % self.settings['Share_Path'])
+      image7.set_tooltip_text('Scan Directory New')
       self.checkbutton_new = Gtk.CheckButton()
+      self.checkbutton_new.set_tooltip_text('Scan Directory New')
+
 
       image8 = Gtk.Image()
       image8.set_from_file('%s/olddir_small.png' % self.settings['Share_Path'])
+      image8.set_tooltip_text('Scan Directory Old')
       self.checkbutton_old = Gtk.CheckButton()
+      self.checkbutton_old.set_tooltip_text('Scan Directory Old')
 
 
       self.entry_file_sum = Gtk.Entry()
@@ -217,6 +143,9 @@ class TabAudioPlayer:
       hbox1.pack_start(self.checkbutton_loop, False, False, 0)
       hbox1.pack_start(image4, False, False, 0)
       hbox1.pack_start(self.checkbutton_auto_move, False, False, 0)
+
+      hbox1.pack_start(label_empty, False, False, 0)
+
       hbox1.pack_start(button5, False, False, 0)
       hbox1.pack_start(image6, False, False, 0)
       hbox1.pack_start(self.checkbutton_str, False, False, 0)
@@ -233,45 +162,47 @@ class TabAudioPlayer:
       row2.add(hbox2)
 
 
-      image2 = Gtk.Image()
-      image2.set_from_file('%s/back_white.png' % self.settings['Share_Path'])
+      image = Gtk.Image()
+      image.set_from_file('%s/back_white.png' % self.settings['Share_Path'])
       self.button_back = Gtk.Button()
       self.button_back.connect("clicked", self.BACK_BUTTON)
-      self.button_back.set_image(image2)
+      self.button_back.set_image(image)
+      self.button_back.set_tooltip_text('Back')
 
-
-      image3 = Gtk.Image()
-      image3.set_from_file('%s/play_white.png' % self.settings['Share_Path'])
+      image = Gtk.Image()
+      image.set_from_file('%s/play_white.png' % self.settings['Share_Path'])
       self.button_play = Gtk.Button()
       self.button_play.connect("clicked", self.PLAY_BUTTON)
-      self.button_play.set_image(image3)
+      self.button_play.set_image(image)
+      self.button_play.set_tooltip_text('Play')
 
-      image4 = Gtk.Image()
-      image4.set_from_file('%s/pause_white.png' % self.settings['Share_Path'])
+      image = Gtk.Image()
+      image.set_from_file('%s/pause_white.png' % self.settings['Share_Path'])
       self.button_pause = Gtk.Button()
       self.button_pause.connect("clicked", self.PAUSE_BUTTON)
-      self.button_pause.set_image(image4)
+      self.button_pause.set_image(image)
+      self.button_pause.set_tooltip_text('Pause')
 
-      image5 = Gtk.Image()
-      image5.set_from_file('%s/next_white.png' % self.settings['Share_Path'])
-
-
+      image = Gtk.Image()
+      image.set_from_file('%s/next_white.png' % self.settings['Share_Path'])
       self.button_next = Gtk.Button()
       self.button_next.connect("clicked", self.NEXT_BUTTON)
-      self.button_next.set_image(image5)
+      self.button_next.set_image(image)
+      self.button_next.set_tooltip_text('Next')
 
-
-      image6 = Gtk.Image()
-      image6.set_from_file('%s/olddir.png' % self.settings['Share_Path'])
+      image = Gtk.Image()
+      image.set_from_file('%s/olddir.png' % self.settings['Share_Path'])
       self.button_move_old = Gtk.Button()
       self.button_move_old.connect("clicked", self.MOVE_OLD_BUTTON)
-      self.button_move_old.set_image(image6)
+      self.button_move_old.set_image(image)
+      self.button_move_old.set_tooltip_text('Move File to Directory: %s' % self.settings['Directory_Old'])
 
-      image7 = Gtk.Image()
-      image7.set_from_file('%s/newdir.png' % self.settings['Share_Path'])
+      image = Gtk.Image()
+      image.set_from_file('%s/newdir.png' % self.settings['Share_Path'])
       self.button_move_new = Gtk.Button()
       self.button_move_new.connect("clicked", self.MOVE_NEW_BUTTON)
-      self.button_move_new.set_image(image7)
+      self.button_move_new.set_image(image)
+      self.button_move_new.set_tooltip_text('Move File to Directory: %s' % self.settings['Directory_New'])
 
 
       hbox2.pack_start(self.button_back, False, False, 0)
@@ -307,7 +238,6 @@ class TabAudioPlayer:
       self.label_play_file = Gtk.Label("")
 
       self.infobar_play_file = Gtk.InfoBar()
-      #self.infobar_play_file.connect("response", self.on_infobar_response)
       self.infobar_play_file.add(self.label_play_file)
  
 
@@ -341,20 +271,11 @@ class TabAudioPlayer:
 
       #treeview1.get_selection().connect("changed", self.treeview_selection_changed)
       treeview1.connect('size-allocate', self.treeview_size_changed)
-
-
-      treeview1.set_property('rules-hint', True)  # Zeilenfarbe wechselnd
+      treeview1.set_property('rules-hint', True) 
       self.scrolledwindow1.add(treeview1)
 
 
       hbox5.pack_start(self.scrolledwindow1, True, True, 0)
-
-
-      #self.statusbar1 = Gtk.Statusbar()
-      #self.context_id = self.statusbar1.get_context_id("status")
-      #self.statusbar1.push(self.context_id, "Der Ordner wurde noch nicht eingelesen.")
-      #hbox5.pack_start(self.statusbar1, True, True, 0)
-
 
       box_outer.pack_start(row1, False, False, 2)
       box_outer.pack_start(row2, False, False, 2)
@@ -371,19 +292,9 @@ class TabAudioPlayer:
          self.button_back.set_sensitive(False)
          self.button_play.set_sensitive(False)
          self.button_pause.set_sensitive(False)
+         self.button_move_old.set_sensitive(False)
+         self.button_move_new.set_sensitive(False)
 
-
-
-   def on_message(self, bus, message):
-      t = message.type
-      if t == Gst.MessageType.EOS:
-         #logger.debug("Received EOS, setting pipeline to NULL.")
-         self.player.set_state(Gst.State.NULL)
-         #logger.debug("Emitting flush-done.")
-         self.emit("flush-done")
-      elif t == Gst.MessageType.ERROR:
-         print ("Received an error message: %s", message.parse_error()[1])
-         pass
 
 
 
@@ -394,38 +305,17 @@ class TabAudioPlayer:
          print('def slider_change - value: %s' % value)
 
       self.player.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, value * Gst.SECOND)
-      #self.player.seek_simple(Gst.Format.TIME,Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT, value * Gst.SECOND)
 
 
 
 
-   def ogg_demuxer_callback(self, demuxer, pad):
-      adec_pad = self.ogg_decoder.get_static_pad("sink")
-      pad.link(adec_pad)
 
-
-   def mp3v2_demuxer_callback(self, demuxer, pad):
-      adec_pad = self.mad_decoder.get_static_pad("sink")
-      pad.link(adec_pad)
-
-
-
-   def player_tag_changed(self, player, stream):
+   def bus_message_check(self, bus, message):
       if self.settings['Debug']==1:
-         print('def player_tag_changed - start')
+         print('def bus_message_check - start %s' % message.type)
+      #if t == Gst.MessageType.EOS:
+      #   print ('Received EOS')
 
-      self.player.post_message(Gst.Message.new_application(self.player,Gst.Structure.new_empty("tags-changed")))
-
-
-
-   def on_buffering(self, player, stream):
-      if self.settings['Debug']==1:
-         print('def on_buffering - start')
-
-
-   def on_sync_message(self, bus, message):
-      if self.settings['Debug']==1:
-         print('def on_sync_message - start')
 
 
 
@@ -460,15 +350,16 @@ class TabAudioPlayer:
                self.h_scale1.handler_block(self.h_scale1_update)
                self.h_scale1.set_value(set_slider)
                self.h_scale1.handler_unblock(self.h_scale1_update)
+               self.player.send_event(Gst.Event.new_eos())
 
          return True
 
 
 
 
-   def player_error(self, bus, msg):
+   def bus_player_error(self, bus, msg):
       if self.settings['Debug']==1:
-         print('player_error - start')
+         print('bus_player_error - start')
 
       err, dbg = msg.parse_error()
       if self.settings['Debug']==1:
@@ -478,10 +369,9 @@ class TabAudioPlayer:
 
 
 
-
-   def player_eos(self, bus, msg):
+   def bus_player_eos(self, bus, msg):
       if self.settings['Debug']==1:
-         print('player_eos - start')
+         print('bus_player_eos - start')
 
       if self.checkbutton_auto_move.get_active():
          self.move_old()
@@ -495,135 +385,27 @@ class TabAudioPlayer:
 
 
 
-   def on_info(self, bus, message):
-      print('info message -> {}'.format(message))
 
-
-
-   def player_state_changed(self, bus, msg):
+   def bus_player_state_changed(self, bus, msg):
 
       (old, new, pending) = msg.parse_state_changed()
 
       if msg.src == self.player:
 
          if self.settings['Debug']==1:
-            print('def player_state_changed old: %s new: %s' % (old,new))
+            print('def bus_player_state_changed start - new: %s old: %s' % (new,old))
 
          self.state = new
 
-
          if old == Gst.State.PAUSED and new == Gst.State.PLAYING:
-            if self.settings['Debug']==1:
-               print('def player_state_changed refresh slider (play/back/next button + random start)')
             # refresh slider as soons as possible
             self.refresh_slider()
 
 
-      else:
-
-         #if self.settings['Debug']==1:
-         #   print('def player_state_changed msg.src: %s' % msg.src)
-
-
-         """
-         def player_state_changed player_style: playbin msg.src: <__gi__.GstPlaySinkAudioConvert object at 0x7f87bf77c480 (GstPlaySinkAudioConvert at 0x55ff2f825020)>
-         def player_state_changed player_style: playbin msg.src: <Gst.Bin object at 0x7f87bf77c480 (GstBin at 0x7f87a004e090)>
-         def player_state_changed player_style: playbin msg.src: <__gi__.GstPlaySink object at 0x7f87bf77c480 (GstPlaySink at 0x55ff2f576210)>
-         def player_state_changed player_style: playbin msg.src: <__gi__.GstTypeFindElement object at 0x7f87bf77c4c8 (GstTypeFindElement at 0x55ff2f784990)>
-         def player_state_changed player_style: playbin msg.src: <__gi__.GstDecodeBin object at 0x7f87bf77c4c8 (GstDecodeBin at 0x55ff2fb5a1e0)>
-         def player_state_changed player_style: playbin msg.src: <__gi__.GstURIDecodeBin object at 0x7f87bf77c4c8 (GstURIDecodeBin at 0x55ff2f9449f0)>
-         """
-         pass
 
 
 
-   # extract metadata from all the streams and write it to the text widget
-   # in the GUI
-   def analyze_streams(self):
 
-      if self.settings['Debug']==1:
-         print('def analyze_streams - start')
-
-
-      # clear current contents of the widget
-      #buffer = self.streams_list.get_buffer()
-      #buffer.set_text("")
-
-      # read some properties
-      nr_audio = self.player.get_property("n-audio")
-      nr_text = self.player.get_property("n-text")
-
-
-      """
-      for i in range(nr_audio):
-         tags = None
-         # retrieve the stream's audio tags
-         tags = self.player.emit("get-audio-tags", i)
-         if tags:
-            buffer.insert_at_cursor("\naudio stream {0}\n".format(i))
-            ret, str = tags.get_string(Gst.TAG_AUDIO_CODEC)
-            if ret:
-               buffer.insert_at_cursor(
-                 "  codec: {0}\n".format(
-                     str or "unknown"))
-
-            ret, str = tags.get_string(Gst.TAG_LANGUAGE_CODE)
-            if ret:
-               buffer.insert_at_cursor(
-                 "  language: {0}\n".format(
-                     str or "unknown"))
-
-            ret, str = tags.get_uint(Gst.TAG_BITRATE)
-            if ret:
-               buffer.insert_at_cursor(
-                 "  bitrate: {0}\n".format(
-                     str or "unknown"))
-
-      for i in range(nr_text):
-         tags = None
-         # retrieve the stream's subtitle tags
-         tags = self.player.emit("get-text-tags", i)
-         if tags:
-            buffer.insert_at_cursor("\nsubtitle stream {0}\n".format(i))
-            ret, str = tags.get_string(Gst.TAG_LANGUAGE_CODE)
-            if ret:
-               buffer.insert_at_cursor(
-                 "  language: {0}\n".format(
-                     str or "unknown"))
-      """
-
-
-
-   # this function is called when an "application" message is posted on the bus
-   # here we retrieve the message posted by the player_tag_changed callback
-   def player_application_message(self, bus, msg):
-
-      if self.settings['Debug']==1:
-         print('def player_application_message - start')
-
-      if msg.get_structure().get_name() == "tags-changed":
-          # if the message is the "tags-changed", update the stream info in
-          # the GUI
-          self.analyze_streams()
-
-
-
-   # this function is called when new metadata is discovered in the stream
-   def player_tag_changed(self, player, stream):
-      # we are possibly in a GStreamer working thread, so we notify
-      # the main thread of this event through a message in the bus
-
-      if self.settings['Debug']==1:
-         print('def player_tag_changed - start')
-
-
-      self.player.post_message(
-          Gst.Message.new_application(
-              self.player,
-              Gst.Structure.new_empty("tags-changed")))
-
-
-      
    def play_timer_stop(self):
       if hasattr(self, 't'):
          if self.t.is_alive():
@@ -670,9 +452,9 @@ class TabAudioPlayer:
 
          for root, dirs, files in os.walk(self.settings['Music_Path'] + '/' + self.settings['Directory_New']):
             for item in files:
-               if re.search('^%s/%s' % (self.settings['Music_Path'],self.settings['Directory_Old']), root):
+               if re.search('^%s/%s$' % (self.settings['Music_Path'],self.settings['Directory_Old']), root):
                   pass
-               elif re.search('^%s/%s' % (self.settings['Music_Path'],self.settings['Directory_Streamripper']), root):
+               elif re.search('^%s/%s$' % (self.settings['Music_Path'],self.settings['Directory_Streamripper']), root):
                   pass
                else:
                   allfiles.add('%s/%s' % (root,item))
@@ -686,9 +468,9 @@ class TabAudioPlayer:
 
          for root, dirs, files in os.walk(self.settings['Music_Path'] + '/' + self.settings['Directory_Old']):
             for item in files:
-               if re.search('^%s/%s' % (self.settings['Music_Path'],self.settings['Directory_New']), root):
+               if re.search('^%s/%s$' % (self.settings['Music_Path'],self.settings['Directory_New']), root):
                   pass
-               elif re.search('^%s/%s' % (self.settings['Music_Path'],self.settings['Directory_Streamripper']), root):
+               elif re.search('^%s/%s$' % (self.settings['Music_Path'],self.settings['Directory_Streamripper']), root):
                   pass
                else:
                   allfiles.add('%s/%s' % (root,item))
@@ -702,9 +484,9 @@ class TabAudioPlayer:
 
          for root, dirs, files in os.walk(self.settings['Music_Path'] + '/' + self.settings['Directory_Streamripper']):
             for item in files:
-               if re.search('^%s/%s' % (self.settings['Music_Path'],self.settings['Directory_Old']), root):
+               if re.search('^%s/%s$' % (self.settings['Music_Path'],self.settings['Directory_Old']), root):
                   pass
-               elif re.search('^%s/%s' % (self.settings['Music_Path'],self.settings['Directory_New']), root):
+               elif re.search('^%s/%s$' % (self.settings['Music_Path'],self.settings['Directory_New']), root):
                   pass
                elif 'incomplete' in root:
                   pass
@@ -806,11 +588,16 @@ class TabAudioPlayer:
          self.play_timer_stop()
          self.button_next.set_sensitive(False)
          self.button_back.set_sensitive(False)
+         self.button_move_old.set_sensitive(False)
+         self.button_move_new.set_sensitive(False)
 
 
       elif len(self.playlist)>1:
          self.button_next.set_sensitive(True)
          self.button_back.set_sensitive(True)
+         self.button_move_old.set_sensitive(True)
+         self.button_move_new.set_sensitive(True)
+
 
 
       if self.settings['Debug']==1:
@@ -830,11 +617,7 @@ class TabAudioPlayer:
          elif len(self.playlist)>=1:
 
             filepath = os.path.realpath(self.playlist[self.settings['Play_Num']])
-
-            if self.settings['gst_player']=='playbin':
-               self.player.set_property("uri", "file://%s" % self.playlist[self.settings['Play_Num']])
-            elif self.settings['gst_player']=='pipeline':
-               self.player.get_by_name('file-source').set_property("location", filepath)
+            self.player.set_property("uri", "file://%s" % self.playlist[self.settings['Play_Num']])
             self.label_play_file.set_text('%s - %s' % ((self.settings['Play_Num']+1),self.playlist[self.settings['Play_Num']]))
 
 

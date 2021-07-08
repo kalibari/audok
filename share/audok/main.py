@@ -23,6 +23,15 @@ class Files:
 
    def get_default_stationlist(self):
 
+      """
+      08.07. Not Working - Check:
+      80s New Wave
+      Pirate Radio Bayern
+      Antenne1
+      Bailiwick Radio_00s
+      Radio freeFM Ulm
+      """
+
       default_stationlist =  [['Alternative', 'Radio freeFM Ulm', 'http://stream.freefm.de:7000/Studio'],
                               ['Alternative', 'Radio FM 4 at', 'https://orf-live.ors-shoutcast.at/fm4-q2a'],
                               ['Alternative', 'Zeilsteen Radio', 'http://live.zeilsteen.com:80'],

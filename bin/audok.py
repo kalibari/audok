@@ -21,7 +21,6 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GLib
 
 
-
 def startup_notification_workaround():
    # https://specifications.freedesktop.org/startup-notification-spec/startup-notification-0.1.txt
    Gdk.notify_startup_complete()
@@ -38,18 +37,16 @@ if __name__ == '__main__':
    if sys.stdin.isatty():
       settings['Debug'] = 1
 
-   settings['Version'] = '0.7.0'
+   settings['Version'] = '0.7.1'
    # generate a new settings.xml
    settings['Min_Version'] = '0.7.0'
+
    settings['Ipc_Port'] = 10001
    settings['Pid'] = os.getpid()
    settings['Random_Time'] = 0
    settings['Play_Time'] = 0
    settings['Play_Num'] = 0
    settings['Loop'] = 'True'
-
-   settings['gst_player'] = 'playbin'
-   #settings['gst_player'] = 'pipeline'
 
    settings['Filename_Settings'] = 'settings.xml'
    settings['Filename_Stations'] = 'stations.xml'
