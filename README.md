@@ -2,10 +2,7 @@ Audok
 ======
 Audok is a simple linux music player with streamripper and converter support. Audok is written in python3, the graphical user interface uses gtk. Audok is a free software under the GPL license.
 
-
-Screenshot
-======
-![alt text](https://github.com/kalibari/audok/tree/master/share/audok/screenshot.png)
+![Screenshot](https://github.com/kalibari/audok/tree/master/share/audok/screenshot.png)
 
 
 Version
@@ -35,9 +32,9 @@ sudo desktop-file-install /usr/share/applications/audok.desktop<br/>
 
 Deinstallation
 ======
-sudo rm -rf /opt/audok/
-sudo rm /usr/share/icons/hicolor/256x256/apps/audok.png
-sudo rm /usr/share/applications/audok.desktop
+sudo rm -rf /opt/audok/<br/>
+sudo rm /usr/share/icons/hicolor/256x256/apps/audok.png<br/>
+sudo rm /usr/share/applications/audok.desktop<br/>
 
 
 Description
