@@ -251,8 +251,6 @@ class TabAudioPlayer:
       row5.add(hbox5)
 
 
-      #textview1 = Gtk.TextView.new()
-      #textview1.set_editable(False)
 
 
       columns = ["Num",
@@ -269,7 +267,6 @@ class TabAudioPlayer:
          treeview1.append_column(col)
 
 
-      #treeview1.get_selection().connect("changed", self.treeview_selection_changed)
       treeview1.connect('size-allocate', self.treeview_size_changed)
       treeview1.set_property('rules-hint', True) 
       self.scrolledwindow1.add(treeview1)
@@ -309,12 +306,12 @@ class TabAudioPlayer:
 
 
 
-
    def bus_message_check(self, bus, message):
       if self.settings['Debug']==1:
          print('def bus_message_check - start %s' % message.type)
       #if t == Gst.MessageType.EOS:
       #   print ('Received EOS')
+      #self.player.send_event(Gst.Event.new_eos())
 
 
 
@@ -350,7 +347,6 @@ class TabAudioPlayer:
                self.h_scale1.handler_block(self.h_scale1_update)
                self.h_scale1.set_value(set_slider)
                self.h_scale1.handler_unblock(self.h_scale1_update)
-               self.player.send_event(Gst.Event.new_eos())
 
          return True
 
