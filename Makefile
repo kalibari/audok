@@ -2,8 +2,6 @@
 #
 # Installation DIRECTORIES
 #
-# 
-# make PREFIX=/app APPDIR=/app/audok
 
 PREFIX        = /usr
 BINDIR	      = $(PREFIX)/bin
