@@ -24,7 +24,7 @@ class TabAbout:
       label1 = Gtk.Label('Name: %s\nVersion: %s\nLicence: GNU GENERAL PUBLIC LICENSE Version 3\nCopyright: Copyright (c) 2021, kalibari\nWebSite: https://github.com/kalibari/audok' % (self.settings['Name'].upper(),self.settings['Version']), xalign=0)
 
       image3 = Gtk.Image()
-      image3.set_from_file('%s/audok_large.png' % self.settings['Share_Path'])
+      image3.set_from_file('%s/audok_large.png' % self.settings['App_Path'])
 
       image3.props.valign = Gtk.Align.CENTER
 

@@ -160,7 +160,7 @@ class Music_Admin_Start(Gtk.Window):
       self.set_resizable(True) 
 
 
-      self.set_icon_from_file('%s/audok_large.png' % settings['Share_Path'])
+      self.set_icon_from_file('%s/audok_large.png' % settings['App_Path'])
 
       self.pnum = 0
 

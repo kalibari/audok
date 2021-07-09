@@ -39,7 +39,7 @@ class TabSettings:
 
 
       image1 = Gtk.Image()
-      image1.set_from_file('%s/newdir_small.png' % self.settings['Share_Path'])
+      image1.set_from_file('%s/newdir_small.png' % self.settings['App_Path'])
       label1 = Gtk.Label("New:", xalign=0)
       label1.set_size_request(140, -1)
 
@@ -68,7 +68,7 @@ class TabSettings:
       hbox_dir_old.set_hexpand(True)
 
       image1 = Gtk.Image()
-      image1.set_from_file('%s/olddir_small.png' % self.settings['Share_Path'])
+      image1.set_from_file('%s/olddir_small.png' % self.settings['App_Path'])
       label1 = Gtk.Label("Old:", xalign=0)
       label1.set_size_request(140, -1)
 
@@ -107,7 +107,7 @@ class TabSettings:
       hbox_dir_st= Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
 
       image1 = Gtk.Image()
-      image1.set_from_file('%s/streamripperdir_small.png' % self.settings['Share_Path'])
+      image1.set_from_file('%s/streamripperdir_small.png' % self.settings['App_Path'])
       label1 = Gtk.Label("Streamripper:", xalign=0)
       label1.set_size_request(140, -1)
 

@@ -16,7 +16,6 @@ class TabConverter:
       self.box = Gtk.Box()
       self.box.set_border_width(10)
 
-
       self.file_database = {}
 
       #############################

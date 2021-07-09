@@ -91,13 +91,13 @@ class TabAudioPlayer:
 
 
       image3 = Gtk.Image()
-      image3.set_from_file('%s/loop_small.png' % self.settings['Share_Path'])
+      image3.set_from_file('%s/loop_small.png' % self.settings['App_Path'])
       image3.set_tooltip_text('Loop through Directories')
       self.checkbutton_loop = Gtk.CheckButton()
       self.checkbutton_loop.set_tooltip_text('Loop through Directories')
 
       image4 = Gtk.Image()
-      image4.set_from_file('%s/auto_olddir_small.png' % self.settings['Share_Path'])
+      image4.set_from_file('%s/auto_olddir_small.png' % self.settings['App_Path'])
       image4.set_tooltip_text('If file is finished, move to Directory: %s' % self.settings['Directory_Old'])
       self.checkbutton_auto_move = Gtk.CheckButton()
       self.checkbutton_auto_move.set_tooltip_text('If file is finished, move to Directory: %s' % self.settings['Directory_Old'])
@@ -110,7 +110,7 @@ class TabAudioPlayer:
 
 
       image6 = Gtk.Image()
-      image6.set_from_file('%s/streamripperdir_small.png' % self.settings['Share_Path'])
+      image6.set_from_file('%s/streamripperdir_small.png' % self.settings['App_Path'])
       image6.set_tooltip_text('Scan Directory Streamripper')
       self.checkbutton_str = Gtk.CheckButton()
       self.checkbutton_str.set_active(1)
@@ -118,14 +118,14 @@ class TabAudioPlayer:
 
 
       image7 = Gtk.Image()
-      image7.set_from_file('%s/newdir_small.png' % self.settings['Share_Path'])
+      image7.set_from_file('%s/newdir_small.png' % self.settings['App_Path'])
       image7.set_tooltip_text('Scan Directory New')
       self.checkbutton_new = Gtk.CheckButton()
       self.checkbutton_new.set_tooltip_text('Scan Directory New')
 
 
       image8 = Gtk.Image()
-      image8.set_from_file('%s/olddir_small.png' % self.settings['Share_Path'])
+      image8.set_from_file('%s/olddir_small.png' % self.settings['App_Path'])
       image8.set_tooltip_text('Scan Directory Old')
       self.checkbutton_old = Gtk.CheckButton()
       self.checkbutton_old.set_tooltip_text('Scan Directory Old')
@@ -163,42 +163,42 @@ class TabAudioPlayer:
 
 
       image = Gtk.Image()
-      image.set_from_file('%s/back_white.png' % self.settings['Share_Path'])
+      image.set_from_file('%s/back_white.png' % self.settings['App_Path'])
       self.button_back = Gtk.Button()
       self.button_back.connect("clicked", self.BACK_BUTTON)
       self.button_back.set_image(image)
       self.button_back.set_tooltip_text('Back')
 
       image = Gtk.Image()
-      image.set_from_file('%s/play_white.png' % self.settings['Share_Path'])
+      image.set_from_file('%s/play_white.png' % self.settings['App_Path'])
       self.button_play = Gtk.Button()
       self.button_play.connect("clicked", self.PLAY_BUTTON)
       self.button_play.set_image(image)
       self.button_play.set_tooltip_text('Play')
 
       image = Gtk.Image()
-      image.set_from_file('%s/pause_white.png' % self.settings['Share_Path'])
+      image.set_from_file('%s/pause_white.png' % self.settings['App_Path'])
       self.button_pause = Gtk.Button()
       self.button_pause.connect("clicked", self.PAUSE_BUTTON)
       self.button_pause.set_image(image)
       self.button_pause.set_tooltip_text('Pause')
 
       image = Gtk.Image()
-      image.set_from_file('%s/next_white.png' % self.settings['Share_Path'])
+      image.set_from_file('%s/next_white.png' % self.settings['App_Path'])
       self.button_next = Gtk.Button()
       self.button_next.connect("clicked", self.NEXT_BUTTON)
       self.button_next.set_image(image)
       self.button_next.set_tooltip_text('Next')
 
       image = Gtk.Image()
-      image.set_from_file('%s/olddir.png' % self.settings['Share_Path'])
+      image.set_from_file('%s/olddir.png' % self.settings['App_Path'])
       self.button_move_old = Gtk.Button()
       self.button_move_old.connect("clicked", self.MOVE_OLD_BUTTON)
       self.button_move_old.set_image(image)
       self.button_move_old.set_tooltip_text('Move File to Directory: %s' % self.settings['Directory_Old'])
 
       image = Gtk.Image()
-      image.set_from_file('%s/newdir.png' % self.settings['Share_Path'])
+      image.set_from_file('%s/newdir.png' % self.settings['App_Path'])
       self.button_move_new = Gtk.Button()
       self.button_move_new.connect("clicked", self.MOVE_NEW_BUTTON)
       self.button_move_new.set_image(image)

@@ -8,8 +8,8 @@ import socket
 import subprocess
 import pwd
 import xml.etree.ElementTree
-share_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + '/share/audok'
-sys.path.insert(0, share_path)
+app_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.insert(0, app_path)
 import main
 import tab_audioplayer
 import gi
@@ -19,6 +19,7 @@ gi.require_version('Gdk', '3.0')
 from gi.repository import Gdk
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GLib
+
 
 
 def startup_notification_workaround():
@@ -55,7 +56,7 @@ if __name__ == '__main__':
    settings['Choice_Pwrecord_Device'] = []
    settings['Choice_Bitrate'] = []
 
-   settings['Share_Path'] = share_path
+   settings['App_Path'] = app_path
    settings['Music_Path'] = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_MUSIC)
    settings['Config_Path'] = '%s/audok' % GLib.get_user_config_dir()
 
@@ -108,7 +109,7 @@ if __name__ == '__main__':
 
    
    if settings['Debug']==1:
-      print ('- main version: %s Share_Path: %s pid: %s cwd: %s' % (settings['Version'],settings['Share_Path'],settings['Pid'],os.getcwd()))
+      print ('- main version: %s Share_Path: %s pid: %s cwd: %s' % (settings['Version'],settings['App_Path'],settings['Pid'],os.getcwd()))
 
 
 
