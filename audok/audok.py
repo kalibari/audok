@@ -38,7 +38,7 @@ if __name__ == '__main__':
    if sys.stdin.isatty():
       settings['Debug'] = 1
 
-   settings['Version'] = '0.7.3'
+   settings['Version'] = '0.7.4'
    # generate a new settings.xml
    settings['Min_Version'] = '0.7.0'
 
@@ -202,3 +202,4 @@ if __name__ == '__main__':
 
    win.show_all()
    Gtk.main()
+

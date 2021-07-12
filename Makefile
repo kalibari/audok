@@ -15,7 +15,10 @@ EXEC         := $(shell echo $(BINDIR) | sed -r 's/\//\\\//g')
 ###############################################################################
 #
 # TARGETS
-#
+#  
+all:
+	@echo "run \"make install PREFIX=/usr APPDIR=/opt/audok\" to install audok"
+
 
 install:
 	-mkdir -p $(BINDIR)

@@ -38,6 +38,7 @@ class TabAudioPlayer:
          print('ERROR: Could not create player')
          sys.exit(1)
 
+
       # play only audio files
       fakesink = Gst.ElementFactory.make('fakesink', 'fakesink')
       self.player.set_property('video-sink', fakesink)
@@ -66,6 +67,7 @@ class TabAudioPlayer:
 
       #############################
       box_outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
+
 
       row1 = Gtk.ListBoxRow()
       hbox1 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
@@ -96,13 +98,16 @@ class TabAudioPlayer:
       self.checkbutton_loop = Gtk.CheckButton()
       self.checkbutton_loop.set_tooltip_text('Loop through Directories')
 
+
       image4 = Gtk.Image()
       image4.set_from_file('%s/auto_olddir_small.png' % self.settings['App_Path'])
       image4.set_tooltip_text('If file is finished, move to Directory: %s' % self.settings['Directory_Old'])
       self.checkbutton_auto_move = Gtk.CheckButton()
       self.checkbutton_auto_move.set_tooltip_text('If file is finished, move to Directory: %s' % self.settings['Directory_Old'])
 
+
       label_empty = Gtk.Label("", xalign=0)
+
 
       button5 = Gtk.Button(label="Scan")
       button5.connect("clicked", self.SCAN_BUTTON)
@@ -143,9 +148,7 @@ class TabAudioPlayer:
       hbox1.pack_start(self.checkbutton_loop, False, False, 0)
       hbox1.pack_start(image4, False, False, 0)
       hbox1.pack_start(self.checkbutton_auto_move, False, False, 0)
-
       hbox1.pack_start(label_empty, False, False, 0)
-
       hbox1.pack_start(button5, False, False, 0)
       hbox1.pack_start(image6, False, False, 0)
       hbox1.pack_start(self.checkbutton_str, False, False, 0)
@@ -253,8 +256,7 @@ class TabAudioPlayer:
 
 
 
-      columns = ["Num",
-                 "Filename"]
+      columns = ["Num", "Filename"]
 
       self.scrolledwindow1 = Gtk.ScrolledWindow()
       self.listmodel1 = Gtk.ListStore(str, str)
