@@ -301,7 +301,7 @@ class TabAudioPlayer:
       if self.settings['Debug']==1:
          print('def slider_change - value: %s' % value)
 
-      self.player.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, value * Gst.SECOND)
+      self.player.seek_simple (Gst.Format.TIME, Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT, value * Gst.SECOND);
 
 
 
@@ -504,7 +504,8 @@ class TabAudioPlayer:
       self.button_next.set_sensitive(False)
       self.button_back.set_sensitive(False)
       if len(self.playlist)>=1:
-         self.label_play_file.set_text('%s - %s' % ((self.settings['Play_Num']+1),self.playlist[self.settings['Play_Num']]))
+         filename = os.path.basename(self.playlist[self.settings['Play_Num']])
+         self.label_play_file.set_text('%s - %s' % ((self.settings['Play_Num']+1),filename))
 
 
       if self.settings['Debug']==1:
@@ -614,7 +615,10 @@ class TabAudioPlayer:
 
             filepath = os.path.realpath(self.playlist[self.settings['Play_Num']])
             self.player.set_property("uri", "file://%s" % self.playlist[self.settings['Play_Num']])
-            self.label_play_file.set_text('%s - %s' % ((self.settings['Play_Num']+1),self.playlist[self.settings['Play_Num']]))
+            filename = os.path.basename(self.playlist[self.settings['Play_Num']])
+            self.label_play_file.set_text('%s - %s' % ((self.settings['Play_Num']+1),filename))
+
+
 
 
 
@@ -639,7 +643,9 @@ class TabAudioPlayer:
                print ('def play_file - start-time: %s s' % self.start_time_s)
 
             time.sleep(0.5)
-            self.player.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, self.start_time_s * Gst.SECOND)
+            self.player.seek_simple (Gst.Format.TIME, Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT, start_time_s * Gst.SECOND);
+
+
 
          self.player.set_state(Gst.State.PLAYING)
 
