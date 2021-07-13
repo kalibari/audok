@@ -38,9 +38,9 @@ if __name__ == '__main__':
    if sys.stdin.isatty():
       settings['Debug'] = 1
 
-   settings['Version'] = '0.7.4'
+   settings['Version'] = '0.7.5'
    # generate a new settings.xml
-   settings['Min_Version'] = '0.7.0'
+   settings['Min_Version'] = '0.7.5'
 
    settings['Ipc_Port'] = 10001
    settings['Pid'] = os.getpid()
@@ -95,7 +95,7 @@ if __name__ == '__main__':
             file_settings[element]=value
 
 
-      if int(file_settings['Version'].replace('.','')) < int(settings['Min_Version'].replace('.','')):
+      if int(file_settings['Old_Version'].replace('.','')) < int(settings['Min_Version'].replace('.','')):
          # backup old settings.xml
          for i in range(1,100):
             if not os.path.exists('%s/%s.%s.bak' % (settings['Config_Path'],settings['Filename_Settings'],i)):

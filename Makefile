@@ -19,7 +19,6 @@ EXEC         := $(shell echo $(BINDIR) | sed -r 's/\//\\\//g')
 all:
 	@echo "run \"make install PREFIX=/usr APPDIR=/opt/audok\" to install audok"
 
-
 install:
 	-mkdir -p $(BINDIR)
 	-mkdir -p $(APPDIR)
@@ -38,6 +37,10 @@ install:
 	sed -i "s/^Icon=.*/Icon=$(ICON)\/audok.png/g" ${SHAREAPPDIR}/audok.desktop
 	sed -i "s/^Exec=.*/Exec=$(EXEC)\/audok %u/g" ${SHAREAPPDIR}/audok.desktop
 	sed -i "s/^TryExec=.*/TryExec=$(EXEC)\/audok/g" ${SHAREAPPDIR}/audok.desktop
+
+
+
+
 
 
 uninstall:

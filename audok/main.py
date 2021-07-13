@@ -69,7 +69,7 @@ class Files:
    def get_default_file_settings(self, settings):
 
       default_file_settings = {  'Name': 'audok',
-                                 'Version': settings['Version'],
+                                 'Old_Version': settings['Version'],
                                  'Size_X': 1000,
                                  'Size_Y': 500,
                                  'Position_X': 0,

@@ -303,7 +303,7 @@ class TabAudioPlayer:
       if self.settings['Debug']==1:
          print('def slider_change - value: %s' % value)
 
-      self.player.seek_simple (Gst.Format.TIME, Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT, value * Gst.SECOND);
+      self.player.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT, value * Gst.SECOND);
 
 
 
