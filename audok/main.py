@@ -213,10 +213,7 @@ class Music_Admin_Start(Gtk.Window):
       if self.settings['Debug']==1:
          print ('def signal_handler_sigusr2 start')
 
-
-      if self.notebook_tab_audioplayer.checkbutton_loop.get_active():
-         self.notebook_tab_audioplayer.choose_song(choose='repeat')
-      elif len(self.notebook_tab_audioplayer.playlist)>=2:
+      if len(self.notebook_tab_audioplayer.playlist)>=2:
          self.notebook_tab_audioplayer.choose_song(choose='next')
 
 
