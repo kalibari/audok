@@ -12,8 +12,7 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 gi.require_version('GLib', '2.0')
 from gi.repository import GLib
-gi.require_version('Gdk', '3.0')
-from gi.repository import Gdk
+
 
 class TabAudioPlayer:
 
@@ -29,11 +28,11 @@ class TabAudioPlayer:
       Gst.init(None)
 
       self.state = Gst.State.NULL
+      self.drt_queue = []
       self.duration = None
       self.start_time_s = 0
 
-
-      self.player = Gst.ElementFactory.make("playbin3", self.settings['Name'])
+      self.player = Gst.ElementFactory.make('playbin3', self.settings['Name'])
       if not self.player:
          print('ERROR: Could not create player')
          sys.exit(1)
@@ -43,18 +42,14 @@ class TabAudioPlayer:
       fakesink = Gst.ElementFactory.make('fakesink', 'fakesink')
       self.player.set_property('video-sink', fakesink)
 
-
       bus = self.player.get_bus()
       bus.add_signal_watch()
+
       bus.connect('message::error', self.bus_player_error)
       bus.connect('message::eos', self.bus_player_eos)
       bus.connect('message::state-changed', self.bus_player_state_changed)
       #bus.connect('message', self.bus_message_check)
 
-
-
-   def decode_src_created(self, element, pad):
-      pad.link(self.sink.get_static_pad("sink"))
 
 
    def init_gui(self, playlist):
@@ -303,8 +298,10 @@ class TabAudioPlayer:
       if self.settings['Debug']==1:
          print('def slider_change - value: %s' % value)
 
-      self.player.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT, value * Gst.SECOND);
-
+      #pos = self.player.query_position(Gst.Format.TIME)[1]
+      pos = value * Gst.SECOND
+      #self.player.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT, value * Gst.SECOND);
+      self.player.seek(1.0, Gst.Format.TIME, Gst.SeekFlags.FLUSH, Gst.SeekType.SET, pos, Gst.SeekType.SET, -1)
 
 
 
@@ -313,9 +310,6 @@ class TabAudioPlayer:
          print('def bus_message_check - start %s' % message.type)
       #if t == Gst.MessageType.EOS:
       #   print ('Received EOS')
-      #self.player.send_event(Gst.Event.new_eos())
-
-
 
 
    def refresh_slider(self):
@@ -350,6 +344,28 @@ class TabAudioPlayer:
                self.h_scale1.set_value(set_slider)
                self.h_scale1.handler_unblock(self.h_scale1_update)
 
+
+               # eos fix
+               if len(self.drt_queue)>1:
+                  self.drt_queue.pop(0)
+               self.drt_queue.extend([drt])
+
+               if len(self.drt_queue)==2 and self.drt_queue[0]==self.drt_queue[1]:
+
+                  if self.settings['Debug']==1:
+                     print ('eos fix')
+
+                  if self.checkbutton_auto_move.get_active():
+                     self.move_old()
+
+                  self.player.set_state(Gst.State.READY)
+
+                  if self.checkbutton_loop.get_active():
+                     self.choose_song(choose='keep')
+                  elif len(self.playlist)>=2:
+                     self.choose_song(choose='next')
+
+
          return True
 
 
@@ -362,7 +378,6 @@ class TabAudioPlayer:
       err, dbg = msg.parse_error()
       if self.settings['Debug']==1:
          print("ERROR:", msg.src.get_name(), ":", err.message)
-
 
 
 

@@ -67,7 +67,6 @@ class TabConverter:
 
 
       label2 = Gtk.Label("Input", xalign=0)
-      #label2.set_line_wrap(True)
       label2.set_size_request(50, -1)
 
       self.textbuffer_input = Gtk.Entry()
