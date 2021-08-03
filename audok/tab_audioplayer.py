@@ -224,8 +224,8 @@ class TabAudioPlayer:
       hbox4 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
       row4.add(hbox4)
 
-      label1 = Gtk.Label("Play File")
-      self.label_play_file = Gtk.Label("")
+      label1 = Gtk.Label('Play File')
+      self.label_play_file = Gtk.Label('')
 
       self.infobar_play_file = Gtk.InfoBar()
       self.infobar_play_file.add(self.label_play_file)
@@ -243,7 +243,7 @@ class TabAudioPlayer:
 
 
 
-      columns = ["Num", "Filename"]
+      columns = ['Num', 'Filename']
 
       self.scrolledwindow1 = Gtk.ScrolledWindow()
       self.listmodel1 = Gtk.ListStore(str, str)
@@ -566,7 +566,7 @@ class TabAudioPlayer:
       if newplaylist:
          self.settings['Play_Num'] = 0
          self.playlist = list(newplaylist)
-
+         self.listmodel1.clear()
 
 
       if len(self.playlist)==0:
