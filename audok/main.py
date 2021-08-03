@@ -23,20 +23,11 @@ class Files:
 
    def get_default_stationlist(self):
 
-      """
-      08.07. Not Working - Check:
-      80s New Wave
-      Pirate Radio Bayern
-      Antenne1
-      Bailiwick Radio_00s
-      Radio freeFM Ulm
-      """
 
       default_stationlist =  [['Alternative', 'Radio freeFM Ulm', 'http://stream.freefm.de:7000/Studio'],
                               ['Alternative', 'Radio FM 4 at', 'https://orf-live.ors-shoutcast.at/fm4-q2a'],
                               ['Alternative', 'Zeilsteen Radio', 'http://live.zeilsteen.com:80'],
 
-                              ['Mix', 'Pirate Radio Bayern', 'http://78.46.126.219:8000/stream'],
                               ['Mix', '1.FM - Gorilla FM', 'http://185.33.21.112:80/gorillafm_128'],
 
                               ['Electro', 'radio Top 40 Weimar Clubsound', 'http://antenne-th.divicon-stream.net/antth_top40electro_JlSz-mp3-192?sABC=58p2q700%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
@@ -56,6 +47,8 @@ class Files:
 
                               ['Rap', 'WHOA UK!!!!', 'http://listen.radionomy.com:80/WHOAUK----'],
 
+                              ['None', '', ''],
+                              ['None', '', ''],
                               ['None', '', ''],
                               ['None', '', ''],
                               ['None', '', ''],
