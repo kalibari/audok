@@ -384,7 +384,6 @@ class Music_Admin_Start(Gtk.Window):
          p_database[pnum]['pid']=process.pid
 
 
-
          while True:
 
             line = process.stdout.readline(20)
@@ -452,8 +451,6 @@ class Music_Admin_Start(Gtk.Window):
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.bind(('localhost', self.settings['Ipc_Port']))
             sock.listen(1)
-            #sock.setblocking(0)
-            #sock.settimeout(10)
             with open('%s/%s' % (self.settings['Config_Path'],self.settings['Filename_Port']),'w') as f:
                f.write(str(self.settings['Ipc_Port']))
                f.close()
