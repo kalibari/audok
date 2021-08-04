@@ -5,6 +5,7 @@ import threading
 import signal
 import socket
 import subprocess
+import glob
 import tab_audioplayer
 import tab_coverter
 import tab_streamripper
@@ -222,21 +223,7 @@ class Music_Admin_Start(Gtk.Window):
 
       if self.settings['Debug']==1:
          print ('def signal_handler_sigint start (Ctrl+C)')
-
-
-      if hasattr(self.notebook_tab_audioplayer, 'glib_timer'):
-         GLib.source_remove(self.notebook_tab_audioplayer.glib_timer)
-
-
-      if self.notebook_tab_audioplayer.player:
-         self.notebook_tab_audioplayer.player.set_state(Gst.State.NULL)
-         self.notebook_tab_audioplayer.player = None
-
-      self.notebook_tab_audioplayer.play_timer_stop()
-
-      self.process_all_killer()
-
-      Gtk.main_quit()
+      self.clean_shutdown()
 
 
 
@@ -244,9 +231,6 @@ class Music_Admin_Start(Gtk.Window):
 
       (width,height) = self.get_size()
       (position_x, position_y) = self.get_position()
-
-      #if self.settings['Debug']==1:
-      #   print ('def Resize - width: %s height: %s position_x: %s position_y: %s' % (width, height, position_x, position_y))
 
       self.settings['Size_X']=width
       self.settings['Size_Y']=height
@@ -265,7 +249,6 @@ class Music_Admin_Start(Gtk.Window):
       if self.settings['Debug']==1:
          print ('def on_reset_close - start')
       self.clean_shutdown()
-      sys.exit()
 
 
 
@@ -277,10 +260,8 @@ class Music_Admin_Start(Gtk.Window):
       if hasattr(self.notebook_tab_streamripper, 'glib_timer_streamripper'):
          GLib.source_remove(self.notebook_tab_streamripper.glib_timer_streamripper)
 
-
       if self.notebook_tab_audioplayer.player:
          self.notebook_tab_audioplayer.player.set_state(Gst.State.NULL)
-         self.notebook_tab_audioplayer.player = None
 
       self.notebook_tab_audioplayer.play_timer_stop()
       self.process_all_killer()
@@ -288,6 +269,7 @@ class Music_Admin_Start(Gtk.Window):
       if os.path.exists('%s/%s' % (self.settings['Config_Path'],self.settings['Filename_Port'])):
          os.remove('%s/%s' % (self.settings['Config_Path'],self.settings['Filename_Port']))
 
+      Gtk.main_quit()
 
 
 
@@ -303,6 +285,26 @@ class Music_Admin_Start(Gtk.Window):
                os.kill(int(self.process_database[item]['pid']), signal.SIGINT)
             except:
                pass
+
+
+   
+   def file_scan(self, directories, extensions):
+
+      allfiles = set()
+
+      for directory in directories:
+         if self.settings['Debug']==1:
+            print ('def file_scan - scan directory: %s' % directory)
+         for ext in extensions:
+            for item in glob.glob('%s/*.%s' % (directory,ext)):
+               allfiles.add(item)
+
+      # reverse
+      allfiles=list(allfiles)
+      if len(allfiles)>=1:
+         allfiles=allfiles[::-1]
+
+      return allfiles
 
 
 

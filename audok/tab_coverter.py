@@ -16,7 +16,6 @@ class TabConverter:
       self.box = Gtk.Box()
       self.box.set_border_width(10)
 
-      self.file_database = {}
 
       #############################
       box_outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
@@ -42,8 +41,8 @@ class TabConverter:
       self.button_file2mp3.connect("clicked", self.START_FILE2MP3_BUTTON)
 
 
-      self.button_wav2flac = Gtk.Button(label="wav2flac")
-      self.button_wav2flac.connect("clicked", self.START_WAV2FLAC_BUTTON)
+      self.button_file2flac = Gtk.Button(label="file2flac")
+      self.button_file2flac.connect("clicked", self.START_FILE2FLAC_BUTTON)
 
 
       self.button_stop = Gtk.Button(label="stop")
@@ -55,7 +54,7 @@ class TabConverter:
       hbox1.pack_start(self.button_you2mp3, True, True, 0)
       hbox1.pack_start(self.button_pwrecord, True, True, 0)
       hbox1.pack_start(self.button_file2mp3, True, True, 0)
-      hbox1.pack_start(self.button_wav2flac, True, True, 0)
+      hbox1.pack_start(self.button_file2flac, True, True, 0)
       hbox1.pack_start(self.button_stop, True, True, 0)
 
       #############################
@@ -113,22 +112,11 @@ class TabConverter:
 
 
 
-   def get_database_files(self, value):
-      files = []
-      for k in self.file_database:
-         if self.file_database[k][0]==value:
-            files.extend([k])
-      return files
-
-
-
    def get_destination_filename(self, destination_dir, pathfile, newprefix):
       if self.settings['Debug']==1:
          print ('def get_destination_filename destination_dir: %s pathfile: %s newprefix: %s' % (destination_dir, pathfile, newprefix))
 
       # destination_dir: /MyDisc/Audio/Neu filename: /MyDisc/Audio/Neu/pw-record-20.wav oldprefix: .wav newprefix: .mp3
-
-      self.filescan(destination_dir)
 
       # ('pw-record-24','.wav')
       (newpart1,newpart2) = os.path.splitext(os.path.basename(pathfile))
@@ -159,78 +147,6 @@ class TabConverter:
          print ('def get_destination_filename dest_filename: %s' % dest_filename)
 
       return dest_filename
-
-
-
-
-
-   def filescan(self, path):
-      if self.settings['Debug']==1:
-         print ('def filescan - part: %s' % path)
-
-
-      # reset
-      self.file_database = {}
-      self.all_files_in_dir = []
-
-      for root, dirs, files in os.walk(path):
-
-         for item in files:
-
-            if root==path:
-               self.all_files_in_dir.extend([item])
-
-            if 'incomplete' in root:
-               pass
-            elif root==(self.settings['Music_Path'] + '/' + self.settings['Directory_Old']):
-               pass
-            else:
-
-               m1 = re.search('\.ts$', item, re.IGNORECASE)
-               if m1:
-                  f = {'%s/%s' % (root,item) : ['.ts', item]}
-                  self.file_database.update(f)
-
-               m2 = re.search('\.flv$', item, re.IGNORECASE)
-               if m2:
-                  f = {'%s/%s' % (root,item) : ['.flv', item]}
-                  self.file_database.update(f)
-
-               m3 = re.search('\.flac$', item, re.IGNORECASE)
-               if m3:
-                  f = {'%s/%s' % (root,item) : ['.flac', item]}
-                  self.file_database.update(f)
-
-               m4 = re.search('\.m4a$', item, re.IGNORECASE)
-               if m4:
-                  f = {'%s/%s' % (root,item) : ['.m4a', item]}
-                  self.file_database.update(f)
-
-               m5 = re.search('\.mp3$', item, re.IGNORECASE)
-               if m5:
-                  f = {'%s/%s' % (root,item) : ['.mp3', item]}
-                  self.file_database.update(f)
-
-               m6 = re.search('\.wav$', item, re.IGNORECASE)
-               if m6:
-                  f = {'%s/%s' % (root,item) : ['.wav', item]}
-                  self.file_database.update(f)
-
-               m7 = re.search('\.mp4$' , item, re.IGNORECASE)
-               if m7:
-                  f = {'%s/%s' % (root,item) : ['.mp4', item]}
-                  self.file_database.update(f)
-
-               m8 = re.search('\.webm$' , item, re.IGNORECASE)
-               if m8:
-                  f = {'%s/%s' % (root,item) : ['.webm', item]}
-                  self.file_database.update(f)
-
-               m9 = re.search('\.mkv$' , item, re.IGNORECASE)
-               if m9:
-                  f = {'%s/%s' % (root,item) : ['.mkv', item]}
-                  self.file_database.update(f)
-
 
 
 
@@ -292,7 +208,7 @@ class TabConverter:
                      self.main.process_database[item]['output']=[]
 
 
-               if self.main.process_database[item]['job']=='wav2flac':
+               if self.main.process_database[item]['job']=='file2flac':
                   if self.main.process_database[item]['output']:
                      self.textbuffer_output.set_text('%s\n' % '\n'.join(self.main.process_database[item]['output']))
                      self.main.process_database[item]['output']=[]
@@ -307,7 +223,7 @@ class TabConverter:
                self.button_you2mp3.set_sensitive(True)
                self.button_pwrecord.set_sensitive(True)
                self.button_file2mp3.set_sensitive(True)
-               self.button_wav2flac.set_sensitive(True)
+               self.button_file2flac.set_sensitive(True)
                self.button_stop.set_sensitive(False)
 
 
@@ -346,7 +262,7 @@ class TabConverter:
 
 
 
-               if self.main.process_database[item]['job']=='wav2flac':
+               if self.main.process_database[item]['job']=='file2flac':
                   self.main.process_database[item]['status']='inactive'
                   if self.main.process_database[item]['result']==True:
                      self.textbuffer_output.set_text('-- job: %s filename: %s successfully converted\n' % (self.main.process_database[item]['job'],self.main.process_database[item]['source']))
@@ -379,7 +295,7 @@ class TabConverter:
       self.button_you2mp3.set_sensitive(False)
       self.button_pwrecord.set_sensitive(False)
       self.button_file2mp3.set_sensitive(False)
-      self.button_wav2flac.set_sensitive(False)
+      self.button_file2flac.set_sensitive(False)
       self.button_stop.set_sensitive(True)
 
 
@@ -394,7 +310,7 @@ class TabConverter:
          self.button_you2mp3.set_sensitive(True)
          self.button_pwrecord.set_sensitive(True)
          self.button_file2mp3.set_sensitive(True)
-         self.button_wav2flac.set_sensitive(True)
+         self.button_file2flac.set_sensitive(True)
          self.button_stop.set_sensitive(False)
 
 
@@ -406,7 +322,6 @@ class TabConverter:
          self.timer_you2mp3 = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
 
          # youtube-dl --no-warnings --no-call-home --audio-quality=4 --extract-audio --audio-format=mp3 --title https://www.youtube.com/watch?v=w7BE3inS-NM
-
          cmd=[self.settings['Bin_Youtubedl'],'--audio-quality=4','--no-warnings','--no-call-home','--extract-audio','--audio-format=mp3','--title',source]
          cwd=self.settings['Music_Path'] + '/' + self.settings['Directory_New']
          self.main.process_starter(cmd=cmd, cwd=cwd, job='you2mp3', identifier='', source='')
@@ -439,37 +354,39 @@ class TabConverter:
 
          filename = self.settings['Pwrecord_Default_Filename']
          if self.textbuffer_input.get_text():
-            filename = self.textbuffer_input.get_text()
+            filename = self.textbuffer_input.get_text().encode('utf-8').strip()
 
          if '/' in filename:
             self.textbuffer_output.set_text('-- job: %s / in filename is not allowed' % process_database['job'])
          else:
 
-            filename=(filename.encode('utf-8')).strip()
+            directories = [self.settings['Music_Path'] + '/' + self.settings['Directory_New']]
+            extensions = ['mp3','wav','aac','flac']
 
-            wavfiles = self.get_database_files('.wav')
+            allfiles = self.main.file_scan(directories, extensions)
+
             num=0
-            for item in wavfiles:
-               x = re.search('%s-(\d+).wav' % self.settings['Pwrecord_Default_Filename'], os.path.basename(item))
+            for item in allfiles:
+               x = re.search('%s-(\d+).wav' % filename, os.path.basename(item))
                if x and x.group(1):
                   if int(x.group(1))>num:
                      num=int(x.group(1))
-            newfilename='%s-%d.wav' % (self.settings['Pwrecord_Default_Filename'], (num+1))
+            newfilename='%s-%d.wav' % (filename, (num+1))
 
-
-            if not os.path.exists(self.settings['Music_Path'] + '/' + self.settings['Directory_New']):
-               os.mkdir(self.settings['Music_Path'] + '/' + self.settings['Directory_New'])
 
 
             self.button_you2mp3.set_sensitive(False)
             self.button_pwrecord.set_sensitive(False)
             self.button_file2mp3.set_sensitive(False)
-            self.button_wav2flac.set_sensitive(False)
+            self.button_file2flac.set_sensitive(False)
             self.button_stop.set_sensitive(True)
    
 
-            # pw-record --verbose --record --channels=2 --format=s32 --rate=48000 --volume=0.99 --target=41  /MyDisc/Audio/Neu/test.wav
+            if not os.path.exists(self.settings['Music_Path'] + '/' + self.settings['Directory_New']):
+               os.mkdir(self.settings['Music_Path'] + '/' + self.settings['Directory_New'])
 
+
+            # pw-record --verbose --record --channels=2 --format=s32 --rate=48000 --volume=0.99 --target=41  /MyDisc/Audio/Neu/test.wav
             cmd=[self.settings['Bin_Pwrecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99',\
             '--target=%s' % device_target, '%s/%s/%s' % (self.settings['Music_Path'],self.settings['Directory_New'],newfilename)]
             cwd=self.settings['Music_Path'] + '/' + self.settings['Directory_New']
@@ -488,11 +405,8 @@ class TabConverter:
       self.button_you2mp3.set_sensitive(False)
       self.button_pwrecord.set_sensitive(False)
       self.button_file2mp3.set_sensitive(False)
-      self.button_wav2flac.set_sensitive(False)
+      self.button_file2flac.set_sensitive(False)
       self.button_stop.set_sensitive(True)
-
-
-      self.filescan(self.settings['Music_Path'] + '/' + self.settings['Directory_New'])
 
       self.textbuffer_output.set_text('')
 
@@ -506,6 +420,7 @@ class TabConverter:
 
 
    def START_FILE2MP3_BUTTON(self, event):
+
       if self.settings['Debug']==1:
          print ('def START_FILE2MP3_BUTTON - start')
 
@@ -513,48 +428,21 @@ class TabConverter:
       self.button_you2mp3.set_sensitive(False)
       self.button_pwrecord.set_sensitive(False)
       self.button_file2mp3.set_sensitive(False)
-      self.button_wav2flac.set_sensitive(False)
+      self.button_file2flac.set_sensitive(False)
       self.button_stop.set_sensitive(True)
-
-
-      self.filescan(self.settings['Music_Path'] + '/' + self.settings['Directory_New'])
 
       self.textbuffer_output.set_text('')
 
+      directories = [self.settings['Music_Path'] + '/' + self.settings['Directory_New']]
+      extensions = ['wav','aac','flac','flv','webm']
 
-      allfiles = ([])
-
-      tsfiles = self.get_database_files('.ts')
-      allfiles.extend([['.ts', tsfiles]])
-
-      mp4files = self.get_database_files('.mp4')
-      allfiles.extend([['.mp4', mp4files]])
-
-      flvfiles = self.get_database_files('.flv')
-      allfiles.extend([['.flv', flvfiles]])
-
-      webmfiles = self.get_database_files('.webm')
-      allfiles.extend([['.webm', webmfiles]])
-
-      flacfiles = self.get_database_files('.flac')
-      allfiles.extend([['.flac', flacfiles]])
-
-      m4afiles = self.get_database_files('.m4a')
-      allfiles.extend([['.m4a', m4afiles]])
-
-      mkvfiles = self.get_database_files('.mkv')
-      allfiles.extend([['.mkv', mkvfiles]])
-
-      wavfiles = self.get_database_files('.wav')
-      allfiles.extend([['.wav', wavfiles]])
+      allfiles = self.main.file_scan(directories, extensions)
+      mp3files = self.main.file_scan(directories, ['mp3'])
 
 
+      self.textbuffer_output.set_text('number of files to change: %s\n' % len(allfiles))
 
-      files_to_change = len(tsfiles) + len(mp4files) + len(flvfiles) + len(webmfiles) + len(flacfiles) + len(m4afiles) + len(mkvfiles) + len(wavfiles)
-
-      self.textbuffer_output.set_text('number of files to change: %s\n' % files_to_change)
-
-      if files_to_change==0:
+      if len(allfiles)==0:
 
          if self.settings['Debug']==1:
             print ('def START_FILE2MP3_BUTTON - no files to change')
@@ -563,7 +451,7 @@ class TabConverter:
          self.button_you2mp3.set_sensitive(True)
          self.button_pwrecord.set_sensitive(True)
          self.button_file2mp3.set_sensitive(True)
-         self.button_wav2flac.set_sensitive(True)
+         self.button_file2flac.set_sensitive(True)
          self.button_stop.set_sensitive(False)
 
 
@@ -572,78 +460,99 @@ class TabConverter:
          if self.settings['Debug']==1:
             print ('def START_FILE2MP3_BUTTON - try start_popen_thread')
 
-
          self.timer_file2mp3 = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
 
+         for item in allfiles:
 
-         for oldprefix,files in allfiles:
+            x = re.search('^(.*)(-\d)?\.(%s)' % '|'.join(extensions), item)
+            if x and x.group(1) and x.group(3):
 
-            for pathfile in files:
-
-               # destination_dir  pathfile  newprefix
-               dest_filename = self.get_destination_filename((self.settings['Music_Path'] + '/' + self.settings['Directory_New']), pathfile, '.mp3')
+               if x.group(2):
+                  newfilename='%s%s.mp3' % (x.group(1),x.group(2))
+               else:
+                  newfilename='%s.mp3' % x.group(1)
+               num=1
+               while True:
+                  if newfilename in mp3files:
+                     newfilename='%s-%s.mp3' % (x.group(1),num)
+                     num+=1
+                  else:
+                     break
 
                cwd=self.settings['Music_Path'] + '/' + self.settings['Directory_New']
-               cmd=[self.settings['Bin_Nice'],'-n','19',self.settings['Bin_Ffmpeg'],'-v','error','-i',pathfile,'-ab', '%s' % str(self.settings['Bitrate']),'-n',dest_filename]
-               self.main.process_starter(cmd=cmd, cwd=cwd, job='file2mp3', identifier='', source=pathfile)
+               cmd=[self.settings['Bin_Nice'],'-n','19',self.settings['Bin_Ffmpeg'],'-v','error','-i',item,'-ab', '%s' % str(self.settings['Bitrate']),'-n',newfilename]
+               self.main.process_starter(cmd=cmd, cwd=cwd, job='file2mp3', identifier='', source=item)
 
 
 
 
-   def START_WAV2FLAC_BUTTON(self, event):
+   def START_FILE2FLAC_BUTTON(self, event):
+
       if self.settings['Debug']==1:
-         print ('def START_WAV2FLAC_BUTTON - start')
+         print ('def START_FILE2FLAC_BUTTON - start')
 
       self.button_you2mp3.set_sensitive(False)
       self.button_pwrecord.set_sensitive(False)
       self.button_file2mp3.set_sensitive(False)
-      self.button_wav2flac.set_sensitive(False)
+      self.button_file2flac.set_sensitive(False)
       self.button_stop.set_sensitive(True)
-
-
-      self.filescan(self.settings['Music_Path'] + '/' + self.settings['Directory_New'])
 
       self.textbuffer_output.set_text('')
 
-      allfiles = []
+      directories = [self.settings['Music_Path'] + '/' + self.settings['Directory_New']]
+      extensions = ['wav','aac','mp3','flv','webm']
 
-      wavfiles = self.get_database_files('.wav')
-      allfiles.extend([['.wav', wavfiles]])
+ 
+      allfiles = self.main.file_scan(directories, extensions)
+      flacfiles = self.main.file_scan(directories, ['flac'])
 
-      files_to_change = len(wavfiles)
 
-      self.textbuffer_output.set_text('number of files to change: %s\n' % files_to_change)
+      self.textbuffer_output.set_text('number of files to change: %s\n' % len(allfiles))
 
-      if files_to_change==0:
+      if len(allfiles)==0:
 
          if self.settings['Debug']==1:
-            print ('def START_WAV2FLAC_BUTTON - no files to change')
+            print ('def START_FILE2FLAC_BUTTON - no files to change')
 
          self.button_you2mp3.set_sensitive(True)
          self.button_pwrecord.set_sensitive(True)
          self.button_file2mp3.set_sensitive(True)
-         self.button_wav2flac.set_sensitive(True)
+         self.button_file2flac.set_sensitive(True)
          self.button_stop.set_sensitive(False)
 
       else:
 
          if self.settings['Debug']==1:
-            print ('def START_WAV2FLAC_BUTTON - try start_popen_thread')
+            print ('def START_FILE2FLAC_BUTTON - try start_popen_thread')
 
-         self.timer_wav2flac = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
+         self.timer_file2flac = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
 
 
-         for oldprefix,files in allfiles:
 
-            for pathfile in files:
+         for item in allfiles:
 
-               # destination_dir  pathfile  newprefix
-               dest_filename = self.get_destination_filename((self.settings['Music_Path'] + '/' + self.settings['Directory_New']), pathfile, '.flac')
+            x = re.search('^(.*)(-\d)?\.(%s)' % '|'.join(extensions), item)
+            if x and x.group(1) and x.group(3):
+
+               if x.group(2):
+                  newfilename='%s%s.flac' % (x.group(1),x.group(2))
+               else:
+                  newfilename='%s.flac' % x.group(1)
+
+               num=1
+               while True:
+                  if newfilename in flacfiles:
+                     newfilename='%s-%s.flac' % (x.group(1),num)
+                     num+=1
+                  else:
+                     break
+
 
                # ffmpeg -y -i /MyDisc/Audio/Neu/New/pwrecord-1.wav -af aformat=s32:48000 /MyDisc/Audio/Neu/test.flac
                cwd=self.settings['Music_Path'] + '/' + self.settings['Directory_New']
-               cmd=['nice','-n','19',self.settings['Bin_Ffmpeg'], '-y', '-i',  pathfile, '-af', 'aformat=s32:48000', dest_filename]
-               self.main.process_starter(cmd=cmd, cwd=cwd, job='wav2flac', identifier='', source=pathfile)
+               cmd=['nice','-n','19',self.settings['Bin_Ffmpeg'], '-y', '-i',  item, '-af', 'aformat=s32:48000', newfilename]
+               self.main.process_starter(cmd=cmd, cwd=cwd, job='file2flac', identifier='', source=item)
+
 
 
 
@@ -653,8 +562,8 @@ class TabConverter:
          print ('def STOP_BUTTON - start')
 
 
-      if hasattr(self, 'timer_wav2flac'):
-         GObject.source_remove(self.timer_wav2flac)
+      if hasattr(self, 'timer_file2flac'):
+         GObject.source_remove(self.timer_file2flac)
       if hasattr(self, 'timer_pwrecord'):
          GObject.source_remove(self.timer_pwrecord)
       if hasattr(self, 'timer_file2mp3'):
@@ -667,11 +576,11 @@ class TabConverter:
       self.main.process_job_killer(job='you2mp3')
       self.main.process_job_killer(job='pwrecord')
       self.main.process_job_killer(job='file2mp3')
-      self.main.process_job_killer(job='wav2flac')
+      self.main.process_job_killer(job='file2flac')
 
 
       self.button_you2mp3.set_sensitive(True)
       self.button_pwrecord.set_sensitive(True)
       self.button_file2mp3.set_sensitive(True)
-      self.button_wav2flac.set_sensitive(True)
+      self.button_file2flac.set_sensitive(True)
       self.button_stop.set_sensitive(False)
