@@ -34,8 +34,9 @@ class TabAudioPlayer:
 
       self.player = Gst.ElementFactory.make('playbin3', self.settings['Name'])
       if not self.player:
-         print('ERROR: Could not create player')
-         sys.exit(1)
+         print('ERROR: Could not create a gst player')
+         self.main.clean_shutdown()
+         sys.exit()
 
 
       # play only audio files
@@ -69,21 +70,21 @@ class TabAudioPlayer:
       row1.add(hbox1)
 
 
-      label1 = Gtk.Label("Play Time", xalign=0)
+      label1 = Gtk.Label('Play Time', xalign=0)
       self.combo_play_time = Gtk.ComboBoxText()
       choice_play_time=self.settings['Choice_Play_Time']
       for i,item in enumerate(choice_play_time):
-         self.combo_play_time.insert(i, "%s" %i, "%s" % item)
-      self.combo_play_time.connect("changed", self.PLAY_TIME_COMBOBOX)
+         self.combo_play_time.insert(i, str(i), item)
+      self.combo_play_time.connect('changed', self.PLAY_TIME_COMBOBOX)
       self.combo_play_time.set_active(0)
 
 
-      label2 = Gtk.Label("Random Start", xalign=0)
+      label2 = Gtk.Label('Random Start', xalign=0)
       self.combo_random = Gtk.ComboBoxText()
       choice_random_time=self.settings['Choice_Random_Time']
       for i,item in enumerate(choice_random_time):
-         self.combo_random.insert(i, "%s" % item, "%s" % item) 
-      self.combo_random.connect("changed", self.RANDOM_COMBOBOX)
+         self.combo_random.insert(i, str(i), item) 
+      self.combo_random.connect('changed', self.RANDOM_COMBOBOX)
       self.combo_random.set_active(0)
 
 
@@ -94,11 +95,11 @@ class TabAudioPlayer:
       self.checkbutton_auto_move.set_tooltip_text('If file is finished, move to Directory: %s' % self.settings['Directory_Old'])
 
 
-      label_empty = Gtk.Label("", xalign=0)
+      label_empty = Gtk.Label('', xalign=0)
 
 
-      button5 = Gtk.Button(label="Scan")
-      button5.connect("clicked", self.SCAN_BUTTON)
+      button5 = Gtk.Button(label='Scan')
+      button5.connect('clicked', self.SCAN_BUTTON)
       button5.set_tooltip_text('Scan Directories')
 
 
@@ -125,7 +126,7 @@ class TabAudioPlayer:
 
 
       self.entry_file_sum = Gtk.Entry()
-      self.entry_file_sum.set_text("")
+      self.entry_file_sum.set_text('')
 
 
       hbox1.pack_start(label1, False, False, 0)
@@ -154,42 +155,42 @@ class TabAudioPlayer:
       image = Gtk.Image()
       image.set_from_file('%s/back_white.png' % self.settings['App_Path'])
       self.button_back = Gtk.Button()
-      self.button_back.connect("clicked", self.BACK_BUTTON)
+      self.button_back.connect('clicked', self.BACK_BUTTON)
       self.button_back.set_image(image)
       self.button_back.set_tooltip_text('Back')
 
       image = Gtk.Image()
       image.set_from_file('%s/play_white.png' % self.settings['App_Path'])
       self.button_play = Gtk.Button()
-      self.button_play.connect("clicked", self.PLAY_BUTTON)
+      self.button_play.connect('clicked', self.PLAY_BUTTON)
       self.button_play.set_image(image)
       self.button_play.set_tooltip_text('Play')
 
       image = Gtk.Image()
       image.set_from_file('%s/pause_white.png' % self.settings['App_Path'])
       self.button_pause = Gtk.Button()
-      self.button_pause.connect("clicked", self.PAUSE_BUTTON)
+      self.button_pause.connect('clicked', self.PAUSE_BUTTON)
       self.button_pause.set_image(image)
       self.button_pause.set_tooltip_text('Pause')
 
       image = Gtk.Image()
       image.set_from_file('%s/next_white.png' % self.settings['App_Path'])
       self.button_next = Gtk.Button()
-      self.button_next.connect("clicked", self.NEXT_BUTTON)
+      self.button_next.connect('clicked', self.NEXT_BUTTON)
       self.button_next.set_image(image)
       self.button_next.set_tooltip_text('Next')
 
       image = Gtk.Image()
       image.set_from_file('%s/olddir.png' % self.settings['App_Path'])
       self.button_move_old = Gtk.Button()
-      self.button_move_old.connect("clicked", self.MOVE_OLD_BUTTON)
+      self.button_move_old.connect('clicked', self.MOVE_OLD_BUTTON)
       self.button_move_old.set_image(image)
       self.button_move_old.set_tooltip_text('Move File to Directory: %s' % self.settings['Directory_Old'])
 
       image = Gtk.Image()
       image.set_from_file('%s/newdir.png' % self.settings['App_Path'])
       self.button_move_new = Gtk.Button()
-      self.button_move_new.connect("clicked", self.MOVE_NEW_BUTTON)
+      self.button_move_new.connect('clicked', self.MOVE_NEW_BUTTON)
       self.button_move_new.set_image(image)
       self.button_move_new.set_tooltip_text('Move File to Directory: %s' % self.settings['Directory_New'])
 
@@ -211,7 +212,7 @@ class TabAudioPlayer:
       self.h_scale1 = Gtk.HScale.new_with_range(0, 300, 1)
       self.h_scale1.set_digits(0)
       self.h_scale1.set_hexpand(True)
-      self.h_scale1_update = self.h_scale1.connect("value-changed", self.slider_change)
+      self.h_scale1_update = self.h_scale1.connect('value-changed', self.slider_change)
 
 
 

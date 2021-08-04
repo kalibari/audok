@@ -41,6 +41,6 @@ Audok provides the following features:
 - play mp3,wav,flac files
 - youtube-dl support (mp3 downloader)
 - streamripper support
-- record wav files
-- covert wav,ts,flac,mp4 to mp3
-- covert wav to flac
+- record wav files via pipewire
+- covert wav,aac,flac,flv,webm to mp3
+- covert wav,aac,mp3,flv,webm to flac

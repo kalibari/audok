@@ -224,6 +224,48 @@ class Music_Admin_Start(Gtk.Window):
       if self.settings['Debug']==1:
          print ('def signal_handler_sigint start (Ctrl+C)')
       self.clean_shutdown()
+      Gtk.main_quit()
+      sys.exit()
+
+
+
+   def on_destroy(self, data, event):
+      if self.settings['Debug']==1:
+         print ('def on_destroy - start')
+      self.clean_shutdown()
+      Gtk.main_quit()
+      sys.exit()
+
+
+   def on_reset_close(self):
+      if self.settings['Debug']==1:
+         print ('def on_reset_close - start')
+      self.clean_shutdown()
+      Gtk.main_quit()
+      sys.exit()
+
+
+
+   def clean_shutdown(self):
+
+      if hasattr(self, 'notebook_tab_audioplayer'):
+         if hasattr(self.notebook_tab_audioplayer, 'glib_timer_refresh_slider'):
+            GLib.source_remove(self.notebook_tab_audioplayer.glib_timer_refresh_slider)
+
+      if hasattr(self, 'notebook_tab_streamripper'):
+         if hasattr(self.notebook_tab_streamripper, 'glib_timer_streamripper'):
+            GLib.source_remove(self.notebook_tab_streamripper.glib_timer_streamripper)
+
+      if hasattr(self, 'notebook_tab_audioplayer'):
+         if self.notebook_tab_audioplayer.player:
+            self.notebook_tab_audioplayer.player.set_state(Gst.State.NULL)
+         self.notebook_tab_audioplayer.play_timer_stop()
+
+      self.process_all_killer()
+
+      if os.path.exists('%s/%s' % (self.settings['Config_Path'],self.settings['Filename_Port'])):
+         os.remove('%s/%s' % (self.settings['Config_Path'],self.settings['Filename_Port']))
+
 
 
 
@@ -236,41 +278,6 @@ class Music_Admin_Start(Gtk.Window):
       self.settings['Size_Y']=height
       self.settings['Position_X'] = position_x
       self.settings['Position_Y'] = position_y
-
-
-
-   def on_destroy(self, data, event):
-      if self.settings['Debug']==1:
-         print ('def on_destroy - start')
-      self.clean_shutdown()
-
-
-   def on_reset_close(self):
-      if self.settings['Debug']==1:
-         print ('def on_reset_close - start')
-      self.clean_shutdown()
-
-
-
-   def clean_shutdown(self):
-
-      if hasattr(self.notebook_tab_audioplayer, 'glib_timer_refresh_slider'):
-         GLib.source_remove(self.notebook_tab_audioplayer.glib_timer_refresh_slider)
-
-      if hasattr(self.notebook_tab_streamripper, 'glib_timer_streamripper'):
-         GLib.source_remove(self.notebook_tab_streamripper.glib_timer_streamripper)
-
-      if self.notebook_tab_audioplayer.player:
-         self.notebook_tab_audioplayer.player.set_state(Gst.State.NULL)
-
-      self.notebook_tab_audioplayer.play_timer_stop()
-      self.process_all_killer()
-
-      if os.path.exists('%s/%s' % (self.settings['Config_Path'],self.settings['Filename_Port'])):
-         os.remove('%s/%s' % (self.settings['Config_Path'],self.settings['Filename_Port']))
-
-      Gtk.main_quit()
-
 
 
 

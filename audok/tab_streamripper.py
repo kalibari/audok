@@ -346,6 +346,7 @@ class TabStreamRipper:
       if self.settings['Debug']==1:
          print ('def STOP_RECORD_BUTTON start')
 
+
       # reset
       self.station_not_running = []
       for i, item in enumerate(self.station_liststore):

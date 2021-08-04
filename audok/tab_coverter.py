@@ -25,29 +25,34 @@ class TabConverter:
       hbox1.set_hexpand(True)
       row1.add(hbox1)
 
-      label1 = Gtk.Label("Audio", xalign=0)
+      label1 = Gtk.Label('Audio', xalign=0)
       label1.set_size_request(50, -1)
 
 
-      self.button_you2mp3 = Gtk.Button(label="you2mp3")
-      self.button_you2mp3.connect("clicked", self.START_YOU2MP3_BUTTON)
+      self.button_you2mp3 = Gtk.Button(label='you2mp3')
+      self.button_you2mp3.connect('clicked', self.START_YOU2MP3_BUTTON)
+      self.button_you2mp3.set_tooltip_text('Convert a youtube video to mp3 - Directory: %s' % self.settings['Directory_New'])
 
 
-      self.button_pwrecord = Gtk.Button(label="pwrecord")
-      self.button_pwrecord.connect("clicked", self.START_PWRECORD_BUTTON)
+      self.button_pwrecord = Gtk.Button(label='pwrecord')
+      self.button_pwrecord.connect('clicked', self.START_PWRECORD_BUTTON)
+      self.button_pwrecord.set_tooltip_text('Convert a youtube video to mp3 - Directory: %s' % self.settings['Directory_New'])
 
 
-      self.button_file2mp3 = Gtk.Button(label="file2mp3")
-      self.button_file2mp3.connect("clicked", self.START_FILE2MP3_BUTTON)
+      self.button_file2mp3 = Gtk.Button(label='file2mp3')
+      self.button_file2mp3.connect('clicked', self.START_FILE2MP3_BUTTON)
+      self.button_file2mp3.set_tooltip_text('Convert all files to mp3 - Directory: %s' % self.settings['Directory_New'])
 
 
-      self.button_file2flac = Gtk.Button(label="file2flac")
-      self.button_file2flac.connect("clicked", self.START_FILE2FLAC_BUTTON)
+      self.button_file2flac = Gtk.Button(label='file2flac')
+      self.button_file2flac.connect('clicked', self.START_FILE2FLAC_BUTTON)
+      self.button_file2flac.set_tooltip_text('Convert all files to flac - Directory: %s' % self.settings['Directory_New'])
 
 
-      self.button_stop = Gtk.Button(label="stop")
-      self.button_stop.connect("clicked", self.STOP_BUTTON)
+      self.button_stop = Gtk.Button(label='stop')
+      self.button_stop.connect('clicked', self.STOP_BUTTON)
       self.button_stop.set_sensitive(False)
+      self.button_stop.set_tooltip_text('Stop')
 
 
       hbox1.pack_start(label1, False, True, 10)
@@ -65,7 +70,7 @@ class TabConverter:
       row2.add(hbox2)
 
 
-      label2 = Gtk.Label("Input", xalign=0)
+      label2 = Gtk.Label('Input', xalign=0)
       label2.set_size_request(50, -1)
 
       self.textbuffer_input = Gtk.Entry()
@@ -84,7 +89,7 @@ class TabConverter:
       hbox3.set_hexpand(True)
       row3.add(hbox3)
 
-      label3 = Gtk.Label("Ouput", xalign=0)
+      label3 = Gtk.Label('Ouput', xalign=0)
       label3.set_size_request(50, -1)
 
 
@@ -108,47 +113,6 @@ class TabConverter:
       self.box.add(box_outer)
 
       ###################################################################################
-
-
-
-
-   def get_destination_filename(self, destination_dir, pathfile, newprefix):
-      if self.settings['Debug']==1:
-         print ('def get_destination_filename destination_dir: %s pathfile: %s newprefix: %s' % (destination_dir, pathfile, newprefix))
-
-      # destination_dir: /MyDisc/Audio/Neu filename: /MyDisc/Audio/Neu/pw-record-20.wav oldprefix: .wav newprefix: .mp3
-
-      # ('pw-record-24','.wav')
-      (newpart1,newpart2) = os.path.splitext(os.path.basename(pathfile))
-
-      num=0
-      newpart1pre = newpart1
-      x = re.search('^(.*)-(\d+)$', newpart1pre)
-      if x and x.group(1) and x.group(2):
-         newpart1pre = x.group(1)
-         num = int(x.group(2))
-
-      # pw-record
-      if self.settings['Debug']==1:
-         print ('def get_destination_filename newpart1pre: %s num: %s' % (newpart1pre,str(num)))
-
-      for item in self.all_files_in_dir:
-         x = re.search('^(%s)-(\d+)%s' % (newpart1pre, newprefix), item)
-         if x and x.group(1) and x.group(2):
-            if self.settings['Debug']==1:
-               print ('def get_destination_filename found file %s -> increase num' % item)
-            if int(x.group(2))>=num:
-               num=int(x.group(2))
-
-      num+=1
-      dest_filename='%s-%s%s' % (newpart1pre,num,newprefix)
-
-      if self.settings['Debug']==1:
-         print ('def get_destination_filename dest_filename: %s' % dest_filename)
-
-      return dest_filename
-
-
 
 
 
