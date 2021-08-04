@@ -5,7 +5,6 @@ import random
 import threading
 import signal
 import time
-import glob
 import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
@@ -440,16 +439,12 @@ class TabAudioPlayer:
 
 
 
-   def playlist_filescan(self):
+   def playlist_scan(self):
 
       if self.settings['Debug']==1:
-         print ('def playlist_filescan - start')
-
-
-      allfiles = set()
+         print ('def playlist_scan - start')
 
       directories = []
-      extensions = ['mp3','wav','aac','flac']
 
       # New
       if self.checkbutton_new.get_active()==True:
@@ -464,19 +459,8 @@ class TabAudioPlayer:
          directories.extend([self.settings['Music_Path'] + '/' + self.settings['Directory_Streamripper']])
          directories.extend([self.settings['Music_Path'] + '/' + self.settings['Directory_Streamripper'] + '/*'])
 
-
-      for directory in directories:
-         if self.settings['Debug']==1:
-            print ('def playlist_filescan - scan directory: %s' % directory)
-         for ext in extensions:
-            for item in glob.glob('%s/*.%s' % (directory,ext)):
-               allfiles.add(item)
-
-
-      # reverse
-      allfiles=list(allfiles)
-      if len(allfiles)>=1:
-         allfiles=allfiles[::-1]
+      extensions = ['mp3','wav','aac','flac']
+      allfiles = self.main.file_scan(directories, extensions)
 
       # reset
       self.playlist = []
@@ -495,7 +479,7 @@ class TabAudioPlayer:
          self.label_play_file.set_text('')
 
       if self.settings['Debug']==1:
-         print ('def playlist_filescan - len(playlist): %s' % len(self.playlist))
+         print ('def playlist_scan - len(playlist): %s' % len(self.playlist))
 
       self.entry_file_sum.set_text(str(len(self.playlist)))
 
@@ -516,13 +500,13 @@ class TabAudioPlayer:
       if choose=='next' and (self.settings['Play_Num']+1)>=len_playlist:
          if self.settings['Debug']==1:
             print ('def choose_song last file -> rescan')
-         self.playlist_filescan()
+         self.playlist_scan()
          self.settings['Play_Num']=0
 
       elif choose=='back' and self.settings['Play_Num']<=0:
          if self.settings['Debug']==1:
             print ('def choose_song - goto last file')
-         self.playlist_filescan()
+         self.playlist_scan()
          self.settings['Play_Num']=(len_playlist-1)
 
       elif choose=='next':
@@ -680,7 +664,7 @@ class TabAudioPlayer:
          if not os.path.exists(path):
             os.mkdir(path)
          os.rename(path_filename,'%s/%s' % (path,filename))
-         self.playlist_filescan()
+         self.playlist_scan()
       except Exception as e:
          if self.settings['Debug']==1:
             print ('def move_old error: %s' % str(e))
@@ -740,7 +724,7 @@ class TabAudioPlayer:
             print ('def SCAN_BUTTON - try to set state: %s' % Gst.State.READY)
          self.player.set_state(Gst.State.READY)
 
-      self.playlist_filescan()
+      self.playlist_scan()
 
       if len(self.playlist)>=1:
          self.checkbutton_auto_move.set_sensitive(True)
