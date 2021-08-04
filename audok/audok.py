@@ -38,7 +38,7 @@ if __name__ == '__main__':
    if sys.stdin.isatty():
       settings['Debug'] = 1
 
-   settings['Version'] = '0.7.8'
+   settings['Version'] = '0.7.9'
    # generate a new settings.xml
    settings['Min_Version'] = '0.7.5'
 
