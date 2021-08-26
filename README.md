@@ -7,7 +7,7 @@ Audok is a simple linux music player with streamripper and converter support. Au
 
 Version
 ======
-Current Version is 0.7.9
+Current Version is 0.8.1
 
 
 Requirements
@@ -20,10 +20,18 @@ Requirements
 
 Installation
 ======
+Dependencies Debian:
 sudo apt install --no-install-recommends python3-gst-1.0 python3-cairo<br/>
 sudo apt install --no-install-recommends ffmpeg flac lame<br/>
 sudo apt install --no-install-recommends pipewire<br/>
 sudo apt install --no-install-recommends youtube-dl<br/>
+
+Dependencies Fedora:
+sudo dnf install python3-gstreamer1 python3-cairo<br/>
+sudo dnf install flac lame<br/>
+sudo dnf install pipewire<br/>
+sudo dnf install youtube-dl<br/>
+
 wget https://github.com/kalibari/audok/archive/refs/heads/master.zip<br/>
 unzip master.zip<br/>
 cd audok-master<br/>

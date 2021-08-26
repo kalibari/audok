@@ -38,7 +38,7 @@ if __name__ == '__main__':
    if sys.stdin.isatty():
       settings['Debug'] = 1
 
-   settings['Version'] = '0.8.0'
+   settings['Version'] = '0.8.1'
    # generate a new settings.xml
    settings['Min_Version'] = '0.7.5'
 
@@ -57,8 +57,15 @@ if __name__ == '__main__':
    settings['Choice_Bitrate'] = []
 
    settings['App_Path'] = app_path
+
    settings['Music_Path'] = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_MUSIC)
+   if not settings['Music_Path']:
+      settings['Music_Path']=os.getenv("HOME")
+
    settings['Config_Path'] = '%s/audok' % GLib.get_user_config_dir()
+   if not settings['Config_Path']:
+      settings['Config_Path']=os.getenv("HOME")
+
 
 
    files = main.Files()
