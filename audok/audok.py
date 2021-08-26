@@ -38,7 +38,7 @@ if __name__ == '__main__':
    if sys.stdin.isatty():
       settings['Debug'] = 1
 
-   settings['Version'] = '0.7.9'
+   settings['Version'] = '0.8.0'
    # generate a new settings.xml
    settings['Min_Version'] = '0.7.5'
 
@@ -110,6 +110,7 @@ if __name__ == '__main__':
    
    if settings['Debug']==1:
       print ('- main version: %s Share_Path: %s pid: %s cwd: %s' % (settings['Version'],settings['App_Path'],settings['Pid'],os.getcwd()))
+      print ('- music path: %s config path: %s' % (settings['Music_Path'],settings['Config_Path']))
 
 
 
