@@ -217,8 +217,6 @@ class TabConverter:
                   self.main.process_database[item]['status']='inactive'
                   if self.main.process_database[item]['result']==True:
                      self.textbuffer_output.set_text('-- job: %s filename: %s successfully converted\n' % (self.main.process_database[item]['job'],self.main.process_database[item]['source']))
-                     if not os.path.exists(self.settings['Music_Path'] + '/' + self.settings['Directory_Old']):
-                        os.mkdir(self.settings['Music_Path'] + '/' + self.settings['Directory_Old'])
                      oldfilename = os.path.basename(self.main.process_database[item]['source'])
                      os.rename(self.main.process_database[item]['source'],'%s/%s/%s' % (self.settings['Music_Path'],self.settings['Directory_Old'],oldfilename))
                   else:
@@ -230,8 +228,6 @@ class TabConverter:
                   self.main.process_database[item]['status']='inactive'
                   if self.main.process_database[item]['result']==True:
                      self.textbuffer_output.set_text('-- job: %s filename: %s successfully converted\n' % (self.main.process_database[item]['job'],self.main.process_database[item]['source']))
-                     if not os.path.exists(self.settings['Music_Path'] + '/' + self.settings['Directory_Old']):
-                        os.mkdir(self.settings['Music_Path'] + '/' + self.settings['Directory_Old'])
                      oldfilename = os.path.basename(self.main.process_database[item]['source'])
                      os.rename(self.main.process_database[item]['source'],'%s/%s/%s' % (self.settings['Music_Path'],self.settings['Directory_Old'],oldfilename))
                   else:
@@ -282,6 +278,8 @@ class TabConverter:
 
          self.textbuffer_output.set_text('-- job you2mp3 source: %s\n' % source)
 
+         if not os.path.exists(self.settings['Music_Path'] + '/' + self.settings['Directory_New']):
+            os.mkdir(self.settings['Music_Path'] + '/' + self.settings['Directory_New'])
 
          self.timer_you2mp3 = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
 
@@ -324,6 +322,9 @@ class TabConverter:
             self.textbuffer_output.set_text('-- job: %s / in filename is not allowed' % process_database['job'])
          else:
 
+            if not os.path.exists(self.settings['Music_Path'] + '/' + self.settings['Directory_New']):
+               os.mkdir(self.settings['Music_Path'] + '/' + self.settings['Directory_New'])
+
             directories = [self.settings['Music_Path'] + '/' + self.settings['Directory_New']]
             extensions = ['mp3','wav','aac','flac']
 
@@ -345,11 +346,6 @@ class TabConverter:
             self.button_file2flac.set_sensitive(False)
             self.button_stop.set_sensitive(True)
    
-
-            if not os.path.exists(self.settings['Music_Path'] + '/' + self.settings['Directory_New']):
-               os.mkdir(self.settings['Music_Path'] + '/' + self.settings['Directory_New'])
-
-
             # pw-record --verbose --record --channels=2 --format=s32 --rate=48000 --volume=0.99 --target=41  /MyDisc/Audio/Neu/test.wav
             cmd=[self.settings['Bin_Pwrecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99',\
             '--target=%s' % device_target, '%s/%s/%s' % (self.settings['Music_Path'],self.settings['Directory_New'],newfilename)]
@@ -376,6 +372,9 @@ class TabConverter:
 
       self.timer_pwrecord = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
 
+      if not os.path.exists(self.settings['Music_Path'] + '/' + self.settings['Directory_New']):
+         os.mkdir(self.settings['Music_Path'] + '/' + self.settings['Directory_New'])
+
       cmd=[self.settings['Bin_Pwcli'],'list-objects']
       cwd='/'
       self.main.process_starter(cmd=cmd, cwd=cwd, job='pwrecord', identifier='pw-cli', source='')
@@ -399,6 +398,10 @@ class TabConverter:
 
       directories = [self.settings['Music_Path'] + '/' + self.settings['Directory_New']]
       extensions = ['wav','aac','flac','flv','webm']
+
+      if not os.path.exists(self.settings['Music_Path'] + '/' + self.settings['Directory_New']):
+         os.mkdir(self.settings['Music_Path'] + '/' + self.settings['Directory_New'])
+
 
       allfiles = self.main.file_scan(directories, extensions)
       mp3files = self.main.file_scan(directories, ['mp3'])
@@ -466,7 +469,11 @@ class TabConverter:
       directories = [self.settings['Music_Path'] + '/' + self.settings['Directory_New']]
       extensions = ['wav','aac','mp3','flv','webm']
 
- 
+
+      if not os.path.exists(self.settings['Music_Path'] + '/' + self.settings['Directory_New']):
+         os.mkdir(self.settings['Music_Path'] + '/' + self.settings['Directory_New'])
+
+
       allfiles = self.main.file_scan(directories, extensions)
       flacfiles = self.main.file_scan(directories, ['flac'])
 
@@ -536,7 +543,6 @@ class TabConverter:
          GObject.source_remove(self.timer_you2mp3)
 
 
-
       self.main.process_job_killer(job='you2mp3')
       self.main.process_job_killer(job='pwrecord')
       self.main.process_job_killer(job='file2mp3')
@@ -548,3 +554,4 @@ class TabConverter:
       self.button_file2mp3.set_sensitive(True)
       self.button_file2flac.set_sensitive(True)
       self.button_stop.set_sensitive(False)
+
