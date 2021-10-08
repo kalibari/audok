@@ -314,7 +314,7 @@ class TabStreamRipper:
          self.glib_timer_streamripper = GLib.timeout_add_seconds(1, self.check_streamripper)
 
 
-      if (os.path.exists(self.settings['Music_Path'] + '/' + self.settings['Directory_Streamripper']))==False:
+      if not os.path.exists(self.settings['Music_Path'] + '/' + self.settings['Directory_Streamripper']):
          os.mkdir(self.settings['Music_Path'] + '/' + self.settings['Directory_Streamripper'])
 
 

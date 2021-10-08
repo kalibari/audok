@@ -217,7 +217,7 @@ class TabConverter:
                   self.main.process_database[item]['status']='inactive'
                   if self.main.process_database[item]['result']==True:
                      self.textbuffer_output.set_text('-- job: %s filename: %s successfully converted\n' % (self.main.process_database[item]['job'],self.main.process_database[item]['source']))
-                     if (os.path.exists(self.settings['Music_Path'] + '/' + self.settings['Directory_Old']))==False:
+                     if not os.path.exists(self.settings['Music_Path'] + '/' + self.settings['Directory_Old']):
                         os.mkdir(self.settings['Music_Path'] + '/' + self.settings['Directory_Old'])
                      oldfilename = os.path.basename(self.main.process_database[item]['source'])
                      os.rename(self.main.process_database[item]['source'],'%s/%s/%s' % (self.settings['Music_Path'],self.settings['Directory_Old'],oldfilename))
@@ -230,7 +230,7 @@ class TabConverter:
                   self.main.process_database[item]['status']='inactive'
                   if self.main.process_database[item]['result']==True:
                      self.textbuffer_output.set_text('-- job: %s filename: %s successfully converted\n' % (self.main.process_database[item]['job'],self.main.process_database[item]['source']))
-                     if (os.path.exists(self.settings['Music_Path'] + '/' + self.settings['Directory_Old']))==False:
+                     if not os.path.exists(self.settings['Music_Path'] + '/' + self.settings['Directory_Old']):
                         os.mkdir(self.settings['Music_Path'] + '/' + self.settings['Directory_Old'])
                      oldfilename = os.path.basename(self.main.process_database[item]['source'])
                      os.rename(self.main.process_database[item]['source'],'%s/%s/%s' % (self.settings['Music_Path'],self.settings['Directory_Old'],oldfilename))
