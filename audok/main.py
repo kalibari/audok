@@ -194,6 +194,9 @@ class Music_Admin_Start(Gtk.Window):
       signal.signal(signal.SIGUSR1, self.signal_handler_sigusr1)
       GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, self.signal_handler_sigint)
 
+      if self.playlist:
+         self.notebook_tab_audioplayer.choose_song(choose='keep')
+
 
 
 
@@ -466,8 +469,6 @@ class Music_Admin_Start(Gtk.Window):
 
       while True:
 
-         os.kill(self.settings['Pid'], signal.SIGUSR1)
-
          (connection, client_address) = sock.accept()
 
          try:
@@ -480,25 +481,25 @@ class Music_Admin_Start(Gtk.Window):
                      print ('def ipc_server - thread received "%s"' % data)
 
                   if data=='play_timer_end':
-                     self.notebook_tab_audioplayer.settings['Interrupt']='play_timer_end'
+                     self.settings['Interrupt']='play_timer_end'
+                     os.kill(self.settings['Pid'], signal.SIGUSR1)
+
 
                   elif data.startswith('play_new_file='):
-                     self.notebook_tab_audioplayer.settings['Interrupt']='play_new_file'
+                     self.settings['Interrupt']='play_new_file'
                      data=data.replace('play_new_file=','',1)
-                     self.notebook_tab_audioplayer.settings['Play_Num'] = 0
+                     self.settings['Play_Num'] = 0
                      self.notebook_tab_audioplayer.playlist = [data]
-
-
+                     os.kill(self.settings['Pid'], signal.SIGUSR1)
                else:
-                  if self.settings['Debug']==1:
-                     print ('def ipc_server - thread send SIGUSR1 to pid: %s type: %s' % (self.settings['Pid'],type(self.settings['Pid'])))
-                  # play one song
                   break
 
             if self.settings['Debug']==1:
                print ('def ipc_server - thread wait...')
 
          finally:
+            if self.settings['Debug']==1:
+               print ('def ipc_server - close')
             connection.close()
 
 

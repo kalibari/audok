@@ -360,11 +360,13 @@ class TabAudioPlayer:
 
    def bus_player_error(self, bus, msg):
       if self.settings['Debug']==1:
-         print('bus_player_error - start')
+         print('def bus_player_error - start')
 
       err, dbg = msg.parse_error()
       if self.settings['Debug']==1:
-         print("ERROR:", msg.src.get_name(), ":", err.message)
+         print("def bus_player_error - error:", msg.src.get_name(), ":", err.message)
+
+      self.player.set_state(Gst.State.READY)
 
 
 
@@ -380,6 +382,7 @@ class TabAudioPlayer:
 
       if len(self.playlist)>=2:
          self.choose_song(choose='next')
+
       elif len(self.playlist)>=1:
          self.button_play.set_sensitive(True)
 
@@ -400,6 +403,9 @@ class TabAudioPlayer:
             # refresh slider as soons as possible
             self.refresh_slider()
 
+         elif new==Gst.State.READY and old==Gst.State.PAUSED:
+            if self.settings['Debug']==1:
+               print('def bus_player_state_changed - warning')
 
 
 
@@ -410,7 +416,7 @@ class TabAudioPlayer:
 
       if self.settings['Interrupt']=='play_new_file':
          if self.playlist:
-            self.play_file(newplaylist=self.playlist)
+            self.choose_song(choose='keep')
 
       elif self.settings['Interrupt']=='play_timer_end':
          if self.checkbutton_auto_move.get_active():
@@ -603,7 +609,10 @@ class TabAudioPlayer:
       else:
 
          self.entry_file_sum.set_text('%s' % len(self.playlist))
+
          self.player.set_state(Gst.State.READY)
+
+
          if self.settings['Debug']==1:
             print ('def play_file set state null')
 
@@ -639,7 +648,7 @@ class TabAudioPlayer:
             if self.settings['Debug']==1:
                print ('def play_file - start-time: %s s' % self.start_time_s)
 
-            time.sleep(0.5)
+            time.sleep(0.3)
             pos = self.start_time_s * Gst.SECOND
             self.player.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT, pos)
 

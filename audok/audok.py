@@ -115,16 +115,15 @@ if __name__ == '__main__':
          settings.update(file_settings)
 
 
+   if len(sys.argv)>=2:
+      if os.path.join(sys.argv[1]):
+         playlist = [sys.argv[1]]
    
    if settings['Debug']==1:
       print ('- main version: %s Share_Path: %s pid: %s cwd: %s' % (settings['Version'],settings['App_Path'],settings['Pid'],os.getcwd()))
       print ('- music path: %s config path: %s' % (settings['Music_Path'],settings['Config_Path']))
       print ('- directory new: %s old: %s streamripper: %s' % (settings['Directory_New'],settings['Directory_Old'],settings['Directory_Streamripper']))
-
-
-   if len(sys.argv)>=2:
-      if os.path.join(sys.argv[1]):
-         playlist = [sys.argv[1]]
+      print ('- playlist: %s' % playlist)
 
 
 
