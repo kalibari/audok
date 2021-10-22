@@ -168,8 +168,7 @@ class Music_Admin_Start(Gtk.Window):
       self.add(self.notebook)
 
 
-      self.notebook_tab_audioplayer = tab_audioplayer.TabAudioPlayer(self, settings)
-      self.notebook_tab_audioplayer.init_gui(self.playlist)
+      self.notebook_tab_audioplayer = tab_audioplayer.TabAudioPlayer(self, settings, playlist)
       self.notebook_tab_coverter = tab_coverter.TabConverter(self, settings)
       self.notebook_tab_streamripper = tab_streamripper.TabStreamRipper(self, settings, stationlist)
       self.notebook_tab_settings = tab_settings.TabSettings(self, settings)
@@ -193,29 +192,16 @@ class Music_Admin_Start(Gtk.Window):
 
 
       signal.signal(signal.SIGUSR1, self.signal_handler_sigusr1)
-      signal.signal(signal.SIGUSR2, self.signal_handler_sigusr2)
-
-
       GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, self.signal_handler_sigint)
+
 
 
 
    def signal_handler_sigusr1(self, signal, frame):
       if self.settings['Debug']==1:
-         print ('def signal_handler_sigusr1 start')
+         print ('def signal_handler_sigusr1 - start')
 
-      if self.playlist:
-         self.notebook_tab_audioplayer.play_file(newplaylist=self.playlist)
-
-
-
-   def signal_handler_sigusr2(self, signal, frame):
-      
-      if self.settings['Debug']==1:
-         print ('def signal_handler_sigusr2 start')
-
-      if len(self.notebook_tab_audioplayer.playlist)>=2:
-         self.notebook_tab_audioplayer.choose_song(choose='next')
+      self.notebook_tab_audioplayer.interrupt()
 
 
 
@@ -446,6 +432,7 @@ class Music_Admin_Start(Gtk.Window):
 
       
    def ipc_server(self):
+
       if self.settings['Debug']==1:
          print ('def ipc_server - thread start')
 
@@ -488,12 +475,20 @@ class Music_Admin_Start(Gtk.Window):
                data = connection.recv(130)
                if data:
                   data = data.decode()
+
                   if self.settings['Debug']==1:
                      print ('def ipc_server - thread received "%s"' % data)
-                  self.settings['Play_Num'] = 0
-                  self.playlist = [data]
-                  if self.settings['Debug']==1:
-                     print ('def ipc_server - new playlist "%s"' % str(self.playlist))
+
+                  if data=='play_timer_end':
+                     self.notebook_tab_audioplayer.settings['Interrupt']='play_timer_end'
+
+                  elif data.startswith('play_new_file='):
+                     self.notebook_tab_audioplayer.settings['Interrupt']='play_new_file'
+                     data=data.replace('play_new_file=','',1)
+                     self.notebook_tab_audioplayer.settings['Play_Num'] = 0
+                     self.notebook_tab_audioplayer.playlist = [data]
+
+
                else:
                   if self.settings['Debug']==1:
                      print ('def ipc_server - thread send SIGUSR1 to pid: %s type: %s' % (self.settings['Pid'],type(self.settings['Pid'])))

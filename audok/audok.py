@@ -11,7 +11,6 @@ import xml.etree.ElementTree
 app_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, app_path)
 import main
-import tab_audioplayer
 import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
@@ -30,7 +29,7 @@ def startup_notification_workaround():
 
 if __name__ == '__main__':
 
-   playlist = []
+   playlist=[]
 
    settings={}
 
@@ -48,6 +47,8 @@ if __name__ == '__main__':
    settings['Play_Time'] = 0
    settings['Play_Num'] = 0
    settings['Loop'] = 'True'
+
+   settings['Interrupt'] = ''
 
    settings['Filename_Settings'] = 'settings.xml'
    settings['Filename_Stations'] = 'stations.xml'
@@ -142,7 +143,7 @@ if __name__ == '__main__':
 
       send_file=''
       if settings['Play_Num'] < len(playlist):
-         send_file=playlist[settings['Play_Num']]
+         send_file='play_new_file=%s' % playlist[settings['Play_Num']]
 
 
       if settings['Debug']==1:

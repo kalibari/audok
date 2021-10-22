@@ -3,6 +3,7 @@ import re
 import sys
 import random
 import threading
+import socket
 import signal
 import time
 import gi
@@ -17,10 +18,11 @@ from gi.repository import GLib
 class TabAudioPlayer:
 
 
-   def __init__(self, main, settings):
+   def __init__(self, main, settings, playlist):
 
       self.main = main
       self.settings = settings
+      self.playlist = playlist
 
 
       ##################
@@ -51,11 +53,6 @@ class TabAudioPlayer:
       bus.connect('message::state-changed', self.bus_player_state_changed)
       #bus.connect('message', self.bus_message_check)
 
-
-
-   def init_gui(self, playlist):
-
-      self.playlist = playlist
 
       self.box = Gtk.Box()
       self.box.set_border_width(10)
@@ -361,7 +358,6 @@ class TabAudioPlayer:
 
 
 
-
    def bus_player_error(self, bus, msg):
       if self.settings['Debug']==1:
          print('bus_player_error - start')
@@ -400,10 +396,28 @@ class TabAudioPlayer:
 
          self.state = new
 
-         if old == Gst.State.PAUSED and new == Gst.State.PLAYING:
+         if new==Gst.State.PLAYING and old==Gst.State.PAUSED:
             # refresh slider as soons as possible
             self.refresh_slider()
 
+
+
+
+   def interrupt(self):
+
+      if self.settings['Debug']==1:
+         print ('def interrupt - start Interrupt: %s' % self.settings['Interrupt'])
+
+      if self.settings['Interrupt']=='play_new_file':
+         if self.playlist:
+            self.play_file(newplaylist=self.playlist)
+
+      elif self.settings['Interrupt']=='play_timer_end':
+         if self.checkbutton_auto_move.get_active():
+            self.move('old')
+            self.choose_song(choose='keep')
+         else:
+            self.choose_song(choose='next')
 
 
 
@@ -416,16 +430,21 @@ class TabAudioPlayer:
 
 
 
+
    def play_timer_end(self):
       if self.settings['Debug']==1:
          print ('def play_timer_end - start')
 
-      if self.checkbutton_auto_move.get_active():
-         self.move('old')
-      else:
-         self.choose_song(choose='next')
+      try:
+         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+         sock.connect(('localhost', self.settings['Ipc_Port']))
+         sock.sendall('play_timer_end'.encode())
+      except Exception as e:
+         if self.settings['Debug']==1:
+            print ('def play_timer_end error: %s' % str(e))
+      finally:
+         sock.close()
 
-      os.kill(self.settings['Pid'], signal.SIGUSR2)
 
 
 
@@ -530,7 +549,6 @@ class TabAudioPlayer:
 
 
       self.play_file()
-
 
 
 
@@ -657,11 +675,8 @@ class TabAudioPlayer:
       if dir=='old':
          path=self.settings['Music_Path'] + '/' + self.settings['Directory_Old']
 
-
-      self.listmodel1.clear()
-
       try:
-         filename = os.path.basename(path_filename)
+         head, filename = os.path.split(path_filename)
          if not os.path.exists(path):
             os.mkdir(path)
          os.rename(path_filename,'%s/%s' % (path,filename))
@@ -671,10 +686,10 @@ class TabAudioPlayer:
             print ('def move_old error: %s' % str(e))
 
 
+      self.listmodel1.clear()
       for i,item in enumerate(self.playlist):
          i+=1
          self.listmodel1.append([str(i),str(item)])
-
 
 
 
@@ -682,7 +697,6 @@ class TabAudioPlayer:
       #if self.settings['Debug']==1:
       #   print ('def treeview_size_changed start')
       pass
-
 
 
 
