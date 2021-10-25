@@ -20,141 +20,25 @@ gi.require_version('GLib', '2.0')
 from gi.repository import GLib, GObject
 
 
-class Files:
-
-   def get_default_stationlist(self):
-
-
-      default_stationlist =  [['Alternative', 'Radio freeFM Ulm', 'http://stream.freefm.de:7000/Studio'],
-                              ['Alternative', 'Radio FM 4 at', 'https://orf-live.ors-shoutcast.at/fm4-q2a'],
-                              ['Alternative', 'Zeilsteen Radio', 'http://live.zeilsteen.com:80'],
-
-                              ['Mix', '1.FM - Gorilla FM', 'http://185.33.21.112:80/gorillafm_128'],
-
-                              ['Electro', 'radio Top 40 Weimar Clubsound', 'http://antenne-th.divicon-stream.net/antth_top40electro_JlSz-mp3-192?sABC=58p2q700%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
-                              ['Electro', 'Sunshine Live','http://sunshinelive.hoerradar.de/sunshinelive-live-mp3-hq'],
-
-                              ['Chipc_serverarts', 'radio Top 40 Weimar Charts', 'http://antenne-th.divicon-stream.net/antth_top40char_0f6x-mp3-192?sABC=58p2q6s8%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
-                              ['Charts', 'Top 100 Station','http://www.top100station.de/switch/r3472.pls'],
-                              ['Charts', 'radio Top 40 Weimar Live', 'http://antenne-th.divicon-stream.net/antth_top40live_SeJx-mp3-192?sABC=58p2q6rq%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
-                              ['Charts', '"TOP 20" Radio', 'http://listen.radionomy.com:80/-TOP20-Radio'],
-
-                              ['80s', '80s New Wave','http://yp.shoutcast.com/sbin/tunein-station.pls?id=99180471'],
-
-                              ['Pop', 'Pophits Station', 'http://yp.shoutcast.com/sbin/tunein-station.pls?id=99183408'],
-                              ['Pop', 'Bailiwick Radio_00s', 'http://listen.radionomy.com:80/BailiwickRadio-00s'],
-                              ['Pop', 'Antenne 1','http://stream.antenne1.de/stream1/livestream.mp3'],
-                              ['Pop', 'Antenne Bayern Fresh4You', 'http://mp3channels.webradio.antenne.de/fresh'],
-
-                              ['Rap', 'WHOA UK!!!!', 'http://listen.radionomy.com:80/WHOAUK----'],
-
-                              ['None', '', ''],
-                              ['None', '', ''],
-                              ['None', '', ''],
-                              ['None', '', ''],
-                              ['None', '', ''],
-                              ['None', '', '']]
-
-      return default_stationlist
-
-
-
-
-   def get_default_file_settings(self, settings):
-
-      default_file_settings = {  'Name': 'audok',
-                                 'Old_Version': settings['Version'],
-                                 'Size_X': 1000,
-                                 'Size_Y': 500,
-                                 'Position_X': 0,
-                                 'Position_Y': 0,
-                                 'Directory_New': 'New',
-                                 'Directory_Old': 'Old',
-                                 'Directory_Streamripper': 'Streamripper',
-                                 'Bin_Youtubedl': 'youtube-dl',
-                                 'Bin_Streamripper': 'streamripper',
-                                 'Bin_Ffmpeg': 'ffmpeg',
-                                 'Bin_Pwcli': 'pw-cli',
-                                 'Bin_Pwrecord': 'pw-record',
-                                 'Pwrecord_Device': 'alsa_output.pci-0000:00:1f.3.analog-stereo',
-                                 'Pwrecord_Default_Filename': 'pwrecord',
-                                 'Bin_Flac': 'flac', 
-                                 'Bin_Nice': 'nice', 
-                                 'Choice_Pwrecord_Device': ['alsa_output.pci-0000:00:1f.3.analog-stereo'],
-                                 'Choice_Play_Time': ['0','20','35','50','65'],
-                                 'Choice_Random_Time': ['0','10-30','30-50','50-70','70-90'],
-                                 'Choice_Bitrate': ['128k','192k','224k','320k'],
-                                 'Bitrate': '192k'}
-
-      return default_file_settings
-
-
-
-   def update_file_settings(self, settings, file_settings):
-
-      if not os.path.exists(settings['Config_Path']):
-         os.mkdir(settings['Config_Path'], 0o755)
-
-      f = open('%s/%s' % (settings['Config_Path'],settings['Filename_Settings']), 'w')
-      f.write('<?xml version="1.0"?>\n')
-      f.write('<data>\n')
-      for element in file_settings:
-
-         value=file_settings[element]
-
-         if element in settings:
-            if isinstance(settings[element], int):
-               value = int(value)
-            elif isinstance(settings[element], str):
-               value = str(value.strip())
-            elif isinstance(settings[element], list):
-               value = ','.join(value)
-            elif isinstance(settings[element], float):
-               value = float(value)
-
-         f.write('\t<' + str(element) + '>' + str(value) + '</' + str(element) + '>\n')
-      f.write('</data>\n')
-      f.close()
-
-
-
-   def update_file_stations(self, settings, stationlist, station_liststore):
-
-      if not os.path.exists(settings['Config_Path']):
-         os.mkdir(settings['Config_Path'], 0o755)
-
-      f = open('%s/%s' % (settings['Config_Path'],settings['Filename_Stations']), 'w')
-      f.write('<?xml version="1.0"?>\n')
-      f.write('<data>\n')
-      for i, item in enumerate(station_liststore):
-         #print (stationlist[i][0])  # Alternative
-         #print (stationlist[i][1])  # Radio freeFM Ulm
-         #print (stationlist[i][2])  # http://stream.freefm.de:8100/listen.pls
-         f.write('\t<station>\n' + '\t\t<name>' + str(stationlist[i][0]) + '</name>\n'  + '\t\t<genre>' + str(stationlist[i][1]) + '</genre>\n'  + '\t\t<url>' + str(stationlist[i][2]) +  '</url>\n' +  '\t</station>\n')
-      f.write('</data>\n')
-      f.close()
-
-
-
-
-
 class Music_Admin_Start(Gtk.Window):
 
-   def __init__(self, settings, playlist, stationlist):
+   def __init__(self, config, settings, playlist, stationlist):
       Gtk.Window.__init__(self, title='Audok')
 
       self.set_border_width(3)
+
+      self.config = config
       self.settings = settings
       self.playlist = playlist
       self.stationlist = stationlist
 
 
-      self.set_default_size(settings['Size_X'],settings['Size_Y'])
-      self.move(settings['Position_X'], settings['Position_Y'])
+      self.set_default_size(settings['size_x'],settings['size_y'])
+      self.move(settings['position_x'], settings['position_y'])
       self.set_resizable(True) 
 
 
-      self.set_icon_from_file('%s/audok_large.png' % settings['App_Path'])
+      self.set_icon_from_file('%s/audok_large.png' % config['app_path'])
 
       self.pnum = 0
 
@@ -168,11 +52,11 @@ class Music_Admin_Start(Gtk.Window):
       self.add(self.notebook)
 
 
-      self.notebook_tab_audioplayer = tab_audioplayer.TabAudioPlayer(self, settings, playlist)
-      self.notebook_tab_coverter = tab_coverter.TabConverter(self, settings)
-      self.notebook_tab_streamripper = tab_streamripper.TabStreamRipper(self, settings, stationlist)
-      self.notebook_tab_settings = tab_settings.TabSettings(self, settings)
-      self.notebook_tab_about = tab_about.TabAbout(self, settings)
+      self.notebook_tab_audioplayer = tab_audioplayer.TabAudioPlayer(self, config, settings, playlist)
+      self.notebook_tab_coverter = tab_coverter.TabConverter(self, config, settings)
+      self.notebook_tab_streamripper = tab_streamripper.TabStreamRipper(self, config, settings, stationlist)
+      self.notebook_tab_settings = tab_settings.TabSettings(self, config, settings)
+      self.notebook_tab_about = tab_about.TabAbout(self, config, settings)
 
 
       self.notebook.append_page(self.notebook_tab_audioplayer.box, Gtk.Label('Audio Player'))
@@ -187,7 +71,7 @@ class Music_Admin_Start(Gtk.Window):
          thread.setDaemon(True)
          thread.start()
       except Exception as e:
-         if self.settings['Debug']==1:
+         if self.config['debug']==1:
             print ('def init - Main ipc_server error: %s' % str(e))
 
 
@@ -200,7 +84,7 @@ class Music_Admin_Start(Gtk.Window):
 
    def signal_handler_sigint(self):
 
-      if self.settings['Debug']==1:
+      if self.config['debug']==1:
          print ('def signal_handler_sigint start (Ctrl+C)')
       self.clean_shutdown()
       Gtk.main_quit()
@@ -209,15 +93,17 @@ class Music_Admin_Start(Gtk.Window):
 
 
    def on_destroy(self, data, event):
-      if self.settings['Debug']==1:
+      if self.config['debug']==1:
          print ('def on_destroy - start')
+      self.save_settings()
       self.clean_shutdown()
       Gtk.main_quit()
       sys.exit()
 
 
+
    def on_reset_close(self):
-      if self.settings['Debug']==1:
+      if self.config['debug']==1:
          print ('def on_reset_close - start')
       self.clean_shutdown()
       Gtk.main_quit()
@@ -225,7 +111,65 @@ class Music_Admin_Start(Gtk.Window):
 
 
 
+
+   def save_settings(self):
+
+      # save settings to ~/.config/audok/settings.xml
+      if self.config['debug']==1:
+         print ('def clean_shutdown - save settings')
+
+      path = self.settings['config_path']
+      filename = self.settings['filename_settings']
+
+      if not os.path.exists(path):
+         os.mkdir(path, 0o755)
+
+      f = open(path + '/' + filename, 'w')
+      f.write('<?xml version="1.0"?>\n')
+      f.write('<data>\n')
+      for element in self.settings:
+         value = self.settings[element]
+         if isinstance(value, int):
+            value = int(value)
+         elif isinstance(value, str):
+            value = value.strip()
+         elif isinstance(value, list):
+            value = '[' + ','.join(value) + ']'
+
+         f.write('\t<' + str(element) + '>' + str(value) + '</' + str(element) + '>\n')
+      f.write('</data>\n')
+      f.close()
+
+
+      if self.config['stationlist_changed']==True:
+
+         station_liststore=self.notebook_tab_streamripper.station_liststore
+         stationlist=self.notebook_tab_streamripper.stationlist
+
+
+         f = open('%s/%s' % (self.settings['config_path'],self.settings['filename_stations']), 'w')
+         f.write('<?xml version="1.0"?>\n')
+         f.write('<data>\n')
+         for i, item in enumerate(station_liststore):
+            #print (stationlist[i][0])  # Alternative
+            #print (stationlist[i][1])  # Radio freeFM Ulm
+            #print (stationlist[i][2])  # http://stream.freefm.de:8100/listen.pls
+            f.write('\t<station>\n' + '\t\t<name>' + str(stationlist[i][0]) + '</name>\n'  + '\t\t<genre>' + str(stationlist[i][1]) + '</genre>\n'  + '\t\t<url>' + str(stationlist[i][2]) +  '</url>\n' +  '\t</station>\n')
+         f.write('</data>\n')
+         f.close()
+
+
+
+
+
+
+
+
+
    def clean_shutdown(self):
+
+      if self.config['debug']==1:
+         print ('def clean_shutdown - start')
 
       if hasattr(self, 'notebook_tab_audioplayer'):
          if hasattr(self.notebook_tab_audioplayer, 'glib_timer_refresh_slider'):
@@ -240,13 +184,11 @@ class Music_Admin_Start(Gtk.Window):
             self.notebook_tab_audioplayer.player.set_state(Gst.State.NULL)
          self.notebook_tab_audioplayer.play_timer_stop()
 
-      # save settings
-      
 
       self.process_all_killer()
 
-      if os.path.exists('%s/%s' % (self.settings['Config_Path'],self.settings['Filename_Port'])):
-         os.remove('%s/%s' % (self.settings['Config_Path'],self.settings['Filename_Port']))
+      if os.path.exists('%s/%s' % (self.settings['config_path'],self.settings['filename_ipcport'])):
+         os.remove('%s/%s' % (self.settings['config_path'],self.settings['filename_ipcport']))
 
 
 
@@ -257,16 +199,16 @@ class Music_Admin_Start(Gtk.Window):
       (width,height) = self.get_size()
       (position_x, position_y) = self.get_position()
 
-      self.settings['Size_X']=width
-      self.settings['Size_Y']=height
-      self.settings['Position_X'] = position_x
-      self.settings['Position_Y'] = position_y
+      self.settings['size_x']=width
+      self.settings['size_y']=height
+      self.settings['position_x'] = position_x
+      self.settings['position_y'] = position_y
 
 
 
    def process_all_killer(self):
    
-      if self.settings['Debug']==1:
+      if self.config['debug']==1:
          print ('def process_all_killer - start')
 
       for item in self.process_database:
@@ -283,7 +225,7 @@ class Music_Admin_Start(Gtk.Window):
       allfiles = set()
 
       for directory in directories:
-         if self.settings['Debug']==1:
+         if self.config['debug']==1:
             print ('def file_scan - scan directory: %s' % directory)
          for ext in extensions:
             for item in glob.glob('%s/*.%s' % (directory,ext)):
@@ -301,7 +243,7 @@ class Music_Admin_Start(Gtk.Window):
 
    def process_job_killer(self, job):
 
-      if self.settings['Debug']==1:
+      if self.config['debug']==1:
          print ('def process_job_killer - start')
 
       for item in self.process_database:
@@ -313,7 +255,7 @@ class Music_Admin_Start(Gtk.Window):
                except:
                   pass
 
-               if self.settings['Debug']==1:
+               if self.config['debug']==1:
                   if self.process_database[item]['status']=='killed':
                      print ('def process_job_killer - job: %s killed pid: %s' % (self.process_database[item]['job'],self.process_database[item]['pid']))
                   else:
@@ -336,7 +278,7 @@ class Music_Admin_Start(Gtk.Window):
       self.process_database.update(k)
 
 
-      if self.settings['Debug']==1:
+      if self.config['debug']==1:
          print ('def process_starter start')
 
 
@@ -345,7 +287,7 @@ class Music_Admin_Start(Gtk.Window):
          thread.setDaemon(True)
          thread.start()
       except Exception as e:
-         if self.settings['Debug']==1:
+         if self.config['debug']==1:
             print ('def process_starter error: %s' % str(e))
 
 
@@ -353,7 +295,7 @@ class Music_Admin_Start(Gtk.Window):
 
    def process(self, cmd=[], cwd='', pnum='', p_database={}):
 
-      if self.settings['Debug']==1:
+      if self.config['debug']==1:
          print ('def process start cmd: %s cwd: %s' % (cmd,cwd))
 
 
@@ -371,7 +313,7 @@ class Music_Admin_Start(Gtk.Window):
          process = subprocess.Popen(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False, close_fds=True)
 
          # add PID
-         if self.settings['Debug']==1:
+         if self.config['debug']==1:
             print ('def process: add pid %s' % process.pid)
          p_database[pnum]['pid']=process.pid
 
@@ -401,7 +343,7 @@ class Music_Admin_Start(Gtk.Window):
                if p_database[pnum]['todo']!='nooutput':
                   p_database[pnum]['todo']='nooutput'
 
-                  if self.settings['Debug']==1:
+                  if self.config['debug']==1:
                      print ('def process - break')
                   break
 
@@ -414,14 +356,14 @@ class Music_Admin_Start(Gtk.Window):
 
  
       except Exception as e:
-         if self.settings['Debug']==1:
+         if self.config['debug']==1:
             print ('def process error: %s job: %s' % (str(e),p_database[pnum]['job']))
 
 
 
     
 
-      if self.settings['Debug']==1:
+      if self.config['debug']==1:
          print ('def process job %s done' % p_database[pnum]['job'])
       p_database[pnum]['todo']='result'
 
@@ -430,34 +372,34 @@ class Music_Admin_Start(Gtk.Window):
       
    def ipc_server(self):
 
-      if self.settings['Debug']==1:
+      if self.config['debug']==1:
          print ('def ipc_server - thread start')
 
-      if not os.path.exists(self.settings['Config_Path']):
-         os.mkdir(self.settings['Config_Path'], 0o755)
+      if not os.path.exists(self.settings['config_path']):
+         os.mkdir(self.settings['config_path'], 0o755)
 
       for num in range(0,10):
 
-         self.settings['Ipc_Port'] = self.settings['Ipc_Port'] + num
+         self.settings['ipc_port'] = self.settings['ipc_port'] + num
 
          try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.bind(('localhost', self.settings['Ipc_Port']))
+            sock.bind(('localhost', self.settings['ipc_port']))
             sock.listen(1)
-            with open('%s/%s' % (self.settings['Config_Path'],self.settings['Filename_Port']),'w') as f:
-               f.write(str(self.settings['Ipc_Port']))
+            with open('%s/%s' % (self.settings['config_path'],self.settings['filename_ipcport']),'w') as f:
+               f.write(str(self.settings['ipc_port']))
                f.close()
-               if self.settings['Debug']==1:
-                  print ('def ipc_server - write %s/%s' % (self.settings['Config_Path'],self.settings['Filename_Port']))
+               if self.config['debug']==1:
+                  print ('def ipc_server - write %s/%s' % (self.settings['config_path'],self.settings['filename_ipcport']))
             break
          except:
-            if self.settings['Debug']==1:
+            if self.config['debug']==1:
                print ('def ipc_server - thread port is probably blocked -> try next port')
 
 
 
-      if self.settings['Debug']==1:
-         print ('def ipc_server - thread listen on port: %s' % self.settings['Ipc_Port'])
+      if self.config['debug']==1:
+         print ('def ipc_server - thread listen on port: %s' % self.settings['ipc_port'])
 
 
 
@@ -471,39 +413,18 @@ class Music_Admin_Start(Gtk.Window):
                if data:
                   data = data.decode()
 
-                  if self.settings['Debug']==1:
+                  if self.config['debug']==1:
                      print ('def ipc_server - thread received "%s"' % data)
 
                   if data=='play_timer_end':
                      self.settings['Interrupt']='play_timer_end'
-                     #self.notebook_tab_audioplayer.player.send_event(Gst.Event.new_custom('abc',Gst.Message))
-                     ####os.kill(self.settings['Pid'], signal.SIGUSR1)
-                     ####self.notebook_tab_audioplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_audioplayer.player,Gst.Structure.new_empty("tags-changed")))
-
-                     # self.notebook_tab_audioplayer.player.post_message(
-                     #      Gst.Message.new_application(
-                     #         self.notebook_tab_audioplayer.player,
-                     #         Gst.Structure.new_empty("tags-changed")))
-
-                     #self.notebook_tab_audioplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_audioplayer.player,Gst.Structure.new_empty("song-changed")))
                      self.notebook_tab_audioplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_audioplayer.player,Gst.Structure.new_empty("song-changed")))
 
                   elif data.startswith('play_new_file='):
                      self.settings['Interrupt']='play_new_file'
                      data=data.replace('play_new_file=','',1)
-                     self.settings['Play_Num'] = 0
+                     self.config['play_num'] = 0
                      self.notebook_tab_audioplayer.playlist = [data]
-                     #self.notebook_tab_audioplayer.player.send_event(Gst.Event.new_custom('abc',Gst.Message))
-                     ##self.notebook_tab_audioplayer.player.send_event(Gst.Event.new_eos())
-                     ####os.kill(self.settings['Pid'], signal.SIGUSR1)
-                     ##self.notebook_tab_audioplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_audioplayer.player,Gst.Structure.new_empty("tags-changed")))
-
-                     #self.notebook_tab_audioplayer.player.post_message(
-                     #      Gst.Message.new_application(
-                     #         self.notebook_tab_audioplayer.player,
-                     #         Gst.Structure.new_empty("tags-changed")))
-
-                     # self.notebook_tab_audioplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_audioplayer.player,Gst.Structure.new_empty("song-changed")))
                      self.notebook_tab_audioplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_audioplayer.player,Gst.Structure.new_empty("song-changed")))
 
 
@@ -512,11 +433,11 @@ class Music_Admin_Start(Gtk.Window):
                else:
                   break
 
-            if self.settings['Debug']==1:
+            if self.config['debug']==1:
                print ('def ipc_server - thread wait...')
 
          finally:
-            if self.settings['Debug']==1:
+            if self.config['debug']==1:
                print ('def ipc_server - close')
             connection.close()
 

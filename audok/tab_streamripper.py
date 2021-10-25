@@ -9,8 +9,10 @@ import main
 
 class TabStreamRipper:
 
-   def __init__(self, main, settings, stationlist):
+   def __init__(self, main, config, settings, stationlist):
+
       self.main = main
+      self.config = config
       self.settings = settings
       self.stationlist = stationlist
 
@@ -53,10 +55,10 @@ class TabStreamRipper:
 
 
 
-      self.renderer = Gtk.CellRendererText()
-      self.renderer.set_property("editable", True)
-      column_text = Gtk.TreeViewColumn("Genre", self.renderer, text=3)
-      self.renderer.connect("edited", self.text_edited_genre)
+      renderer = Gtk.CellRendererText()
+      renderer.set_property("editable", True)
+      column_text = Gtk.TreeViewColumn("Genre", renderer, text=3)
+      renderer.connect("edited", self.renderer_genre_edited)
       self.treeview.append_column(column_text)
 
 
@@ -65,7 +67,7 @@ class TabStreamRipper:
 
       renderer = Gtk.CellRendererText()
       renderer.set_property("editable", True)
-      renderer.connect("edited", self.text_edited_station)
+      renderer.connect("edited", self.renderer_stations_edited)
       column_text = Gtk.TreeViewColumn("Station", renderer, text=4)
       self.treeview.append_column(column_text)
 
@@ -74,52 +76,46 @@ class TabStreamRipper:
 
       renderer = Gtk.CellRendererText()
       renderer.set_property("editable", True)
-      renderer.connect("edited", self.text_edited_url)
+      renderer.connect("edited", self.renderer_url_edited)
       column_text = Gtk.TreeViewColumn("Url", renderer, text=5)
       self.treeview.append_column(column_text)
 
 
 
-      self.scrollable_treelist = Gtk.ScrolledWindow()
-      self.scrollable_treelist.set_vexpand(True)
-      self.grid.attach(self.scrollable_treelist, 0, 0, 8, 10)
+      scrollable_treelist = Gtk.ScrolledWindow()
+      scrollable_treelist.set_vexpand(True)
+      self.grid.attach(scrollable_treelist, 0, 0, 8, 10)
 
 
       button_selectall = Gtk.Button(label="Select All")
-      button_selectall.connect("clicked", self.SELECT_ALL_BUTTON)
+      button_selectall.connect("clicked", self.button_selectall_clicked)
 
       button_deselectall = Gtk.Button(label="Deselect All")
-      button_deselectall.connect("clicked", self.DESELECT_ALL_BUTTON)
+      button_deselectall.connect("clicked", self.button_deselectall_clicked)
 
       button_record_start = Gtk.Button(label="Record")
-      button_record_start.connect("clicked", self.START_RECORD_BUTTON)
+      button_record_start.connect("clicked", self.button_record_clicked)
 
       button_record_stop = Gtk.Button(label="Stop")
-      button_record_stop.connect("clicked", self.STOP_RECORD_BUTTON)
-
-      self.button_save = Gtk.Button(label="Save")
-      self.button_save.connect("clicked", self.SAVE_BUTTON)
-      self.button_save.set_sensitive(False)
-
+      button_record_stop.connect("clicked", self.button_stop_clicked)
 
       button_reset = Gtk.Button(label="Reset")
-      button_reset.connect("clicked", self.RESET_BUTTON)
+      button_reset.connect("clicked", self.button_reset_clicked)
 
       button_info = Gtk.Button(label="Info")
-      button_info.connect("clicked", self.INFO_BUTTON)
+      button_info.connect("clicked", self.button_info_clicked)
 
 
 
-      self.grid.attach_next_to(button_selectall, self.scrollable_treelist, Gtk.PositionType.BOTTOM, 1, 1)
+      self.grid.attach_next_to(button_selectall, scrollable_treelist, Gtk.PositionType.BOTTOM, 1, 1)
       self.grid.attach_next_to(button_deselectall, button_selectall, Gtk.PositionType.RIGHT, 1, 1)
       self.grid.attach_next_to(button_record_start, button_deselectall, Gtk.PositionType.RIGHT, 1, 1)
       self.grid.attach_next_to(button_record_stop, button_record_start, Gtk.PositionType.RIGHT, 1, 1)
-      self.grid.attach_next_to(self.button_save, button_record_stop, Gtk.PositionType.RIGHT, 1, 1)
-      self.grid.attach_next_to(button_reset, self.button_save, Gtk.PositionType.RIGHT, 1, 1)
+      self.grid.attach_next_to(button_reset, button_record_stop, Gtk.PositionType.RIGHT, 1, 1)
       self.grid.attach_next_to(button_info, button_reset, Gtk.PositionType.RIGHT, 1, 1)
 
 
-      self.scrollable_treelist.add(self.treeview)
+      scrollable_treelist.add(self.treeview)
       self.hbox.pack_start(self.grid, True, True, 0)
 
       ###################################################################################
@@ -128,55 +124,51 @@ class TabStreamRipper:
 
 
    def on_cell_toggled(self, widget, path):
-      if self.settings['Debug']==1:
+      if self.config['debug']==1:
          print ('def on_cell_toggled start widget: %s path: %s' % (widget, path))
       self.station_liststore[path][1] = not self.station_liststore[path][1]
 
 
 
 
-   def text_edited_genre(self, widget, path, text):
-      if self.settings['Debug']==1:
-         print ('def text_edited_genre start widget: %s path: %s text: %s' % (widget, path, text))
+   def renderer_genre_edited(self, widget, path, text):
+      if self.config['debug']==1:
+         print ('def renderer_genre_edited start widget: %s path: %s text: %s' % (widget, path, text))
       self.station_liststore[path][3] = text
       self.stationlist[int(path)][0] = self.station_liststore[path][3]
-      self.button_save.set_sensitive(True)
+      self.config['stationlist_changed']=True
 
 
-
-   def text_edited_station(self, widget, path, text):
-      if self.settings['Debug']==1:
-         print ('def text_edited_station start widget: %s path: %s text: %s' % (widget, path, text))
+   def renderer_stations_edited(self, widget, path, text):
+      if self.config['debug']==1:
+         print ('def renderer_stations_edited start widget: %s path: %s text: %s' % (widget, path, text))
       self.station_liststore[path][4] = text
       self.stationlist[int(path)][1] = self.station_liststore[path][4]
-      self.button_save.set_sensitive(True)
+      self.config['stationlist_changed']=True
 
 
 
-   def text_edited_url(self, widget, path, text):
-      if self.settings['Debug']==1:
-         print ('def text_edited_url start widget: %s path: %s text: %s' % (widget, path, text))
+   def renderer_url_edited(self, widget, path, text):
+      if self.config['debug']==1:
+         print ('def renderer_url_edited start widget: %s path: %s text: %s' % (widget, path, text))
       self.station_liststore[path][5] = text
       self.stationlist[int(path)][2] = self.station_liststore[path][5]
-      self.button_save.set_sensitive(True)
+      self.config['stationlist_changed']=True
 
 
 
-
-
-
-   def SELECT_ALL_BUTTON(self, event):
-      if self.settings['Debug']==1:
-         print ('def SELECT_ALL_BUTTON start')
+   def button_selectall_clicked(self, event):
+      if self.config['debug']==1:
+         print ('def button_selectall_clicked start')
 
       for i, item in enumerate(self.station_liststore):
          self.station_liststore[i][1] = True
 
 
 
-   def DESELECT_ALL_BUTTON(self, event):
-      if self.settings['Debug']==1:
-         print ('def DESELECT_ALL_BUTTON start')
+   def button_deselectall_clicked(self, event):
+      if self.config['debug']==1:
+         print ('def button_deselectall_clicked start')
 
       for i, item in enumerate(self.station_liststore):
          self.station_liststore[i][1] = False
@@ -184,47 +176,31 @@ class TabStreamRipper:
 
 
 
+   def button_reset_clicked(self, event):
+      if self.config['debug']==1:
+         print ('def button_reset_clicked - start')
 
-   def SAVE_BUTTON(self, event):
-      if self.settings['Debug']==1:
-         print ('def SAVE_BUTTON start')
-
-      self.button_save.set_sensitive(False)
-      files = main.Files()
-      files.update_file_stations(self.settings, self.stationlist, self.station_liststore)
-
-
-
-   def RESET_BUTTON(self, event):
-      if self.settings['Debug']==1:
-         print ('def RESET_BUTTON - start')
-
-      if os.path.exists('%s/%s' % (self.settings['Config_Path'],self.settings['Filename_Stations'])):
-         os.remove('%s/%s' % (self.settings['Config_Path'],self.settings['Filename_Stations']))
+      if os.path.exists('%s/%s' % (self.settings['config_path'],self.settings['filename_stations'])):
+         os.remove('%s/%s' % (self.settings['config_path'],self.settings['filename_stations']))
 
       self.main.on_reset_close()
 
 
+
    
-   def INFO_BUTTON(self, event):
-      if self.settings['Debug']==1:
-         print ('def INFO_BUTTON - start')
+   def button_info_clicked(self, event):
+      if self.config['debug']==1:
+         print ('def button_info_clicked - start')
 
-      #dlg = self.Info_Dialog()
-      #dlg.ShowModal()
-      #dlg.Destroy()
+      dialog = Gtk.MessageDialog(parent=None,
+                                 message_type=Gtk.MessageType.INFO,
+                                 buttons=Gtk.ButtonsType.OK,
+                                 text="Get new stations from: https://www.shoutcast.com")
 
-
-
-   """
-   class Info_Dialog(wx.Dialog):
-      def __init__(self):
-         wx.Dialog.__init__(self, None, -1, 'Info', size=(450, 150))
-
-         newid = wx.NewId()
-         add_link_HyperlinkCtrl = wx.HyperlinkCtrl(self, id=newid, label='Get new stations at: http://www.shoutcast.com', url='http://www.shoutcast.com', pos=(10, 10), size=(400, 30), style=wx.HL_ALIGN_CENTRE|wx.HL_DEFAULT_STYLE)
-   """
-
+      dialog.set_title('Info')
+      dialog.show()
+      dialog.run()
+      dialog.destroy()
 
 
 
@@ -233,14 +209,12 @@ class TabStreamRipper:
 
       self.count+=1
 
-
       if self.station_not_running:
-         if self.settings['Debug']==1:
+         if self.config['debug']==1:
             print ('def check_streamripper record_station %s station_not_running: %s' % (self.record_station,self.station_not_running))
 
-
       if not bool(list(set(self.record_station) - set(self.station_not_running))):
-         if self.settings['Debug']==1:
+         if self.config['debug']==1:
             print ('def check_streamripper stop')
          del self.glib_timer_streamripper
          return False
@@ -285,13 +259,13 @@ class TabStreamRipper:
 
 
                   if self.main.process_database[num]['status']=='inactive':
-                     if self.settings['Debug']==1:
+                     if self.config['debug']==1:
                         print ('def check_streamripper status: inactive output: %s' % self.main.process_database[num]['output'])
                      self.station_liststore[item][0]=0
                      self.station_not_running.extend([item])
 
                   else:
-                     if self.settings['Debug']==1:
+                     if self.config['debug']==1:
                         print ('def check_streamripper station: %s count: %s' % (item,self.station_liststore[item][0]))
 
 
@@ -305,17 +279,17 @@ class TabStreamRipper:
 
 
 
-   def START_RECORD_BUTTON(self, event):
-      if self.settings['Debug']==1:
-         print ('def START_RECORD_BUTTON start')
+   def button_record_clicked(self, event):
+      if self.config['debug']==1:
+         print ('def button_record_clicked start')
 
 
       if not hasattr(self, 'glib_timer_streamripper'):
          self.glib_timer_streamripper = GLib.timeout_add_seconds(1, self.check_streamripper)
 
 
-      if not os.path.exists(self.settings['Music_Path'] + '/' + self.settings['Directory_Streamripper']):
-         os.mkdir(self.settings['Music_Path'] + '/' + self.settings['Directory_Streamripper'])
+      if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_streamripper']):
+         os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_streamripper'])
 
 
 
@@ -328,13 +302,13 @@ class TabStreamRipper:
 
             self.record_station.extend([i])
 
-            if self.settings['Debug']==1:
-               print ('def START_RECORD_BUTTON identifier: %s file: %s' % (i,self.stationlist[i]))
+            if self.config['debug']==1:
+               print ('def button_record_clicked identifier: %s file: %s' % (i,self.stationlist[i]))
 
             # streamripper http://www.top100station.de/switch/r3472.pls -u WinampMPEG/5.0 -d /MyDisc/Audio/Neu/Streamtuner/
 
-            cmd=[self.settings['Bin_Streamripper'], self.station_liststore[i][5],'-u','WinampMPEG/5.0','-d','%s/%s' % (self.settings['Music_Path'],self.settings['Directory_Streamripper'])]
-            cwd=self.settings['Music_Path'] + '/' + self.settings['Directory_Streamripper']
+            cmd=[self.settings['bin_streamripper'], self.station_liststore[i][5],'-u','WinampMPEG/5.0','-d','%s/%s' % (self.settings['music_path'],self.settings['directory_streamripper'])]
+            cwd=self.settings['music_path'] + '/' + self.settings['directory_streamripper']
             self.main.process_starter(cmd=cmd, cwd=cwd, job='streamripper', identifier=str(i), source=self.station_liststore[i][5])
 
       self.record_station = list(set(self.record_station))
@@ -342,9 +316,9 @@ class TabStreamRipper:
 
 
 
-   def STOP_RECORD_BUTTON(self, event):
-      if self.settings['Debug']==1:
-         print ('def STOP_RECORD_BUTTON start')
+   def button_stop_clicked(self, event):
+      if self.config['debug']==1:
+         print ('def button_stop_clicked start')
 
 
       # reset
@@ -354,8 +328,8 @@ class TabStreamRipper:
 
 
       if hasattr(self, 'glib_timer_streamripper'):
-         if self.settings['Debug']==1:
-            print ('def STOP_RECORD_BUTTON remove glib timer')
+         if self.config['debug']==1:
+            print ('def button_stop_clicked remove glib timer')
          GLib.source_remove(self.glib_timer_streamripper)
          del self.glib_timer_streamripper
 

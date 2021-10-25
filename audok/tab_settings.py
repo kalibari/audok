@@ -11,8 +11,10 @@ from gi.repository import Gdk, GObject
 
 class TabSettings:
 
-   def __init__(self, main, settings):
+   def __init__(self, main, config, settings):
+
       self.main = main
+      self.config = config
       self.settings = settings
 
       self.box = Gtk.Box()
@@ -39,24 +41,24 @@ class TabSettings:
 
 
       image1 = Gtk.Image()
-      image1.set_from_file('%s/newdir_small.png' % self.settings['App_Path'])
+      image1.set_from_file('%s/newdir_small.png' % self.config['app_path'])
       label1 = Gtk.Label("New:", xalign=0)
       label1.set_size_request(140, -1)
 
-      label2 = Gtk.Label("%s/" % self.settings['Music_Path'], xalign=0)
+      label2 = Gtk.Label("%s/" % self.settings['music_path'], xalign=0)
       label2.set_size_request(140, -1)
 
-      self.entry_input_dir_new = Gtk.Entry()
-      self.entry_input_dir_new.set_size_request(-1, 10)
-      self.entry_input_dir_new.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
-      self.entry_input_dir_new.set_text(self.settings['Directory_New'])
-
+      entry_input_dir_new = Gtk.Entry()
+      entry_input_dir_new.set_size_request(-1, 10)
+      entry_input_dir_new.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
+      entry_input_dir_new.set_text(self.settings['directory_new'])
+      entry_input_dir_new.connect('changed', self.change_directory_new)
 
 
       hbox_dir_new.pack_start(image1, False, False, 0)
       hbox_dir_new.pack_start(label1, False, True, 0)
       hbox_dir_new.pack_start(label2, False, True, 0)
-      hbox_dir_new.pack_start(self.entry_input_dir_new, True, True, 0)
+      hbox_dir_new.pack_start(entry_input_dir_new, True, True, 0)
 
 
       grid.attach_next_to(hbox_dir_new, hbox_directories_ad, Gtk.PositionType.BOTTOM, 1, 1)
@@ -68,24 +70,24 @@ class TabSettings:
       hbox_dir_old.set_hexpand(True)
 
       image1 = Gtk.Image()
-      image1.set_from_file('%s/olddir_small.png' % self.settings['App_Path'])
+      image1.set_from_file('%s/olddir_small.png' % self.config['app_path'])
       label1 = Gtk.Label("Old:", xalign=0)
       label1.set_size_request(140, -1)
 
-      label2 = Gtk.Label("%s/" % self.settings['Music_Path'], xalign=0)
+      label2 = Gtk.Label("%s/" % self.settings['music_path'], xalign=0)
       label2.set_size_request(140, -1)
 
 
-      self.entry_input_dir_old = Gtk.Entry()
-      self.entry_input_dir_old.set_size_request(-1, 10)
-      self.entry_input_dir_old.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
-      self.entry_input_dir_old.set_text(self.settings['Directory_Old'])
+      entry_input_dir_old = Gtk.Entry()
+      entry_input_dir_old.set_size_request(-1, 10)
+      entry_input_dir_old.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
+      entry_input_dir_old.set_text(self.settings['directory_old'])
 
 
       hbox_dir_old.pack_start(image1, False, False, 0)
       hbox_dir_old.pack_start(label1, False, True, 0)
       hbox_dir_old.pack_start(label2, False, True, 0)
-      hbox_dir_old.pack_start(self.entry_input_dir_old, True, True, 0)
+      hbox_dir_old.pack_start(entry_input_dir_old, True, True, 0)
 
       grid.attach_next_to(hbox_dir_old, hbox_dir_new, Gtk.PositionType.BOTTOM, 1, 1)
 
@@ -107,23 +109,23 @@ class TabSettings:
       hbox_dir_st= Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
 
       image1 = Gtk.Image()
-      image1.set_from_file('%s/streamripperdir_small.png' % self.settings['App_Path'])
+      image1.set_from_file('%s/streamripperdir_small.png' % self.config['app_path'])
       label1 = Gtk.Label("Streamripper:", xalign=0)
       label1.set_size_request(140, -1)
 
-      label2 = Gtk.Label("%s/" % self.settings['Music_Path'], xalign=0)
+      label2 = Gtk.Label("%s/" % self.settings['music_path'], xalign=0)
       label2.set_size_request(140, -1)
 
-      self.entry_input_dir_st = Gtk.Entry()
-      self.entry_input_dir_st.set_size_request(-1, 10)
-      self.entry_input_dir_st.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
-      self.entry_input_dir_st.set_text(self.settings['Directory_Streamripper'])
+      entry_input_dir_st = Gtk.Entry()
+      entry_input_dir_st.set_size_request(-1, 10)
+      entry_input_dir_st.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
+      entry_input_dir_st.set_text(self.settings['directory_streamripper'])
 
 
       hbox_dir_st.pack_start(image1, False, False, 0)
       hbox_dir_st.pack_start(label1, False, True, 0)
       hbox_dir_st.pack_start(label2, False, True, 0)
-      hbox_dir_st.pack_start(self.entry_input_dir_st, True, True, 0)
+      hbox_dir_st.pack_start(entry_input_dir_st, True, True, 0)
 
       grid.attach_next_to(hbox_dir_st, hbox_directory_st, Gtk.PositionType.BOTTOM, 1, 1)
 
@@ -149,19 +151,19 @@ class TabSettings:
 
 
       self.combo_pwrecord = Gtk.ComboBoxText()
-      choice_pwrecord_device=self.settings['Choice_Pwrecord_Device']
+      choice_pwrecord_device=self.settings['choice_pwrecord_device']
       choice_active=0
       for i,item in enumerate(choice_pwrecord_device):
-         if item==self.settings['Pwrecord_Device']:
+         if item==self.settings['pwrecord_default']:
             choice_active=i
          self.combo_pwrecord.insert(i, str(i), item)
       self.combo_pwrecord.set_active(choice_active)
-      self.combo_pwrecord.connect("changed", self.PWRECORD_COMBOBOX)
+      self.combo_pwrecord.connect("changed", self.combobox_pwrecord_changed)
 
 
 
       self.button_pwrecord_device_scan = Gtk.Button(label="Scan")
-      self.button_pwrecord_device_scan.connect("clicked", self.PWRECORD_DEVICE_SCAN_BUTTON)
+      self.button_pwrecord_device_scan.connect("clicked", self.button_scan_clicked)
       self.button_pwrecord_device_scan.set_size_request(100, -1)
 
 
@@ -174,16 +176,19 @@ class TabSettings:
       label_bitrate = Gtk.Label("Bitrate:", xalign=0)
       label_bitrate.set_size_request(80, -1)
 
+
       combo_bitrate = Gtk.ComboBoxText()
-      choice_bitrate=self.settings['Choice_Bitrate']
+      choice_bitrate=self.settings['choice_bitrate']
       choice_active=0
       for i,item in enumerate(choice_bitrate):
-         if item==self.settings['Bitrate']:
+         if item==self.settings['bitrate']:
             choice_active=i
          combo_bitrate.insert(i, str(i), item)
       combo_bitrate.set_active(choice_active)
-      combo_bitrate.connect("changed", self.BITRATE_COMBOBOX)
+      combo_bitrate.connect("changed", self.combobox_bitrate_changed)
  
+
+
       label_empty = Gtk.Label("", xalign=0)
       label_empty.set_size_request(60, -1)
 
@@ -200,56 +205,26 @@ class TabSettings:
 
       #############################
 
+      # empty box for space
       hbox_window = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
-
-      label_window = Gtk.Label("Window:", xalign=0)
-
-      hbox_window.pack_start(label_window, False, False, 0)
-
       grid.attach_next_to(hbox_window, hbox_converter, Gtk.PositionType.BOTTOM, 1, 1)
 
       #############################
 
-      hbox_window_sp = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
-
-
-      self.checkbutton_window_size = Gtk.CheckButton('Save Size')
-      self.checkbutton_window_size.set_active(1)
-
-
-      self.checkbutton_window_position = Gtk.CheckButton('Save Position')
-      self.checkbutton_window_position.set_active(1)
-
-      hbox_window_sp.pack_start(self.checkbutton_window_size, False, True, 0)
-      hbox_window_sp.pack_start(self.checkbutton_window_position, True, True, 0)
-
-      grid.attach_next_to(hbox_window_sp, hbox_window, Gtk.PositionType.BOTTOM, 1, 1)
-
-      #############################
-
-
       # empty box for space
       hbox_space = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
-
       grid.attach_next_to(hbox_space, hbox_window, Gtk.PositionType.BOTTOM, 1, 2)
 
 
       #############################
-
       hbox_buttons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
       
-      self.button_save = Gtk.Button(label="Save")
-      self.button_save.connect("clicked", self.SAVE_BUTTON)
-
       self.button_reset = Gtk.Button(label="Reset")
-      self.button_reset.connect("clicked", self.RESET_BUTTON)
+      self.button_reset.connect("clicked", self.button_reset_chlicked)
 
-      hbox_buttons.pack_start(self.button_save, False, True, 0)
       hbox_buttons.pack_start(self.button_reset, False, True, 0)
 
-
       grid.attach_next_to(hbox_buttons, hbox_space, Gtk.PositionType.BOTTOM, 1, 1)
-
 
       #############################
 
@@ -257,30 +232,48 @@ class TabSettings:
 
 
 
-
-   def BITRATE_COMBOBOX(self, event):
-      if self.settings['Debug']==1:
-         print ('def BITRATE_COMBOBOX - start')
-
-      self.settings['Bitrate'] = event.get_active_text()
+   def change_directory_new(self, event):
+      if self.config['debug']==1:
+         print ('def change_directory_new - start')
+      self.settings['directory_new'] = event.get_text()
 
 
 
-   def PWRECORD_COMBOBOX(self, event):
-      if self.settings['Debug']==1:
-         print ('def PWRECORD_COMBOBOX - start')
-
-      self.settings['Pwrecord_Device'] = event.get_active_text()
-
+   def change_directory_old(self, event):
+      if self.config['debug']==1:
+         print ('def change_directory_old - start')
+      self.settings['directory_old'] = event.get_text()
 
 
-   def PWRECORD_DEVICE_SCAN_BUTTON(self, event):
-      if self.settings['Debug']==1:
-         print ('def PWRECORD_DEVICE_SCAN_BUTTON - start')
+
+   def change_directory_str(self, event):
+      if self.config['debug']==1:
+         print ('def change_directory_str - start')
+      self.settings['directory_str'] = event.get_text()
+
+
+
+   def combobox_bitrate_changed(self, event):
+      if self.config['debug']==1:
+         print ('def combobox_bitrate_changed - start')
+      self.settings['bitrate'] = event.get_active_text()
+
+
+
+   def combobox_pwrecord_changed(self, event):
+      if self.config['debug']==1:
+         print ('def combobox_pwrecord_changed - start')
+      self.settings['pwrecord_default'] = event.get_active_text()
+
+
+
+   def button_scan_clicked(self, event):
+      if self.config['debug']==1:
+         print ('def button_scan_clicked - start')
 
       audio_devices = set()
 
-      out = subprocess.check_output([self.settings['Bin_Pwcli'],'list-objects'])
+      out = subprocess.check_output([self.config['bin_pwcli'],'list-objects'])
       if out:
          output=out.decode('utf-8').split('\n')
 
@@ -291,63 +284,30 @@ class TabSettings:
                   audio_devices.add(x.group(1))
 
 
-      self.settings['Choice_Pwrecord_Device'] = []
+      self.settings['choice_pwrecord_device'] = []
       self.combo_pwrecord.remove_all()
 
       choice_active=0
       for i,item in enumerate(list(audio_devices)):
-         if item==self.settings['Pwrecord_Device']:
+         if item==self.settings['pwrecord_default']:
             choice_active=i
-         self.settings['Choice_Pwrecord_Device'].extend([item])
+         self.settings['choice_pwrecord_device'].extend([item])
          self.combo_pwrecord.insert(i, str(i), item)
       self.combo_pwrecord.set_active(choice_active)
 
 
 
+   def button_reset_chlicked(self, event):
+      if self.config['debug']==1:
+         print ('def button_reset_chlicked - start')
 
-   def SAVE_BUTTON(self, event):
-      
-      if self.settings['Debug']==1:
-         print ('def SAVE_BUTTON - start')
+      settings_file = self.settings['config_path'] + '/' + self.settings['filename_settings']
 
-      files = main.Files()
-      file_settings = files.get_default_file_settings(self.settings)
+      if self.config['debug']==1:
+         print ('def button_reset_chlicked - settings_file: %s' % settings_file)
 
-      file_settings['Pwrecord_Device'] = self.settings['Pwrecord_Device']
-      file_settings['Bitrate'] = self.settings['Bitrate']
-      file_settings['Choice_Pwrecord_Device'] = self.settings['Choice_Pwrecord_Device']
-
-
-      file_settings['Directory_New'] = self.entry_input_dir_new.get_text()
-      file_settings['Directory_Old'] = self.entry_input_dir_old.get_text()
-      file_settings['Directory_Streamripper'] = self.entry_input_dir_st.get_text()
-
-      self.settings['Directory_New'] = file_settings['Directory_New']
-      self.settings['Directory_Old'] = file_settings['Directory_Old']
-      self.settings['Directory_Streamripper'] = file_settings['Directory_Streamripper']
-
-
-      if self.checkbutton_window_position.get_active()==True:
-         file_settings['Position_X'] = self.settings['Position_X']
-         file_settings['Position_Y'] = self.settings['Position_Y']
-
-      if self.checkbutton_window_size.get_active()==True:
-         file_settings['Size_X'] = self.settings['Size_X']
-         file_settings['Size_Y'] = self.settings['Size_Y']
-
-
-      files.update_file_settings(self.settings, file_settings)
-
-
-
-
-
-   def RESET_BUTTON(self, event):
-      if self.settings['Debug']==1:
-         print ('def RESET_BUTTON - start')
-
-      if os.path.exists('%s/%s' % (self.settings['Config_Path'],self.settings['Filename_Settings'])):
-         os.remove('%s/%s' % (self.settings['Config_Path'],self.settings['Filename_Settings']))
+      if os.path.exists(settings_file):
+         os.remove(settings_file)
 
       self.main.on_reset_close()
 
