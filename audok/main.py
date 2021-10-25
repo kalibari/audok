@@ -191,20 +191,10 @@ class Music_Admin_Start(Gtk.Window):
             print ('def init - Main ipc_server error: %s' % str(e))
 
 
-      signal.signal(signal.SIGUSR1, self.signal_handler_sigusr1)
       GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, self.signal_handler_sigint)
 
       if self.playlist:
          self.notebook_tab_audioplayer.choose_song(choose='keep')
-
-
-
-
-   def signal_handler_sigusr1(self, signal, frame):
-      if self.settings['Debug']==1:
-         print ('def signal_handler_sigusr1 - start')
-
-      self.notebook_tab_audioplayer.interrupt()
 
 
 
@@ -250,10 +240,14 @@ class Music_Admin_Start(Gtk.Window):
             self.notebook_tab_audioplayer.player.set_state(Gst.State.NULL)
          self.notebook_tab_audioplayer.play_timer_stop()
 
+      # save settings
+      
+
       self.process_all_killer()
 
       if os.path.exists('%s/%s' % (self.settings['Config_Path'],self.settings['Filename_Port'])):
          os.remove('%s/%s' % (self.settings['Config_Path'],self.settings['Filename_Port']))
+
 
 
 
@@ -482,15 +476,39 @@ class Music_Admin_Start(Gtk.Window):
 
                   if data=='play_timer_end':
                      self.settings['Interrupt']='play_timer_end'
-                     os.kill(self.settings['Pid'], signal.SIGUSR1)
+                     #self.notebook_tab_audioplayer.player.send_event(Gst.Event.new_custom('abc',Gst.Message))
+                     ####os.kill(self.settings['Pid'], signal.SIGUSR1)
+                     ####self.notebook_tab_audioplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_audioplayer.player,Gst.Structure.new_empty("tags-changed")))
 
+                     # self.notebook_tab_audioplayer.player.post_message(
+                     #      Gst.Message.new_application(
+                     #         self.notebook_tab_audioplayer.player,
+                     #         Gst.Structure.new_empty("tags-changed")))
+
+                     #self.notebook_tab_audioplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_audioplayer.player,Gst.Structure.new_empty("song-changed")))
+                     self.notebook_tab_audioplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_audioplayer.player,Gst.Structure.new_empty("song-changed")))
 
                   elif data.startswith('play_new_file='):
                      self.settings['Interrupt']='play_new_file'
                      data=data.replace('play_new_file=','',1)
                      self.settings['Play_Num'] = 0
                      self.notebook_tab_audioplayer.playlist = [data]
-                     os.kill(self.settings['Pid'], signal.SIGUSR1)
+                     #self.notebook_tab_audioplayer.player.send_event(Gst.Event.new_custom('abc',Gst.Message))
+                     ##self.notebook_tab_audioplayer.player.send_event(Gst.Event.new_eos())
+                     ####os.kill(self.settings['Pid'], signal.SIGUSR1)
+                     ##self.notebook_tab_audioplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_audioplayer.player,Gst.Structure.new_empty("tags-changed")))
+
+                     #self.notebook_tab_audioplayer.player.post_message(
+                     #      Gst.Message.new_application(
+                     #         self.notebook_tab_audioplayer.player,
+                     #         Gst.Structure.new_empty("tags-changed")))
+
+                     # self.notebook_tab_audioplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_audioplayer.player,Gst.Structure.new_empty("song-changed")))
+                     self.notebook_tab_audioplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_audioplayer.player,Gst.Structure.new_empty("song-changed")))
+
+
+
+
                else:
                   break
 

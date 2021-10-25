@@ -52,7 +52,7 @@ class TabAudioPlayer:
       bus.connect('message::eos', self.bus_player_eos)
       bus.connect('message::state-changed', self.bus_player_state_changed)
       #bus.connect('message', self.bus_message_check)
-
+      bus.connect("message::application", self.bus_application_message)
 
       self.box = Gtk.Box()
       self.box.set_border_width(10)
@@ -290,6 +290,19 @@ class TabAudioPlayer:
       #pos = self.player.query_position(Gst.Format.TIME)[1]
       pos = value * Gst.SECOND
       self.player.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT, pos)
+
+
+
+
+   def bus_player_song_changed(self, bus, message):
+      if self.settings['Debug']==1:
+         print('def bus_player_song_changed - start %s' % message.type)
+
+
+   def bus_application_message(self, bus, message):
+      if self.settings['Debug']==1:
+         print('def bus_application_message - start %s' % message.type)
+      self.interrupt()
 
 
 
