@@ -31,14 +31,18 @@ install:
 	cp share/applications/audok.desktop               ${SHAREAPPDIR}/audok.desktop
 	cp share/icons/hicolor/256x256/apps/audok.png     ${SHAREICODIR}/audok.png
 
-	chmod 755 ${APPDIR}/audok.py
 	ln -s ${APPDIR}/audok.py $(BINDIR)/audok
 
 	sed -i "s/^Icon=.*/Icon=$(ICON)\/audok.png/g" ${SHAREAPPDIR}/audok.desktop
 	sed -i "s/^Exec=.*/Exec=$(EXEC)\/audok %u/g" ${SHAREAPPDIR}/audok.desktop
 	sed -i "s/^TryExec=.*/TryExec=$(EXEC)\/audok/g" ${SHAREAPPDIR}/audok.desktop
 
+	chmod 755 ${APPDIR}
+	chmod 644 ${APPDIR}/*
+	chmod 755 ${APPDIR}/audok.py
+	chmod 644 ${SHAREICODIR}/audok.png
 
+	desktop-file-install /usr/share/applications/audok.desktop
 
 
 
