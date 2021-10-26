@@ -111,8 +111,7 @@ class TabAudioPlayer:
       image6.set_from_file('%s/streamripperdir_small.png' % self.config['app_path'])
       image6.set_tooltip_text('Scan Directory Streamripper')
       self.checkbutton_str = Gtk.CheckButton()
-      if 'checkbutton_str' in self.settings:
-         self.checkbutton_str.set_active(self.settings['checkbutton_str'])
+      self.checkbutton_str.set_active(self.settings['checkbutton_str'])
       self.checkbutton_str.set_tooltip_text('Scan Directory Streamripper')
       self.checkbutton_str.connect('toggled', self.checkbutton_str_toggled)
 
@@ -121,8 +120,7 @@ class TabAudioPlayer:
       image7.set_from_file('%s/newdir_small.png' % self.config['app_path'])
       image7.set_tooltip_text('Scan Directory New')
       self.checkbutton_new = Gtk.CheckButton()
-      if 'checkbutton_new' in self.settings:
-         self.checkbutton_new.set_active(self.settings['checkbutton_new'])
+      self.checkbutton_new.set_active(self.settings['checkbutton_new'])
       self.checkbutton_new.set_tooltip_text('Scan Directory New')
       self.checkbutton_new.connect('toggled', self.checkbutton_new_toggled)
 
@@ -131,8 +129,7 @@ class TabAudioPlayer:
       image8.set_from_file('%s/olddir_small.png' % self.config['app_path'])
       image8.set_tooltip_text('Scan Directory Old')
       self.checkbutton_old = Gtk.CheckButton()
-      if 'checkbutton_old' in self.settings:
-         self.checkbutton_old.set_active(self.settings['heckbutton_Old'])
+      self.checkbutton_old.set_active(self.settings['checkbutton_old'])
       self.checkbutton_old.set_tooltip_text('Scan Directory Old')
       self.checkbutton_old.connect('toggled', self.checkbutton_old_toggled)
 
@@ -308,13 +305,6 @@ class TabAudioPlayer:
 
 
 
-
-   def bus_player_song_changed(self, bus, message):
-      if self.config['debug']==1:
-         print('def bus_player_song_changed - start %s' % message.type)
-
-
-
    def bus_application_message(self, bus, message):
       if self.config['debug']==1:
          print('def bus_application_message - start %s' % message.type)
@@ -447,6 +437,7 @@ class TabAudioPlayer:
 
       if self.settings['Interrupt']=='play_new_file':
          if self.playlist:
+            self.listmodel1.clear()
             self.choose_song(choose='keep')
 
       elif self.settings['Interrupt']=='play_timer_end':

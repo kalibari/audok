@@ -162,10 +162,6 @@ class Music_Admin_Start(Gtk.Window):
 
 
 
-
-
-
-
    def clean_shutdown(self):
 
       if self.config['debug']==1:
@@ -199,8 +195,8 @@ class Music_Admin_Start(Gtk.Window):
       (width,height) = self.get_size()
       (position_x, position_y) = self.get_position()
 
-      self.settings['size_x']=width
-      self.settings['size_y']=height
+      self.settings['size_x'] = width
+      self.settings['size_y'] = height
       self.settings['position_x'] = position_x
       self.settings['position_y'] = position_y
 

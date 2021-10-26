@@ -39,7 +39,7 @@ if __name__ == '__main__':
       config['debug']=1
 
    config['name'] = 'audok'
-   config['version'] = '0.8.6'
+   config['version'] = '0.8.7'
 
    config['app_path'] = app_path
 
@@ -70,7 +70,11 @@ if __name__ == '__main__':
 
    settings['directory_new'] = 'New'
    settings['directory_old'] = 'Old'
-   settings['directory_streamripper'] = 'Streamripper'
+   settings['directory_str'] = 'Streamripper'
+
+   settings['checkbutton_new'] = 0
+   settings['checkbutton_old'] = 0
+   settings['checkbutton_str'] = 0
 
    settings['size_x'] = 1000
    settings['size_y'] = 500

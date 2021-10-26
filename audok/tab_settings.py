@@ -82,6 +82,7 @@ class TabSettings:
       entry_input_dir_old.set_size_request(-1, 10)
       entry_input_dir_old.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       entry_input_dir_old.set_text(self.settings['directory_old'])
+      entry_input_dir_old.connect('changed', self.change_directory_old)
 
 
       hbox_dir_old.pack_start(image1, False, False, 0)
@@ -119,7 +120,8 @@ class TabSettings:
       entry_input_dir_st = Gtk.Entry()
       entry_input_dir_st.set_size_request(-1, 10)
       entry_input_dir_st.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
-      entry_input_dir_st.set_text(self.settings['directory_streamripper'])
+      entry_input_dir_st.set_text(self.settings['directory_str'])
+      entry_input_dir_st.connect('changed', self.change_directory_str)
 
 
       hbox_dir_st.pack_start(image1, False, False, 0)

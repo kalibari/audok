@@ -192,15 +192,20 @@ class TabStreamRipper:
       if self.config['debug']==1:
          print ('def button_info_clicked - start')
 
+      #button = Gtk.LinkButton("https://www.shoutcast.com", label=Shoutcast")
+
       dialog = Gtk.MessageDialog(parent=None,
                                  message_type=Gtk.MessageType.INFO,
-                                 buttons=Gtk.ButtonsType.OK,
+                                 flags=Gtk.DialogFlags.MODAL,
+                                 buttons=("Ok",Gtk.ButtonsType.OK),
                                  text="Get new stations from: https://www.shoutcast.com")
+
 
       dialog.set_title('Info')
       dialog.show()
       dialog.run()
       dialog.destroy()
+
 
 
 
@@ -288,8 +293,8 @@ class TabStreamRipper:
          self.glib_timer_streamripper = GLib.timeout_add_seconds(1, self.check_streamripper)
 
 
-      if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_streamripper']):
-         os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_streamripper'])
+      if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_str']):
+         os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_str'])
 
 
 
@@ -307,8 +312,8 @@ class TabStreamRipper:
 
             # streamripper http://www.top100station.de/switch/r3472.pls -u WinampMPEG/5.0 -d /MyDisc/Audio/Neu/Streamtuner/
 
-            cmd=[self.settings['bin_streamripper'], self.station_liststore[i][5],'-u','WinampMPEG/5.0','-d','%s/%s' % (self.settings['music_path'],self.settings['directory_streamripper'])]
-            cwd=self.settings['music_path'] + '/' + self.settings['directory_streamripper']
+            cmd=[self.settings['bin_streamripper'], self.station_liststore[i][5],'-u','WinampMPEG/5.0','-d','%s/%s' % (self.settings['music_path'],self.settings['directory_str'])]
+            cwd=self.settings['music_path'] + '/' + self.settings['directory_str']
             self.main.process_starter(cmd=cmd, cwd=cwd, job='streamripper', identifier=str(i), source=self.station_liststore[i][5])
 
       self.record_station = list(set(self.record_station))
