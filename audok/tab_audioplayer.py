@@ -5,14 +5,15 @@ import random
 import threading
 import socket
 import signal
-import time
 import gi
+from time import sleep
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
-gi.require_version('GLib', '2.0')
-from gi.repository import GLib
+gi.require_version('GObject', '2.0')
+from gi.repository import GObject
+
 
 
 class TabAudioPlayer:
@@ -30,10 +31,15 @@ class TabAudioPlayer:
       # initialize GStreamer
       Gst.init(None)
 
-      self.state = Gst.State.NULL
       self.drt_queue = []
       self.duration = None
+      self.slider_range = 300
       self.start_time_s = 0
+      self.play_time_counter = 0
+
+      self.obj_timer_refresh_slider=None
+      self.obj_timer_play_time=None
+
 
       self.player = Gst.ElementFactory.make('playbin3', self.config['name'])
       if not self.player:
@@ -85,7 +91,9 @@ class TabAudioPlayer:
       choice_active=0
       choice_random_time = self.settings['choice_random_time']
       for i,item in enumerate(choice_random_time):
-         if item==str(self.settings['random_time']):
+         if item==str(self.settings['random_time_min']) and item==str(self.settings['random_time_max']):
+            choice_active=i
+         elif item==str(self.settings['random_time_min']) + '-' + str(self.settings['random_time_max']):
             choice_active=i
          self.combo_random.insert(i, str(i), item) 
       self.combo_random.connect('changed', self.combobox_random_changed)
@@ -274,7 +282,7 @@ class TabAudioPlayer:
 
       box_outer.pack_start(row1, False, False, 2)
       box_outer.pack_start(row2, False, False, 2)
-      box_outer.pack_start(row3, True, True, 0)
+      box_outer.pack_start(row3, False, False, 0)
       box_outer.pack_start(row4, False, False, 0)
       box_outer.pack_start(row5, True, True, 2)
       self.box.add(box_outer)
@@ -299,8 +307,8 @@ class TabAudioPlayer:
       if self.config['debug']==1:
          print('def slider_change - value: %s' % value)
 
-      #pos = self.player.query_position(Gst.Format.TIME)[1]
-      pos = value * Gst.SECOND
+      pos = value * 1000000000
+
       self.player.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT, pos)
 
 
@@ -322,23 +330,20 @@ class TabAudioPlayer:
 
    def refresh_slider(self):
 
-      if self.state == Gst.State.NULL or self.state == Gst.State.READY or self.state == Gst.State.PAUSED:
-         return True
-
-      else:
+      if self.player.get_state(0).state == Gst.State.PLAYING:
 
          if self.duration is None:
 
             ret, drt = self.player.query_duration(Gst.Format.TIME)
             if ret:
-               self.duration=drt
-               set_range = self.duration / Gst.SECOND
+               self.duration = drt
+               self.slider_range = self.duration / 1000000000
                if self.config['debug']==1:
-                  print('def refresh_slider - set range: %s' % set_range)
+                  print('def refresh_slider - set range: %s' % self.slider_range)
+               self.h_scale1.set_range(0, self.slider_range)
 
-               self.h_scale1.set_range(0, set_range)
             else:
-               self.h_scale1.set_range(0, 300)
+               self.h_scale1.set_range(0, self.slider_range)
                self.h_scale1.set_value(self.start_time_s)
 
 
@@ -347,7 +352,8 @@ class TabAudioPlayer:
             ret, drt = self.player.query_position(Gst.Format.TIME)
             if ret:
 
-               set_slider = drt / Gst.SECOND
+               set_slider = drt / 1000000000
+
                self.h_scale1.handler_block(self.h_scale1_update)
                self.h_scale1.set_value(set_slider)
                self.h_scale1.handler_unblock(self.h_scale1_update)
@@ -366,6 +372,7 @@ class TabAudioPlayer:
                   if self.checkbutton_auto_move.get_active():
                      self.move('old')
 
+                  ####self.player.set_state(Gst.State.NULL)
                   self.player.set_state(Gst.State.READY)
 
                   if len(self.playlist)>=2:
@@ -375,6 +382,9 @@ class TabAudioPlayer:
 
 
          return True
+      else:
+         return False
+
 
 
 
@@ -387,6 +397,7 @@ class TabAudioPlayer:
       if self.config['debug']==1:
          print("def bus_player_error - error:", msg.src.get_name(), ":", err.message)
 
+      self.player.set_state(Gst.State.NULL)
       self.player.set_state(Gst.State.READY)
 
 
@@ -399,7 +410,15 @@ class TabAudioPlayer:
       if self.checkbutton_auto_move.get_active():
          self.move('old')
 
+      if self.config['debug']==1:
+         print('bus_player_eos - state ready')
+
+      self.player.set_state(Gst.State.NULL)
       self.player.set_state(Gst.State.READY)
+
+      if self.config['debug']==1:
+         print('bus_player_eos - state ready')
+
 
       if len(self.playlist)>=2:
          self.choose_song(choose='next')
@@ -418,29 +437,42 @@ class TabAudioPlayer:
          if self.config['debug']==1:
             print('def bus_player_state_changed start - new: %s old: %s' % (new,old))
 
-         self.state = new
 
-         if new==Gst.State.PLAYING and old==Gst.State.PAUSED:
-            # refresh slider as soons as possible
-            self.refresh_slider()
+         #def bus_player_state_changed start - new: <enum GST_STATE_READY of type Gst.State> old: <enum GST_STATE_PAUSED of type Gst.State>
+         #double free or corruption (fasttop)
+         #Abgebrochen (Speicherabzug geschrieben)
 
-         elif new==Gst.State.READY and old==Gst.State.PAUSED:
-            if self.config['debug']==1:
-               print('def bus_player_state_changed - warning')
+
+
+
+
+         #self.refresh_slider()
+         #if new==Gst.State.PLAYING and old==Gst.State.PAUSED:
+         #   # refresh slider as soons as possible
+         #   self.refresh_slider()
+
+         #elif new==Gst.State.READY and old==Gst.State.PAUSED:
+         #   if self.config['debug']==1:
+         #      print('def bus_player_state_changed - song is finished slider_range: %s' % self.slider_range)
+
+         #elif new==Gst.State.READY and old==Gst.State.NULL:
+         #   if self.config['debug']==1:
+         #      print('def bus_player_state_changed - song error slider_range: %s' % self.slider_range)
+
 
 
 
    def interrupt(self):
 
       if self.config['debug']==1:
-         print ('def interrupt - start Interrupt: %s' % self.settings['Interrupt'])
+         print ('def interrupt - start interrupt: %s' % self.settings['interrupt'])
 
-      if self.settings['Interrupt']=='play_new_file':
+      if self.settings['interrupt']=='play_new_file':
          if self.playlist:
             self.listmodel1.clear()
             self.choose_song(choose='keep')
 
-      elif self.settings['Interrupt']=='play_timer_end':
+      elif self.settings['interrupt']=='play_timer_end':
          if self.checkbutton_auto_move.get_active():
             self.move('old')
             self.choose_song(choose='keep')
@@ -449,29 +481,41 @@ class TabAudioPlayer:
 
 
 
+
    def play_timer_stop(self):
-      if hasattr(self, 't'):
-         if self.t.is_alive():
-            if self.config['debug']==1:
-               print ('def play_timer_stop - cancel')
-            self.t.cancel()
 
-
-
-
-   def play_timer_end(self):
       if self.config['debug']==1:
-         print ('def play_timer_end - start')
+         print ('def play_timer_stop - start')
 
-      try:
-         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-         sock.connect(('localhost', self.settings['ipc_port']))
-         sock.sendall('play_timer_end'.encode())
-      except Exception as e:
-         if self.config['debug']==1:
-            print ('def play_timer_end error: %s' % str(e))
-      finally:
-         sock.close()
+      if self.obj_timer_play_time is not None:
+         GObject.source_remove(self.obj_timer_play_time)
+         self.obj_timer_play_time=None
+
+      if self.obj_timer_refresh_slider is not None:
+         GObject.source_remove(self.obj_timer_refresh_slider)
+         self.obj_timer_refresh_slider=None
+
+
+
+
+   def play_time_check(self):
+
+      if self.play_time_counter>=self.settings['play_time']:
+
+         try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.connect(('localhost', self.settings['ipc_port']))
+            sock.sendall('play_timer_end'.encode())
+         except Exception as e:
+            if self.config['debug']==1:
+               print ('def play_timer_end error: %s' % str(e))
+         finally:
+            sock.close()
+
+      else:
+         self.play_time_counter+=1
+
+      return True
 
 
 
@@ -480,9 +524,10 @@ class TabAudioPlayer:
       if self.config['debug']==1:
          print ('def play_timer_start - start with play_time: %s' % self.settings['play_time'])
 
-      self.play_timer_stop()
-      self.t = threading.Timer(int(self.settings['play_time']), self.play_timer_end)
-      self.t.start()
+      self.play_time_counter=0
+      if self.obj_timer_play_time is None:
+         self.obj_timer_play_time = GObject.timeout_add(1000, self.play_time_check)
+
 
 
 
@@ -504,8 +549,8 @@ class TabAudioPlayer:
 
       # Streamripper
       if self.checkbutton_str.get_active()==True:
-         directories.extend([self.settings['music_path'] + '/' + self.settings['directory_streamripper']])
-         directories.extend([self.settings['music_path'] + '/' + self.settings['directory_streamripper'] + '/*'])
+         directories.extend([self.settings['music_path'] + '/' + self.settings['directory_str']])
+         directories.extend([self.settings['music_path'] + '/' + self.settings['directory_str'] + '/*'])
 
 
       extensions = ['mp3','wav','aac','flac']
@@ -548,7 +593,7 @@ class TabAudioPlayer:
 
       if choose=='next' and (self.config['play_num']+1)>=len_playlist:
          if self.config['debug']==1:
-            print ('def choose_song last file -> rescan')
+            print ('def choose_song - last file -> rescan')
          self.playlist_scan()
          self.config['play_num']=0
 
@@ -573,7 +618,7 @@ class TabAudioPlayer:
          page_size = adj.get_page_size()
          set_size = (upper_size / len_playlist) * self.config['play_num']
          if self.config['debug']==1:
-            print ('def choose_song set_size: %s play_num: %s upper_size: %s page_size: %s' % (set_size,self.config['play_num'],upper_size,page_size))
+            print ('def choose_song - set_size: %s play_num: %s upper_size: %s page_size: %s' % (set_size,self.config['play_num'],upper_size,page_size))
          adj.set_value(set_size)
 
 
@@ -587,11 +632,11 @@ class TabAudioPlayer:
          print ('def play_file start - newplaylist: %s' % newplaylist)
 
 
-      if not hasattr(self, 'glib_timer_refresh_slider'):
-         self.glib_timer_refresh_slider = GLib.timeout_add_seconds(1, self.refresh_slider)
+      if self.obj_timer_refresh_slider==None:
+         self.obj_timer_refresh_slider = GObject.timeout_add(1000, self.refresh_slider)
 
 
-      if int(self.settings['play_time'])>0:
+      if self.settings['play_time']>0:
          self.play_timer_start()
 
 
@@ -620,24 +665,22 @@ class TabAudioPlayer:
          self.button_move_new.set_sensitive(True)
 
 
-
+      state = self.player.get_state(0).state
 
 
       if self.config['debug']==1:
-         print ('def play_file play_num: %s state: %s len(self.playlist): %s' % (self.config['play_num'],self.state,len(self.playlist)))
+         print ('def play_file - play_num: %s state: %s len(self.playlist): %s' % (self.config['play_num'],state,len(self.playlist)))
 
 
-      if self.state == Gst.State.PAUSED:
+      if state == Gst.State.PAUSED:
          pass
+
       else:
 
+         if state == Gst.State.PLAYING:
+            self.player.set_state(Gst.State.READY)
+
          self.entry_file_sum.set_text('%s' % len(self.playlist))
-
-         self.player.set_state(Gst.State.READY)
-
-
-         if self.config['debug']==1:
-            print ('def play_file set state null')
 
          if len(self.playlist)==0:
             self.label_play_file.set_text('')
@@ -653,33 +696,36 @@ class TabAudioPlayer:
 
       if len(self.playlist)>=1:
 
-         if self.config['debug']==1:
-            print ('def play_file start playing')
-
-
          self.button_pause.set_sensitive(True)
 
          self.start_time_s = 0
 
-         if self.settings['random_time']!='0':
-            self.player.set_state(Gst.State.PAUSED)
+         if self.settings['random_time_min']>0 and self.settings['random_time_max']>0:
 
-            (random_t1,random_t2) = self.settings['random_time'].split('-')
+            self.start_time_s=random.randint(self.settings['random_time_min'],self.settings['random_time_max'])
+
+            if self.start_time_s>self.slider_range:
+               self.start_time_s=self.slider_range-1
+
+            pos = self.start_time_s * 1000000000
+
             if self.config['debug']==1:
-               print ('def play_file random_t1: %s random_t1: %s' % (random_t1,random_t2))
-            self.start_time_s=random.randint(int(random_t1),int(random_t2))
-            if self.config['debug']==1:
-               print ('def play_file - start-time: %s s' % self.start_time_s)
+               print ('def play_file - start-time: %s slider_range: %s' % (self.start_time_s,self.slider_range))
 
-            time.sleep(0.3)
-            pos = self.start_time_s * Gst.SECOND
-            self.player.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT, pos)
 
+            self.player.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, pos)
+
+
+         if self.config['debug']==1:
+            print ('def play_file - start playing')
 
          self.player.set_state(Gst.State.PLAYING)
 
+         sleep(0.1)
+         state = self.player.get_state(0).state
          if self.config['debug']==1:
-            print ('def play_file set state: Gst.State.PLAYING')
+            print ('def play_file - state: %s' % state)
+
 
 
 
@@ -754,14 +800,16 @@ class TabAudioPlayer:
 
 
    def combobox_playtime_changed(self, event):
-      self.settings['play_time'] = event.get_active_text()
+      self.settings['play_time'] = int(event.get_active_text())
 
       if self.config['debug']==1:
          print ('def combobox_playtime_changed - start - play_time: %s' % self.settings['play_time'])
 
+      state = self.player.get_state(0).state
+
       if int(self.settings['play_time'])==0:
          self.play_timer_stop()
-      elif self.state==Gst.State.PLAYING:
+      elif state==Gst.State.PLAYING:
          self.play_timer_start()
 
 
@@ -769,7 +817,15 @@ class TabAudioPlayer:
    def combobox_random_changed(self, event):
       if self.config['debug']==1:
          print ('def combobox_random_changed - start - active_text: %s' % event.get_active_text())
-      self.settings['random_time'] = event.get_active_text()
+
+      random_min=0
+      random_max=0
+      if '-' in event.get_active_text():
+         random_min, random_max = event.get_active_text().split('-')
+
+      self.settings['random_time_min'] = int(random_min)
+      self.settings['random_time_max'] = int(random_max)
+
 
 
 
@@ -782,11 +838,6 @@ class TabAudioPlayer:
       self.listmodel1.clear()
 
       self.play_timer_stop()
-
-      if self.state == Gst.State.PLAYING or self.state == Gst.State.PAUSED:
-         if self.config['debug']==1:
-            print ('def button_scan_clicked - try to set state: %s' % Gst.State.READY)
-         self.player.set_state(Gst.State.READY)
 
       self.playlist_scan()
 
