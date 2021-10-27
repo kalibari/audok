@@ -17,8 +17,9 @@ from gi.repository import Gst
 gi.require_version('Gdk', '3.0')
 from gi.repository import Gdk
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, GLib
-
+from gi.repository import Gtk
+gi.require_version('GLib', '2.0')
+from gi.repository import GLib
 
 
 def startup_notification_workaround():
@@ -44,13 +45,15 @@ if __name__ == '__main__':
    config['app_path'] = app_path
 
    config['play_num'] = 0
+   config['stationlist_changed'] = False
+
+
    config['bin_youtubedl'] = 'youtube-dl'
    config['bin_streamripper'] = 'streamripper'
    config['bin_ffmpeg'] = 'ffmpeg'
    config['bin_pwcli'] = 'pw-cli'
    config['bin_pwrecord'] = 'pw-record'
    config['bin_nice'] = 'nice'
-   config['stationlist_changed'] = False
 
 
    settings={}
@@ -89,7 +92,8 @@ if __name__ == '__main__':
    settings['play_time'] = 0
    settings['choice_play_time'] = ['0','20','35','50','65']
 
-   settings['random_time'] = 0
+   settings['random_time_min'] = 0
+   settings['random_time_max'] = 0
    settings['choice_random_time'] = ['0','10-30','30-50','50-70','70-90']
 
    settings['bitrate'] = '192k'
@@ -108,25 +112,30 @@ if __name__ == '__main__':
 
    if os.path.exists(path + '/' + filename):
 
+      bak_old_version=False
+
       tree = xml.etree.ElementTree.parse(path + '/' + filename)
       root = tree.getroot()
 
-      for child in root:
-         if child.text is not None and child.tag is not None:
+      try:
+         for child in root:
+            if child.text is not None and child.tag is not None:
 
-            element = child.tag.strip()
-            value = child.text
-            try:
-               value = int(value)
-            except:
-               if value.startswith('[') and value.endswith(']'):
-                  value=value.replace('[','',1)
-                  value=value.replace(']','',1)
-                  if ',' in value:
-                     value=value.split(',')
-                  else:
-                     value=[value]
-            settings[element]=value
+               element = child.tag.strip()
+               value = child.text
+               try:
+                  value = int(value)
+               except:
+                  if value.startswith('[') and value.endswith(']'):
+                     value=value.replace('[','',1)
+                     value=value.replace(']','',1)
+                     if ',' in value:
+                        value=value.split(',')
+                     else:
+                        value=[value]
+               settings[element]=value
+      except:
+         bak_old_version=True
 
 
       oldversion=0
@@ -137,6 +146,11 @@ if __name__ == '__main__':
          print ('- oldversion: %s' % oldversion)
 
       if oldversion < int(settings['min_version'].replace('.','')):
+         bak_old_version=True
+
+
+      if bak_old_version==True:
+
          path = settings['config_path']
          filename = settings['filename_settings']
 
@@ -154,7 +168,7 @@ if __name__ == '__main__':
       print ('- cwd: %s' % os.getcwd())
       print ('- music path: %s' % settings['music_path'])
       print ('- config path: %s' % settings['config_path'])
-      print ('- directory new: %s old: %s streamripper: %s' % (settings['directory_new'],settings['directory_old'],settings['directory_streamripper']))
+      print ('- directory new: %s old: %s streamripper: %s' % (settings['directory_new'],settings['directory_old'],settings['directory_str']))
       print ('- playlist: %s' % playlist)
 
 
