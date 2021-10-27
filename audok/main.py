@@ -12,12 +12,16 @@ import tab_streamripper
 import tab_settings
 import tab_about
 import gi
+from time import sleep
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
 gi.require_version('GLib', '2.0')
-from gi.repository import GLib, GObject
+from gi.repository import GLib
+gi.require_version('GObject', '2.0')
+from gi.repository import GObject
+
 
 
 class Music_Admin_Start(Gtk.Window):
@@ -53,14 +57,14 @@ class Music_Admin_Start(Gtk.Window):
 
 
       self.notebook_tab_audioplayer = tab_audioplayer.TabAudioPlayer(self, config, settings, playlist)
-      self.notebook_tab_coverter = tab_coverter.TabConverter(self, config, settings)
+      self.notebook_tab_converter = tab_coverter.TabConverter(self, config, settings)
       self.notebook_tab_streamripper = tab_streamripper.TabStreamRipper(self, config, settings, stationlist)
       self.notebook_tab_settings = tab_settings.TabSettings(self, config, settings)
       self.notebook_tab_about = tab_about.TabAbout(self, config, settings)
 
 
       self.notebook.append_page(self.notebook_tab_audioplayer.box, Gtk.Label('Audio Player'))
-      self.notebook.append_page(self.notebook_tab_coverter.box, Gtk.Label('Converter'))
+      self.notebook.append_page(self.notebook_tab_converter.box, Gtk.Label('Converter'))
       self.notebook.append_page(self.notebook_tab_streamripper.hbox, Gtk.Label('Streamripper'))
       self.notebook.append_page(self.notebook_tab_settings.box, Gtk.Label('Settings'))
       self.notebook.append_page(self.notebook_tab_about.box, Gtk.Image.new_from_icon_name("help-about",Gtk.IconSize.MENU))
@@ -167,18 +171,40 @@ class Music_Admin_Start(Gtk.Window):
       if self.config['debug']==1:
          print ('def clean_shutdown - start')
 
-      if hasattr(self, 'notebook_tab_audioplayer'):
-         if hasattr(self.notebook_tab_audioplayer, 'glib_timer_refresh_slider'):
-            GLib.source_remove(self.notebook_tab_audioplayer.glib_timer_refresh_slider)
 
-      if hasattr(self, 'notebook_tab_streamripper'):
-         if hasattr(self.notebook_tab_streamripper, 'glib_timer_streamripper'):
-            GLib.source_remove(self.notebook_tab_streamripper.glib_timer_streamripper)
+      if hasattr(self, 'notebook_tab_converter'):
+
+         if self.notebook_tab_converter.obj_timer_file2flac is not None:
+            GObject.source_remove(self.notebook_tab_converter.obj_timer_file2flac)
+
+         if self.notebook_tab_converter.obj_timer_pwrecord is not None:
+            GObject.source_remove(self.notebook_tab_converter.obj_timer_pwrecord)
+
+         if self.notebook_tab_converter.obj_timer_file2mp3 is not None:
+            GObject.source_remove(self.notebook_tab_converter.obj_timer_file2mp3)
+
+         if self.notebook_tab_converter.obj_timer_you2mp3 is not None:
+            GObject.source_remove(self.notebook_tab_converter.obj_timer_you2mp3)
+
+
 
       if hasattr(self, 'notebook_tab_audioplayer'):
+
          if self.notebook_tab_audioplayer.player:
             self.notebook_tab_audioplayer.player.set_state(Gst.State.NULL)
-         self.notebook_tab_audioplayer.play_timer_stop()
+
+         if self.notebook_tab_audioplayer.obj_timer_refresh_slider is not None:
+            GObject.source_remove(self.notebook_tab_audioplayer.obj_timer_refresh_slider)
+
+         if self.notebook_tab_audioplayer.obj_timer_play_time is not None:
+            GObject.source_remove(self.notebook_tab_audioplayer.obj_timer_play_time)
+
+
+      if hasattr(self, 'notebook_tab_streamripper'):
+
+         if self.notebook_tab_streamripper.obj_timer_streamripper is not None:
+            GObject.source_remove(self.notebook_tab_streamripper.obj_timer_streamripper)
+
 
 
       self.process_all_killer()
@@ -211,8 +237,13 @@ class Music_Admin_Start(Gtk.Window):
          if self.process_database[item]['status']=='active':
             try:
                os.kill(int(self.process_database[item]['pid']), signal.SIGINT)
+               sleep(0.05)
             except:
                pass
+
+      if self.config['debug']==1:
+         print ('def process_all_killer - ends')
+
 
 
    
@@ -320,7 +351,6 @@ class Music_Admin_Start(Gtk.Window):
 
             line = line.decode("utf-8", 'ignore')
 
-
             output_str = output_str + line
 
             out = output_str.split('\n')
@@ -350,14 +380,10 @@ class Music_Admin_Start(Gtk.Window):
          else:
             p_database[pnum]['result']=False
 
- 
       except Exception as e:
          if self.config['debug']==1:
             print ('def process error: %s job: %s' % (str(e),p_database[pnum]['job']))
 
-
-
-    
 
       if self.config['debug']==1:
          print ('def process job %s done' % p_database[pnum]['job'])
@@ -399,12 +425,15 @@ class Music_Admin_Start(Gtk.Window):
 
 
 
-      while True:
+      try:
 
-         (connection, client_address) = sock.accept()
+         while True:
 
-         try:
-            while True:
+            (connection, client_address) = sock.accept()
+            
+            receive_data=True
+
+            while receive_data:
                data = connection.recv(130)
                if data:
                   data = data.decode()
@@ -413,28 +442,28 @@ class Music_Admin_Start(Gtk.Window):
                      print ('def ipc_server - thread received "%s"' % data)
 
                   if data=='play_timer_end':
-                     self.settings['Interrupt']='play_timer_end'
+                     self.settings['interrupt']='play_timer_end'
                      self.notebook_tab_audioplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_audioplayer.player,Gst.Structure.new_empty("song-changed")))
 
                   elif data.startswith('play_new_file='):
-                     self.settings['Interrupt']='play_new_file'
+                     self.settings['interrupt']='play_new_file'
                      data=data.replace('play_new_file=','',1)
                      self.config['play_num'] = 0
                      self.notebook_tab_audioplayer.playlist = [data]
                      self.notebook_tab_audioplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_audioplayer.player,Gst.Structure.new_empty("song-changed")))
 
-
-
-
                else:
-                  break
+                  if self.config['debug']==1:
+                     print ('def ipc_server - received data')
+                  receive_data=False
 
             if self.config['debug']==1:
                print ('def ipc_server - thread wait...')
 
-         finally:
-            if self.config['debug']==1:
-               print ('def ipc_server - close')
-            connection.close()
+
+      finally:
+         if self.config['debug']==1:
+            print ('def ipc_server - close')
+         connection.close()
 
 
