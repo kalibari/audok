@@ -1,10 +1,10 @@
 import os
 import gi
+import main
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
-gi.require_version('GLib', '2.0')
-from gi.repository import GLib
-import main
+gi.require_version('GObject', '2.0')
+from gi.repository import GObject
 
 
 class TabStreamRipper:
@@ -44,7 +44,7 @@ class TabStreamRipper:
       self.treeview.append_column(self.column_spinner)
       self.column_spinner.add_attribute(self.renderer_spinner, "pulse" , 0)
 
-
+      self.obj_timer_streamripper=None
 
 
       renderer_toggle = Gtk.CellRendererToggle()
@@ -216,12 +216,18 @@ class TabStreamRipper:
 
       if self.station_not_running:
          if self.config['debug']==1:
-            print ('def check_streamripper record_station %s station_not_running: %s' % (self.record_station,self.station_not_running))
+            print ('def check_streamripper record_station: %s' % self.record_station)
+            print ('def check_streamripper station_not_running: %s' % self.station_not_running)
+
 
       if not bool(list(set(self.record_station) - set(self.station_not_running))):
          if self.config['debug']==1:
             print ('def check_streamripper stop')
-         del self.glib_timer_streamripper
+
+         if self.obj_timer_streamripper is not None:
+            GObject.source_remove(self.obj_timer_streamripper)
+            self.obj_timer_streamripper=None
+
          return False
 
 
@@ -247,6 +253,9 @@ class TabStreamRipper:
 
 
       # find stations that are not running
+      count_active=[]
+      count_inactive=[]
+
       for item in self.record_station:
 
          for num in self.main.process_database:
@@ -261,18 +270,16 @@ class TabStreamRipper:
                   if self.main.process_database[num]['status']=='killed':
                      self.main.process_database[num]['status']='inactive'
 
-
-
                   if self.main.process_database[num]['status']=='inactive':
-                     if self.config['debug']==1:
-                        print ('def check_streamripper status: inactive output: %s' % self.main.process_database[num]['output'])
                      self.station_liststore[item][0]=0
                      self.station_not_running.extend([item])
-
                   else:
-                     if self.config['debug']==1:
-                        print ('def check_streamripper station: %s count: %s' % (item,self.station_liststore[item][0]))
+                     count_active.extend(['%s/%s' % (item,self.station_liststore[item][0])])
 
+
+      if count_active:
+         if self.config['debug']==1:
+            print ('def check_streamripper station: %s' % ', '.join(count_active))
 
 
       self.station_not_running = list(set(self.station_not_running))
@@ -289,8 +296,8 @@ class TabStreamRipper:
          print ('def button_record_clicked start')
 
 
-      if not hasattr(self, 'glib_timer_streamripper'):
-         self.glib_timer_streamripper = GLib.timeout_add_seconds(1, self.check_streamripper)
+      if self.obj_timer_streamripper is None:
+         self.obj_timer_streamripper = GObject.timeout_add(1000, self.check_streamripper)
 
 
       if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_str']):
@@ -311,8 +318,7 @@ class TabStreamRipper:
                print ('def button_record_clicked identifier: %s file: %s' % (i,self.stationlist[i]))
 
             # streamripper http://www.top100station.de/switch/r3472.pls -u WinampMPEG/5.0 -d /MyDisc/Audio/Neu/Streamtuner/
-
-            cmd=[self.settings['bin_streamripper'], self.station_liststore[i][5],'-u','WinampMPEG/5.0','-d','%s/%s' % (self.settings['music_path'],self.settings['directory_str'])]
+            cmd=[self.config['bin_streamripper'], self.station_liststore[i][5],'-u','WinampMPEG/5.0','-d','%s/%s' % (self.settings['music_path'],self.settings['directory_str'])]
             cwd=self.settings['music_path'] + '/' + self.settings['directory_str']
             self.main.process_starter(cmd=cmd, cwd=cwd, job='streamripper', identifier=str(i), source=self.station_liststore[i][5])
 
@@ -332,10 +338,10 @@ class TabStreamRipper:
          self.station_liststore[i][0]=0
 
 
-      if hasattr(self, 'glib_timer_streamripper'):
+      if self.obj_timer_streamripper is not None:
          if self.config['debug']==1:
             print ('def button_stop_clicked remove glib timer')
-         GLib.source_remove(self.glib_timer_streamripper)
-         del self.glib_timer_streamripper
+         GObject.source_remove(self.obj_timer_streamripper)
+         self.obj_timer_streamripper=None
 
       self.main.process_job_killer(job='streamripper')

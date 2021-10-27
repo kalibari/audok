@@ -4,8 +4,9 @@ import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 gi.require_version('Gdk', '3.0')
-from gi.repository import Gdk, GObject
-
+from gi.repository import Gdk
+gi.require_version('GObject', '2.0')
+from gi.repository import GObject
 
 class TabConverter:
 
@@ -14,6 +15,13 @@ class TabConverter:
       self.main = main
       self.config = config
       self.settings = settings
+
+
+      self.obj_timer_file2flac=None
+      self.obj_timer_pwrecord=None
+      self.obj_timer_file2mp3=None
+      self.obj_timer_you2mp3=None
+
 
       self.box = Gtk.Box()
       self.box.set_border_width(10)
@@ -297,7 +305,7 @@ class TabConverter:
          if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_new']):
             os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_new'])
 
-         self.timer_you2mp3 = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
+         self.obj_timer_you2mp3 = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
 
          # youtube-dl --no-warnings --no-call-home --audio-quality=4 --extract-audio --audio-format=mp3 --title https://www.youtube.com/watch?v=w7BE3inS-NM
          cmd=[self.config['bin_youtubedl'],'--audio-quality=4','--no-warnings','--no-call-home','--extract-audio','--audio-format=mp3','--title',source]
@@ -386,7 +394,7 @@ class TabConverter:
 
       self.textbuffer_output.set_text('')
 
-      self.timer_pwrecord = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
+      self.obj_timer_pwrecord = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
 
       if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_new']):
          os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_new'])
@@ -443,7 +451,7 @@ class TabConverter:
          if self.config['debug']==1:
             print ('def button_file2mp3_chlicked - try start_popen_thread')
 
-         self.timer_file2mp3 = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
+         self.obj_timer_file2mp3 = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
 
          for item in allfiles:
 
@@ -512,7 +520,7 @@ class TabConverter:
          if self.config['debug']==1:
             print ('def button_file2flac_chlicked - try start_popen_thread')
 
-         self.timer_file2flac = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
+         self.obj_timer_file2flac = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
 
 
 
@@ -549,14 +557,21 @@ class TabConverter:
          print ('def button_stop_chlicked - start')
 
 
-      if hasattr(self, 'timer_file2flac'):
-         GObject.source_remove(self.timer_file2flac)
-      if hasattr(self, 'timer_pwrecord'):
-         GObject.source_remove(self.timer_pwrecord)
-      if hasattr(self, 'timer_file2mp3'):
-         GObject.source_remove(self.timer_file2mp3)
-      if hasattr(self, 'timer_you2mp3'):
-         GObject.source_remove(self.timer_you2mp3)
+      if self.obj_timer_file2flac is not None:
+         GObject.source_remove(self.obj_timer_file2flac)
+         self.obj_timer_file2flac=None
+
+      if self.obj_timer_pwrecord is not None:
+         GObject.source_remove(self.obj_timer_pwrecord)
+         self.obj_timer_pwrecord=None
+
+      if self.obj_timer_file2mp3 is not None:
+         GObject.source_remove(self.obj_timer_file2mp3)
+         self.obj_timer_file2mp3=None
+
+      if self.obj_timer_you2mp3 is not None:
+         GObject.source_remove(self.obj_timer_you2mp3)
+         self.obj_timer_you2mp3=None
 
 
       self.main.process_job_killer(job='you2mp3')
