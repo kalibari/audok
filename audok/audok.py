@@ -40,7 +40,7 @@ if __name__ == '__main__':
       config['debug']=1
 
    config['name'] = 'audok'
-   config['version'] = '0.9.1'
+   config['version'] = '0.9.2'
 
    config['app_path'] = app_path
 
