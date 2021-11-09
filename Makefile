@@ -16,8 +16,11 @@ EXEC         := $(shell echo $(BINDIR) | sed -r 's/\//\\\//g')
 #
 # TARGETS
 #  
-all:
-	@echo "run \"make install PREFIX=/usr APPDIR=/opt/audok\" to install audok"
+info:
+	@echo "install audok with: \"sudo make install all PREFIX=/usr APPDIR=/opt/audok\""
+
+
+all: desktop
 
 
 install:
@@ -41,7 +44,7 @@ install:
 
 
 desktop:
-    gtk-update-icon-cache -f $(PREFIX)/share/icons/hicolor
+	gtk-update-icon-cache -f $(PREFIX)/share/icons/hicolor
 	desktop-file-install ${SHAREAPPDIR}/audok.desktop
 
 
