@@ -41,7 +41,7 @@ install:
 
 
 desktop:
-	gtk-update-icon-cache
+    gtk-update-icon-cache -f $(PREFIX)/share/icons/hicolor
 	desktop-file-install ${SHAREAPPDIR}/audok.desktop
 
 
