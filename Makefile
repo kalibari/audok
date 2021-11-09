@@ -19,6 +19,7 @@ EXEC         := $(shell echo $(BINDIR) | sed -r 's/\//\\\//g')
 all:
 	@echo "run \"make install PREFIX=/usr APPDIR=/opt/audok\" to install audok"
 
+
 install:
 	-mkdir -p $(BINDIR)
 	-mkdir -p $(APPDIR)
@@ -33,15 +34,15 @@ install:
 
 	ln -s ${APPDIR}/audok.py $(BINDIR)/audok
 
-	sed -i "s/^Icon=.*/Icon=$(ICON)\/audok.png/g" ${SHAREAPPDIR}/audok.desktop
-	sed -i "s/^Exec=.*/Exec=$(EXEC)\/audok %u/g" ${SHAREAPPDIR}/audok.desktop
-	sed -i "s/^TryExec=.*/TryExec=$(EXEC)\/audok/g" ${SHAREAPPDIR}/audok.desktop
-
 	chmod 755 ${APPDIR}
 	chmod 644 ${APPDIR}/*
 	chmod 755 ${APPDIR}/audok.py
 	chmod 644 ${SHAREICODIR}/audok.png
 
+
+desktop:
+	gtk-update-icon-cache
+	desktop-file-install ${SHAREAPPDIR}/audok.desktop
 
 
 uninstall:
