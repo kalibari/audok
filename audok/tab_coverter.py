@@ -167,8 +167,6 @@ class TabConverter:
 
 
                if self.main.process_database[item]['job']=='pwrecord':
-                  if self.main.process_database[item]['identifier']=='pw-cli':
-                     self.textbuffer_output.set_text('%s\n' % self.main.process_database[item]['output'])
                   if self.main.process_database[item]['identifier']=='pw-record':
                      if self.main.process_database[item]['output']:
                         self.textbuffer_output.set_text('%s\n' % self.main.process_database[item]['output'])
@@ -212,12 +210,6 @@ class TabConverter:
 
 
                if self.main.process_database[item]['job']=='pwrecord':
-                  if self.main.process_database[item]['identifier']=='pw-cli':
-                     self.main.process_database[item]['status']='inactive'
-                     if self.main.process_database[item]['result']==True:
-                        self.start_record(self.main.process_database[item])
-                     else:
-                        self.textbuffer_output.set_text('-- job: %s aborted: %s\n' % (self.main.process_database[item]['job'],self.main.process_database[item]['output']))
                   if self.main.process_database[item]['identifier']=='pw-record':
                      self.main.process_database[item]['status']='inactive'
 
@@ -315,72 +307,6 @@ class TabConverter:
 
 
 
-   def start_record(self, process_database):
-
-      if self.config['debug']==1:
-         print ('def start_record - start job: %s' % process_database['job'])
-
-      idnum=-1
-      device_target=-1
-      for item in process_database['output']:
-         x = re.search('^\s*id (\d+), type ', item)
-         if x and x.group(1):
-            idnum=int(x.group(1))
-         x = re.search('^\s*node\.name\ \=\ "%s"\s*$' % self.settings['pwrecord_default'], item)
-         if x:
-            device_target=idnum
-            break
-
-
-      if device_target<0:
-         self.textbuffer_output.set_text('-- job: %s cannot find a device target' % process_database['job'])
-      else:
-         self.textbuffer_output.set_text('-- job: %s device target: %s\n' % (process_database['job'],device_target))
-
-
-         filename = self.settings['pwrecord_default_filename']
-         if self.textbuffer_input.get_text():
-            filename = self.textbuffer_input.get_text().encode('utf-8').strip()
-
-         if '/' in filename:
-            self.textbuffer_output.set_text('-- job: %s / in filename is not allowed' % process_database['job'])
-         else:
-
-            if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_new']):
-               os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_new'])
-
-            directories = [self.settings['music_path'] + '/' + self.settings['directory_new']]
-            extensions = ['mp3','wav','aac','flac']
-
-            allfiles = self.main.file_scan(directories, extensions)
-
-            num=0
-            for item in allfiles:
-               x = re.search('%s-(\d+).wav' % filename, os.path.basename(item))
-               if x and x.group(1):
-                  if int(x.group(1))>num:
-                     num=int(x.group(1))
-            newfilename='%s-%d.wav' % (filename, (num+1))
-
-
-
-            self.button_you2mp3.set_sensitive(False)
-            self.button_pwrecord.set_sensitive(False)
-            self.button_file2mp3.set_sensitive(False)
-            self.button_file2flac.set_sensitive(False)
-            self.button_stop.set_sensitive(True)
-   
-            # pw-record --verbose --record --channels=2 --format=s32 --rate=48000 --volume=0.99 --target=41  /MyDisc/Audio/Neu/test.wav
-            cmd=[self.config['bin_pwrecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99',\
-            '--target=%s' % device_target, '%s/%s/%s' % (self.settings['music_path'],self.settings['directory_new'],newfilename)]
-            cwd=self.settings['music_path'] + '/' + self.settings['directory_new']
-            self.main.process_starter(cmd=cmd, cwd=cwd, job='pwrecord', identifier='', source='')
-
-
-
-
-
-
    def button_pwrecord_chlicked(self, event):
       if self.config['debug']==1:
          print ('def button_pwrecord_chlicked - start')
@@ -399,9 +325,55 @@ class TabConverter:
       if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_new']):
          os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_new'])
 
-      cmd=[self.config['bin_pwcli'],'list-objects']
-      cwd='/'
-      self.main.process_starter(cmd=cmd, cwd=cwd, job='pwrecord', identifier='pw-cli', source='')
+      target=0
+      if ':' in self.settings['pwrecord_default']:
+         get_target = self.settings['pwrecord_default'].split(':')
+         device = ', '.join(get_target[:-1])
+         target=int(get_target[-1])
+
+
+      if target<0:
+         self.textbuffer_output.set_text('pwrecord cannot find a device target, please rescan devices (see Settings)')
+      else:
+
+         filename = self.settings['pwrecord_default_filename']
+         if self.textbuffer_input.get_text():
+            filename = self.textbuffer_input.get_text()
+
+         if '/' in filename:
+            self.textbuffer_output.set_text('"/" in filename is not allowed')
+         else:
+
+            if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_new']):
+               os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_new'])
+
+            directories = [self.settings['music_path'] + '/' + self.settings['directory_new']]
+            extensions = ['mp3','wav','aac','flac']
+
+            allfiles = self.main.file_scan(directories, extensions)
+
+            num=0
+            for item in allfiles:
+               x = re.search('%s-(\d+).wav' % filename, os.path.basename(item))
+               if x and x.group(1):
+                  if int(x.group(1))>num:
+                     num=int(x.group(1))
+            newfilename='%s-%d.wav' % (filename, (num+1))
+
+            self.textbuffer_output.set_text('pwrecord device: %s target: %s filename: %s\n' % (device,target,newfilename))
+
+            self.button_you2mp3.set_sensitive(False)
+            self.button_pwrecord.set_sensitive(False)
+            self.button_file2mp3.set_sensitive(False)
+            self.button_file2flac.set_sensitive(False)
+            self.button_stop.set_sensitive(True)
+   
+            # pw-record --verbose --record --channels=2 --format=s32 --rate=48000 --volume=0.99 --target=41  /MyDisc/Audio/Neu/test.wav
+            cmd=[self.config['bin_pwrecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99',\
+            '--target=%s' % target, '%s/%s/%s' % (self.settings['music_path'],self.settings['directory_new'],newfilename)]
+            cwd=self.settings['music_path'] + '/' + self.settings['directory_new']
+            self.main.process_starter(cmd=cmd, cwd=cwd, job='pwrecord', identifier='', source='')
+
 
 
 

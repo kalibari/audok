@@ -273,24 +273,43 @@ class TabSettings:
       if self.config['debug']==1:
          print ('def button_scan_clicked - start')
 
-      audio_devices = set()
+
+      audio_devices = []
 
       out = subprocess.check_output([self.config['bin_pwcli'],'list-objects'])
       if out:
          output=out.decode('utf-8').split('\n')
+         idnum=0
+         node_name=''
+         media_class=''
 
          for item in output:
-            x = re.search('^\s*node\.name\ \=\ "(.*)"\s*$', str(item))
+
+            x = re.search('^\s+id (\d+),', item)
             if x and x.group(1):
-               if 'alsa' in x.group(1):
-                  audio_devices.add(x.group(1))
+               idnum=x.group(1)
+               node_name=''
+               media_class=''
+
+            x = re.search('node\.name\ \=\ "(.*)"\s*$', item)
+            if x and x.group(1):
+               node_name=x.group(1)
+
+            x = re.search('media\.class\ \=\ "(.*)"\s*$', item)
+            if x and x.group(1):
+               if 'audio' in x.group(1).lower():
+                  media_class=x.group(1)
+
+            if idnum and node_name and media_class:
+               audio_devices.extend([node_name + ':' + media_class + ':' + idnum ])
+
 
 
       self.settings['choice_pwrecord_device'] = []
       self.combo_pwrecord.remove_all()
 
       choice_active=0
-      for i,item in enumerate(list(audio_devices)):
+      for i,item in enumerate(audio_devices):
          if item==self.settings['pwrecord_default']:
             choice_active=i
          self.settings['choice_pwrecord_device'].extend([item])

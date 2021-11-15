@@ -86,8 +86,8 @@ if __name__ == '__main__':
 
    settings['pwrecord_default_filename'] = 'pwrecord'
 
-   settings['pwrecord_default'] = 'alsa_output.pci-0000:00:1f.3.analog-stereo'
-   settings['choice_pwrecord_device'] = ['alsa_output.pci-0000:00:1f.3.analog-stereo']
+   settings['pwrecord_default'] = '-'
+   settings['choice_pwrecord_device'] = ['-']
 
    settings['play_time'] = 0
    settings['choice_play_time'] = ['0','20','35','50','65']
