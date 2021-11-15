@@ -85,9 +85,8 @@ if __name__ == '__main__':
    settings['position_y'] = 0
 
    settings['pwrecord_default_filename'] = 'pwrecord'
-
-   settings['pwrecord_default'] = '-'
-   settings['choice_pwrecord_device'] = ['-']
+   settings['pwrecord_default'] = ''
+   settings['choice_pwrecord_device'] = ['']
 
    settings['play_time'] = 0
    settings['choice_play_time'] = ['0','20','35','50','65']

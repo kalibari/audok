@@ -222,7 +222,7 @@ class TabSettings:
       hbox_buttons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
       
       self.button_reset = Gtk.Button(label="Reset")
-      self.button_reset.connect("clicked", self.button_reset_chlicked)
+      self.button_reset.connect("clicked", self.button_reset_clicked)
 
       hbox_buttons.pack_start(self.button_reset, False, True, 0)
 
@@ -279,6 +279,7 @@ class TabSettings:
       out = subprocess.check_output([self.config['bin_pwcli'],'list-objects'])
       if out:
          output=out.decode('utf-8').split('\n')
+
          idnum=0
          node_name=''
          media_class=''
@@ -300,8 +301,8 @@ class TabSettings:
                if 'audio' in x.group(1).lower():
                   media_class=x.group(1)
 
-            if idnum and node_name and media_class:
-               audio_devices.extend([node_name + ':' + media_class + ':' + idnum ])
+            #if idnum and node_name and media_class:
+            #   audio_devices.extend([node_name + ':' + media_class + ':' + idnum ])
 
 
 
@@ -309,23 +310,25 @@ class TabSettings:
       self.combo_pwrecord.remove_all()
 
       choice_active=0
-      for i,item in enumerate(audio_devices):
-         if item==self.settings['pwrecord_default']:
+      for i,dev in enumerate(audio_devices):
+         if dev==self.settings['pwrecord_default']:
             choice_active=i
-         self.settings['choice_pwrecord_device'].extend([item])
-         self.combo_pwrecord.insert(i, str(i), item)
+         self.settings['choice_pwrecord_device'].extend([dev])
+         self.combo_pwrecord.insert(i, str(i), dev)
       self.combo_pwrecord.set_active(choice_active)
 
 
 
-   def button_reset_chlicked(self, event):
+
+
+   def button_reset_clicked(self, event):
       if self.config['debug']==1:
-         print ('def button_reset_chlicked - start')
+         print ('def button_reset_clicked - start')
 
       settings_file = self.settings['config_path'] + '/' + self.settings['filename_settings']
 
       if self.config['debug']==1:
-         print ('def button_reset_chlicked - settings_file: %s' % settings_file)
+         print ('def button_reset_clicked - settings_file: %s' % settings_file)
 
       if os.path.exists(settings_file):
          os.remove(settings_file)

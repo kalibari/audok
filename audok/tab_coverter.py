@@ -325,15 +325,17 @@ class TabConverter:
       if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_new']):
          os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_new'])
 
-      target=0
-      if ':' in self.settings['pwrecord_default']:
+
+      target=-1
+      device=''
+      if self.settings['pwrecord_default'] and ':' in self.settings['pwrecord_default']:
          get_target = self.settings['pwrecord_default'].split(':')
          device = ', '.join(get_target[:-1])
          target=int(get_target[-1])
 
 
       if target<0:
-         self.textbuffer_output.set_text('pwrecord cannot find a device target, please rescan devices (see Settings)')
+         self.textbuffer_output.set_text('cannot find a pwrecord device, please rescan devices (see Settings)')
       else:
 
          filename = self.settings['pwrecord_default_filename']
