@@ -37,7 +37,7 @@ sudo dnf install streamripper<br/>
 wget https://github.com/kalibari/audok/archive/refs/heads/master.zip<br/>
 unzip master.zip<br/>
 cd audok-master<br/>
-sudo make install PREFIX=/usr APPDIR=/opt/audok desktop<br/>
+sudo make install all PREFIX=/usr APPDIR=/opt/audok<br/>
 
 
 Deinstallation
