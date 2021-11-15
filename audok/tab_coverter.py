@@ -311,13 +311,6 @@ class TabConverter:
       if self.config['debug']==1:
          print ('def button_pwrecord_chlicked - start')
 
-
-      self.button_you2mp3.set_sensitive(False)
-      self.button_pwrecord.set_sensitive(False)
-      self.button_file2mp3.set_sensitive(False)
-      self.button_file2flac.set_sensitive(False)
-      self.button_stop.set_sensitive(True)
-
       self.textbuffer_output.set_text('')
 
       self.obj_timer_pwrecord = GObject.timeout_add(1000, self.refresh_output_textctrl_timer)
@@ -337,6 +330,12 @@ class TabConverter:
       if target<0:
          self.textbuffer_output.set_text('cannot find a pwrecord device, please rescan devices (see Settings)')
       else:
+
+         self.button_you2mp3.set_sensitive(False)
+         self.button_pwrecord.set_sensitive(False)
+         self.button_file2mp3.set_sensitive(False)
+         self.button_file2flac.set_sensitive(False)
+         self.button_stop.set_sensitive(True)
 
          filename = self.settings['pwrecord_default_filename']
          if self.textbuffer_input.get_text():

@@ -301,8 +301,8 @@ class TabSettings:
                if 'audio' in x.group(1).lower():
                   media_class=x.group(1)
 
-            #if idnum and node_name and media_class:
-            #   audio_devices.extend([node_name + ':' + media_class + ':' + idnum ])
+            if idnum and node_name and media_class:
+               audio_devices.extend([node_name + ':' + media_class + ':' + idnum ])
 
 
 
