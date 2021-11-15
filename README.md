@@ -7,7 +7,7 @@ Audok is a simple linux music player with streamripper and converter support. Au
 
 Version
 ======
-Current Version is 0.9.2
+Current Version is 0.9.3
 
 
 Requirements
