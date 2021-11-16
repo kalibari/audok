@@ -31,8 +31,10 @@ class TabAudioPlayer:
       # initialize GStreamer
       Gst.init(None)
 
-      self.drt_queue = []
+      self.pos_queue = []
       self.duration = None
+      self.position = False
+      self.set_slider = 0
       self.slider_range = 300
       self.start_time_s = 0
       self.play_time_counter = 0
@@ -57,7 +59,7 @@ class TabAudioPlayer:
 
       bus.connect('message::error', self.bus_player_error)
       bus.connect('message::eos', self.bus_player_eos)
-      bus.connect('message::state-changed', self.bus_player_state_changed)
+      #bus.connect('message::state-changed', self.bus_player_state_changed)
       #bus.connect('message', self.bus_message_check)
       bus.connect("message::application", self.bus_application_message)
 
@@ -304,8 +306,8 @@ class TabAudioPlayer:
    def slider_change(self, range):
       value = self.h_scale1.get_value()
 
-      if self.config['debug']==1:
-         print('def slider_change - value: %s' % value)
+      #if self.config['debug']==1:
+      #   print('def slider_change - value: %s' % value)
 
       pos = value * 1000000000
 
@@ -334,51 +336,57 @@ class TabAudioPlayer:
 
          if self.duration is None:
 
-            ret, drt = self.player.query_duration(Gst.Format.TIME)
-            if ret:
-               self.duration = drt
-               self.slider_range = self.duration / 1000000000
-               if self.config['debug']==1:
-                  print('def refresh_slider - set range: %s' % self.slider_range)
-               self.h_scale1.set_range(0, self.slider_range)
-
-            else:
-               self.h_scale1.set_range(0, self.slider_range)
-               self.h_scale1.set_value(self.start_time_s)
-
-
-         else:
-
-            ret, drt = self.player.query_position(Gst.Format.TIME)
-            if ret:
-
-               set_slider = drt / 1000000000
-
-               self.h_scale1.handler_block(self.h_scale1_update)
-               self.h_scale1.set_value(set_slider)
-               self.h_scale1.handler_unblock(self.h_scale1_update)
-
-
-               # eos fix
-               if len(self.drt_queue)>1:
-                  self.drt_queue.pop(0)
-               self.drt_queue.extend([drt])
-
-               if len(self.drt_queue)==2 and self.drt_queue[0]==self.drt_queue[1]:
-
+            for i in range(20):
+               ret, drt = self.player.query_duration(Gst.Format.TIME)
+               if ret and drt:
                   if self.config['debug']==1:
-                     print ('eos fix')
+                     print('def refresh_slider - loop position: %s' % i)
+                  self.duration = drt
+                  self.slider_range = self.duration / 1000000000
+                  break
+               sleep(0.1)
 
-                  if self.checkbutton_auto_move.get_active():
-                     self.move('old')
+            if self.config['debug']==1:
+               print('def refresh_slider - setup slider range: %s' % self.slider_range)
 
-                  ####self.player.set_state(Gst.State.NULL)
-                  self.player.set_state(Gst.State.READY)
+            self.h_scale1.set_range(0, self.slider_range)
+            self.position=True
+            self.h_scale1.set_value(self.start_time_s)
 
-                  if len(self.playlist)>=2:
-                     self.choose_song(choose='next')
-                  elif len(self.playlist)>=1:
-                     self.button_play.set_sensitive(True)
+
+         for i in range(20):
+            ret, pos = self.player.query_position(Gst.Format.TIME)
+            if ret and pos:
+               self.set_slider = pos / 1000000000
+               break
+            sleep(0.1)
+
+
+         if self.position==False:
+            self.h_scale1.set_value(self.set_slider)
+
+
+         self.position=False
+
+         # eos fix
+         if len(self.pos_queue)>1:
+            self.pos_queue.pop(0)
+         self.pos_queue.extend([pos])
+
+         if len(self.pos_queue)==2 and self.pos_queue[0]==self.pos_queue[1]:
+
+            if self.config['debug']==1:
+               print ('<- def refresh_slider - eos fix ->')
+
+            if self.checkbutton_auto_move.get_active():
+               self.move('old')
+
+            self.player.set_state(Gst.State.READY)
+
+            if len(self.playlist)>=2:
+               self.choose_song(choose='next')
+            elif len(self.playlist)>=1:
+               self.button_play.set_sensitive(True)
 
 
          return True
@@ -428,6 +436,7 @@ class TabAudioPlayer:
 
 
 
+
    def bus_player_state_changed(self, bus, msg):
 
       (old, new, pending) = msg.parse_state_changed()
@@ -436,15 +445,6 @@ class TabAudioPlayer:
 
          if self.config['debug']==1:
             print('def bus_player_state_changed start - new: %s old: %s' % (new,old))
-
-
-         #def bus_player_state_changed start - new: <enum GST_STATE_READY of type Gst.State> old: <enum GST_STATE_PAUSED of type Gst.State>
-         #double free or corruption (fasttop)
-         #Abgebrochen (Speicherabzug geschrieben)
-
-
-
-
 
          #self.refresh_slider()
          #if new==Gst.State.PLAYING and old==Gst.State.PAUSED:
@@ -710,10 +710,10 @@ class TabAudioPlayer:
             pos = self.start_time_s * 1000000000
 
             if self.config['debug']==1:
-               print ('def play_file - start-time: %s slider_range: %s' % (self.start_time_s,self.slider_range))
+               print ('def play_file - start_time_s: %s slider_range: %s' % (self.start_time_s,self.slider_range))
 
 
-            self.player.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, pos)
+            self.player.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT, pos)
 
 
          if self.config['debug']==1:

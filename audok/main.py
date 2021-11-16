@@ -5,7 +5,6 @@ import threading
 import signal
 import socket
 import subprocess
-import glob
 import tab_audioplayer
 import tab_coverter
 import tab_streamripper
@@ -255,8 +254,11 @@ class Music_Admin_Start(Gtk.Window):
          if self.config['debug']==1:
             print ('def file_scan - scan directory: %s' % directory)
          for ext in extensions:
-            for item in glob.glob('%s/*.%s' % (directory,ext)):
-               allfiles.add(item)
+            for item in os.listdir(directory):
+               if item.endswith(ext):
+                  pitem = directory + '/' + item
+                  if os.path.isfile(pitem):
+                     allfiles.add(pitem)
 
       # reverse
       allfiles=list(allfiles)
