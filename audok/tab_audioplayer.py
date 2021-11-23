@@ -31,10 +31,10 @@ class TabAudioPlayer:
       # initialize GStreamer
       Gst.init(None)
 
-      self.pos_queue = []
+      self.seek_waiter = 0
+      self.new_slider_value = 0
       self.duration = None
-      self.position = False
-      self.set_slider = 0
+      self.slider_value = 0
       self.slider_range = 300
       self.start_time_s = 0
       self.play_time_counter = 0
@@ -231,7 +231,7 @@ class TabAudioPlayer:
       self.h_scale1 = Gtk.HScale.new_with_range(0, 300, 1)
       self.h_scale1.set_digits(0)
       self.h_scale1.set_hexpand(True)
-      self.h_scale1_update = self.h_scale1.connect('value-changed', self.slider_change)
+      self.h_scale1_update = self.h_scale1.connect('change-value', self.slider_change)
 
 
 
@@ -303,15 +303,16 @@ class TabAudioPlayer:
 
 
 
-   def slider_change(self, range):
-      value = self.h_scale1.get_value()
+   def slider_change(self, scroll, value, user_data):
 
-      #if self.config['debug']==1:
-      #   print('def slider_change - value: %s' % value)
+      if self.config['debug']==1:
+         print('def slider_change - user_data: %s' % user_data)
 
-      pos = value * 1000000000
+      self.seek_waiter = 1
+      self.new_slider_value = user_data
+      pos = user_data * 1000000000
+      self.player.seek_simple(Gst.Format.TIME, Gst.SeekFlags.KEY_UNIT, pos)
 
-      self.player.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT, pos)
 
 
 
@@ -325,8 +326,7 @@ class TabAudioPlayer:
    def bus_message_check(self, bus, message):
       if self.config['debug']==1:
          print('def bus_message_check - start %s' % message.type)
-      #if t == Gst.MessageType.EOS:
-      #   print ('Received EOS')
+
 
 
 
@@ -338,56 +338,46 @@ class TabAudioPlayer:
 
             for i in range(20):
                ret, drt = self.player.query_duration(Gst.Format.TIME)
+               if self.config['debug']==1:
+                  print('def refresh_slider - ret: %s drt: %s' % (ret, drt))
                if ret and drt:
-                  if self.config['debug']==1:
-                     print('def refresh_slider - loop position: %s' % i)
                   self.duration = drt
                   self.slider_range = self.duration / 1000000000
                   break
-               sleep(0.1)
-
-            if self.config['debug']==1:
-               print('def refresh_slider - setup slider range: %s' % self.slider_range)
+               sleep(0.05)
 
             self.h_scale1.set_range(0, self.slider_range)
-            self.position=True
             self.h_scale1.set_value(self.start_time_s)
 
 
-         for i in range(20):
-            ret, pos = self.player.query_position(Gst.Format.TIME)
-            if ret and pos:
-               self.set_slider = pos / 1000000000
-               break
-            sleep(0.1)
+         # wait a few seconds after seek
+         if self.seek_waiter>=1:
 
-
-         if self.position==False:
-            self.h_scale1.set_value(self.set_slider)
-
-
-         self.position=False
-
-         # eos fix
-         if len(self.pos_queue)>1:
-            self.pos_queue.pop(0)
-         self.pos_queue.extend([pos])
-
-         if len(self.pos_queue)==2 and self.pos_queue[0]==self.pos_queue[1]:
+            self.slider_value=self.new_slider_value
 
             if self.config['debug']==1:
-               print ('<- def refresh_slider - eos fix ->')
+               print('def refresh_slider - new_slider_value: %s' % self.new_slider_value)
 
-            if self.checkbutton_auto_move.get_active():
-               self.move('old')
+            self.seek_waiter+=1
+            if self.seek_waiter>=3:
+               self.seek_waiter=0
 
-            self.player.set_state(Gst.State.READY)
+         else:
 
-            if len(self.playlist)>=2:
-               self.choose_song(choose='next')
-            elif len(self.playlist)>=1:
-               self.button_play.set_sensitive(True)
+            for i in range(20):
+               ret, pos = self.player.query_position(Gst.Format.TIME)
+               if i>0 and self.config['debug']==1:
+                  print('def refresh_slider - ret: %s pos: %s' % (ret, pos))
+               if ret and pos:
+                  self.slider_value = pos / 1000000000
+                  break
+               sleep(0.05)
 
+
+         #if self.config['debug']==1:
+         #   print('def refresh_slider - slider_value: %s' % self.slider_value)
+
+         self.h_scale1.set_value(self.slider_value)
 
          return True
       else:
@@ -446,18 +436,6 @@ class TabAudioPlayer:
          if self.config['debug']==1:
             print('def bus_player_state_changed start - new: %s old: %s' % (new,old))
 
-         #self.refresh_slider()
-         #if new==Gst.State.PLAYING and old==Gst.State.PAUSED:
-         #   # refresh slider as soons as possible
-         #   self.refresh_slider()
-
-         #elif new==Gst.State.READY and old==Gst.State.PAUSED:
-         #   if self.config['debug']==1:
-         #      print('def bus_player_state_changed - song is finished slider_range: %s' % self.slider_range)
-
-         #elif new==Gst.State.READY and old==Gst.State.NULL:
-         #   if self.config['debug']==1:
-         #      print('def bus_player_state_changed - song error slider_range: %s' % self.slider_range)
 
 
 
@@ -550,7 +528,8 @@ class TabAudioPlayer:
       # Streamripper
       if self.checkbutton_str.get_active()==True:
          directories.extend([self.settings['music_path'] + '/' + self.settings['directory_str']])
-         directories.extend([self.settings['music_path'] + '/' + self.settings['directory_str'] + '/*'])
+         for o in os.listdir(self.settings['music_path'] + '/' + self.settings['directory_str']):
+            directories.extend([self.settings['music_path'] + '/' + self.settings['directory_str'] + '/' + o])
 
 
       extensions = ['mp3','wav','aac','flac']
@@ -713,7 +692,7 @@ class TabAudioPlayer:
                print ('def play_file - start_time_s: %s slider_range: %s' % (self.start_time_s,self.slider_range))
 
 
-            self.player.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT, pos)
+            self.player.seek_simple(Gst.Format.TIME, Gst.SeekFlags.KEY_UNIT, pos)
 
 
          if self.config['debug']==1:
