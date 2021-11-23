@@ -248,7 +248,7 @@ class Music_Admin_Start(Gtk.Window):
    
    def file_scan(self, directories, extensions):
 
-      allfiles = set()
+      allfiles = []
 
       for directory in directories:
          if self.config['debug']==1:
@@ -258,12 +258,15 @@ class Music_Admin_Start(Gtk.Window):
                if item.endswith(ext):
                   pitem = directory + '/' + item
                   if os.path.isfile(pitem):
-                     allfiles.add(pitem)
+                     allfiles.extend([pitem])
+
 
       # reverse
-      allfiles=list(allfiles)
       if len(allfiles)>=1:
          allfiles=allfiles[::-1]
+
+      for x in allfiles:
+         print (x)
 
       return allfiles
 
