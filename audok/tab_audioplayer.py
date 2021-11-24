@@ -519,17 +519,23 @@ class TabAudioPlayer:
 
       # New
       if self.checkbutton_new.get_active()==True:
-         directories.extend([self.settings['music_path'] + '/' + self.settings['directory_new']])
+         d = self.settings['music_path'] + '/' + self.settings['directory_new']
+         if os.path.isdir(d):
+            directories.extend([d])
 
       # Old
       if self.checkbutton_old.get_active()==True:
-         directories.extend([self.settings['music_path'] + '/' + self.settings['directory_old']])
+         d = self.settings['music_path'] + '/' + self.settings['directory_old']
+         if os.path.isdir(d):
+            directories.extend([d])
 
       # Streamripper
       if self.checkbutton_str.get_active()==True:
-         directories.extend([self.settings['music_path'] + '/' + self.settings['directory_str']])
-         for o in os.listdir(self.settings['music_path'] + '/' + self.settings['directory_str']):
-            directories.extend([self.settings['music_path'] + '/' + self.settings['directory_str'] + '/' + o])
+         d = self.settings['music_path'] + '/' + self.settings['directory_str']
+         if os.path.isdir(d):
+            directories.extend([d])
+            for o in os.listdir(d):
+               directories.extend([d + '/' + o])
 
 
       extensions = ['mp3','wav','aac','flac']
