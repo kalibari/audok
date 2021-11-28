@@ -195,8 +195,8 @@ class Music_Admin_Start(Gtk.Window):
          if self.notebook_tab_audioplayer.obj_timer_refresh_slider is not None:
             GObject.source_remove(self.notebook_tab_audioplayer.obj_timer_refresh_slider)
 
-         if self.notebook_tab_audioplayer.obj_timer_play_time is not None:
-            GObject.source_remove(self.notebook_tab_audioplayer.obj_timer_play_time)
+         if self.notebook_tab_audioplayer.obj_timer_play_time_check is not None:
+            GObject.source_remove(self.notebook_tab_audioplayer.obj_timer_play_time_check)
 
 
       if hasattr(self, 'notebook_tab_streamripper'):

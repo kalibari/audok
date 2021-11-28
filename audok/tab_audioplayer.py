@@ -31,16 +31,17 @@ class TabAudioPlayer:
       # initialize GStreamer
       Gst.init(None)
 
-      self.seek_waiter = 0
-      self.new_slider_value = 0
-      self.duration = None
       self.slider_value = 0
       self.slider_range = 300
-      self.start_time_s = 0
+
       self.play_time_counter = 0
+      self.random_start = False
+      self.player_query_delay = 0
 
       self.obj_timer_refresh_slider=None
-      self.obj_timer_play_time=None
+      self.obj_timer_play_time_check=None
+
+
 
 
       self.player = Gst.ElementFactory.make('playbin3', self.config['name'])
@@ -304,15 +305,9 @@ class TabAudioPlayer:
 
 
    def slider_change(self, scroll, value, user_data):
-
       if self.config['debug']==1:
          print('def slider_change - user_data: %s' % user_data)
-
-      self.seek_waiter = 1
-      self.new_slider_value = user_data
-      pos = user_data * 1000000000
-      self.player.seek_simple(Gst.Format.TIME, Gst.SeekFlags.KEY_UNIT, pos)
-
+      self.player_seek(slider_value=user_data)
 
 
 
@@ -329,55 +324,32 @@ class TabAudioPlayer:
 
 
 
-
+   # MERKER
    def refresh_slider(self):
 
       if self.player.get_state(0).state == Gst.State.PLAYING:
 
-         if self.duration is None:
-
-            for i in range(20):
-               ret, drt = self.player.query_duration(Gst.Format.TIME)
-               if self.config['debug']==1:
-                  print('def refresh_slider - ret: %s drt: %s' % (ret, drt))
-               if ret and drt:
-                  self.duration = drt
-                  self.slider_range = self.duration / 1000000000
-                  break
-               sleep(0.05)
-
-            self.h_scale1.set_range(0, self.slider_range)
-            self.h_scale1.set_value(self.start_time_s)
-
-
-         # wait a few seconds after seek
-         if self.seek_waiter>=1:
-
-            self.slider_value=self.new_slider_value
-
+         if self.player_query_delay>0:
+            self.player_query_delay-=1
             if self.config['debug']==1:
-               print('def refresh_slider - new_slider_value: %s' % self.new_slider_value)
-
-            self.seek_waiter+=1
-            if self.seek_waiter>=3:
-               self.seek_waiter=0
+               print('def refresh_slider - player_query_delay: %s' % self.player_query_delay)
 
          else:
-
             for i in range(20):
                ret, pos = self.player.query_position(Gst.Format.TIME)
-               if i>0 and self.config['debug']==1:
-                  print('def refresh_slider - ret: %s pos: %s' % (ret, pos))
-               if ret and pos:
-                  self.slider_value = pos / 1000000000
+               #if i>0 and self.config['debug']==1:
+               slider_value = pos / Gst.SECOND
+
+               if self.config['debug']==1:
+                  print('def refresh_slider - ret: %s slider_value: %s' % (ret, slider_value))
+
+               if ret and slider_value:
+                  self.slider_value = slider_value
                   break
                sleep(0.05)
 
-
-         #if self.config['debug']==1:
-         #   print('def refresh_slider - slider_value: %s' % self.slider_value)
-
          self.h_scale1.set_value(self.slider_value)
+
 
          return True
       else:
@@ -465,9 +437,9 @@ class TabAudioPlayer:
       if self.config['debug']==1:
          print ('def play_timer_stop - start')
 
-      if self.obj_timer_play_time is not None:
-         GObject.source_remove(self.obj_timer_play_time)
-         self.obj_timer_play_time=None
+      if self.obj_timer_play_time_check is not None:
+         GObject.source_remove(self.obj_timer_play_time_check)
+         self.obj_timer_play_time_check=None
 
       if self.obj_timer_refresh_slider is not None:
          GObject.source_remove(self.obj_timer_refresh_slider)
@@ -503,8 +475,8 @@ class TabAudioPlayer:
          print ('def play_timer_start - start with play_time: %s' % self.settings['play_time'])
 
       self.play_time_counter=0
-      if self.obj_timer_play_time is None:
-         self.obj_timer_play_time = GObject.timeout_add(1000, self.play_time_check)
+      if self.obj_timer_play_time_check is None:
+         self.obj_timer_play_time_check = GObject.timeout_add(1000, self.play_time_check)
 
 
 
@@ -567,8 +539,6 @@ class TabAudioPlayer:
 
    def choose_song(self, choose='next'):
 
-      self.duration=None
-
       len_playlist = len(self.playlist)
 
 
@@ -611,14 +581,68 @@ class TabAudioPlayer:
 
 
 
+
+   def player_seek(self, slider_value=0):
+
+      # GST_SEEK_FLAG_KEY_UNIT (4) – seek to the nearest keyframe. This might be faster but less accurate. 
+      # GST_SEEK_FLAG_TRICKMODE (16) – when doing fast forward or fast reverse playback, allow elements to skip frames instead of generating all frames. (Since: 1.6) 
+      # GST_SEEK_FLAG_TRICKMODE_NO_AUDIO (256) – when doing fast forward or fast reverse playback, request that audio decoder elements skip decoding and output only gap events or silence. (Since: 1.6) 
+      # GST_SEEK_FLAG_NONE (0) – no flag
+      # GST_SEEK_FLAG_FLUSH (1) – flush pipeline 
+
+      flags = Gst.SeekFlags.KEY_UNIT | Gst.SeekFlags.TRICKMODE
+
+      if self.config['debug']==1:
+         print('def player_seek - slider_value: %s' % slider_value)
+
+
+      self.slider_value=slider_value
+      self.player_query_delay=3
+
+      self.player.seek_simple(Gst.Format.TIME, flags, slider_value * Gst.SECOND)
+
+
+
+
+
+   def player_start(self):
+
+      self.player.set_state(Gst.State.PLAYING)
+
+      # get slider range
+      for i in range(100):
+         ret, drt = self.player.query_duration(Gst.Format.TIME)
+         #if self.config['debug']==1:
+         #   print('def player_start - ret: %s drt: %s' % (ret, drt))
+         if ret and drt:
+            self.slider_range = drt / Gst.SECOND
+            break
+         sleep(0.05)
+
+
+      if self.config['debug']==1:
+         print('def player_start - slider_range: %s' % self.slider_range)
+
+      self.h_scale1.set_range(0, self.slider_range)
+
+
+      if self.settings['random_time_min']>0 and self.settings['random_time_max']>0:
+         self.slider_value = random.randint(self.settings['random_time_min'],self.settings['random_time_max'])
+         self.player_seek(slider_value=self.slider_value)
+         if self.config['debug']==1:
+            print('def player_start - random slider_value: %s' % self.slider_value)
+
+
+      self.obj_timer_refresh_slider = GObject.timeout_add(1000, self.refresh_slider)
+
+
+
+
+
    def play_file(self, newplaylist=[]):
 
       if self.config['debug']==1:
          print ('def play_file start - newplaylist: %s' % newplaylist)
-
-
-      if self.obj_timer_refresh_slider==None:
-         self.obj_timer_refresh_slider = GObject.timeout_add(1000, self.refresh_slider)
 
 
       if self.settings['play_time']>0:
@@ -683,35 +707,14 @@ class TabAudioPlayer:
 
          self.button_pause.set_sensitive(True)
 
-         self.start_time_s = 0
-
-         if self.settings['random_time_min']>0 and self.settings['random_time_max']>0:
-
-            self.start_time_s=random.randint(self.settings['random_time_min'],self.settings['random_time_max'])
-
-            if self.start_time_s>self.slider_range:
-               self.start_time_s=self.slider_range-1
-
-            pos = self.start_time_s * 1000000000
-
-            if self.config['debug']==1:
-               print ('def play_file - start_time_s: %s slider_range: %s' % (self.start_time_s,self.slider_range))
-
-
-            self.player.seek_simple(Gst.Format.TIME, Gst.SeekFlags.KEY_UNIT, pos)
-
-
          if self.config['debug']==1:
             print ('def play_file - start playing')
 
-         self.player.set_state(Gst.State.PLAYING)
+         self.player_start()
 
-         sleep(0.1)
          state = self.player.get_state(0).state
          if self.config['debug']==1:
             print ('def play_file - state: %s' % state)
-
-
 
 
 
