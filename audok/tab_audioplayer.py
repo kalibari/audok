@@ -666,6 +666,7 @@ class TabAudioPlayer:
          if self.config['debug']==1:
             print('def player_start - random slider_value: %s' % slider_value)
 
+         self.do_not_query_position = 2
          self.player_seek(slider_value=float(slider_value))
  
 
