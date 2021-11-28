@@ -265,9 +265,6 @@ class Music_Admin_Start(Gtk.Window):
       if len(allfiles)>=1:
          allfiles=allfiles[::-1]
 
-      for x in allfiles:
-         print (x)
-
       return allfiles
 
 
