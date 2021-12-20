@@ -339,8 +339,8 @@ class TabAudioPlayer:
                ret, pos = self.player.query_position(Gst.Format.TIME)
                slider_value = pos / Gst.SECOND
 
-               if self.config['debug']==1:
-               #if i>0 and self.config['debug']==1:
+               #if self.config['debug']==1:
+               if i>0 and self.config['debug']==1:
                   print('def refresh_slider - ret: %s slider_value: %s' % (ret, slider_value))
 
                if ret and slider_value:
@@ -601,6 +601,14 @@ class TabAudioPlayer:
       #flags = Gst.SeekFlags.NONE
       #flags = Gst.SeekFlags.FLUSH
 
+      # GST_SEEK_TYPE_END - relative position to duration is requested
+      # GST_SEEK_TYPE_NONE - no change in position is required
+      # GST_SEEK_TYPE_SET - absolute position is requested
+      #seektype1 = Gst.SeekType.SET
+      #seektype2 = Gst.SeekType.NONE
+      #seektype2 = Gst.SeekType.END
+      #self.player.seek(1.0, Gst.Format.TIME, seekflags, seektype1, slider_value * Gst.SECOND, seektype2, -1)
+
       self.player.seek_simple(Gst.Format.TIME, flags, slider_value * Gst.SECOND)
 
 
@@ -619,24 +627,25 @@ class TabAudioPlayer:
          print('def analyze_stream - uri: %s' % uri)
          print('def analyze_stream - flags: %s' % flags)
 
-      self.discoverer = GstPbutils.Discoverer()
-      info = self.discoverer.discover_uri(uri)
+      if uri:
+         self.discoverer = GstPbutils.Discoverer()
+         info = self.discoverer.discover_uri(uri)
 
-      for i in info.get_audio_streams():
-         audiocaps=i.get_caps().to_string().split(',')
-         for cap in audiocaps:
-            if 'rate=(int)' in cap:
-               self.audio_rate = cap.replace('rate=(int)','')
-               if self.config['debug']==1:
-                  print ('def analyze_stream - rate: %s' % self.audio_rate)
-            if 'audio/' in cap:
-               self.audio_info = cap.replace('audio/','')
-               if self.config['debug']==1:
-                  print ('def analyze_stream - audio: %s' % self.audio_info)
+         for i in info.get_audio_streams():
+            audiocaps=i.get_caps().to_string().split(',')
+            for cap in audiocaps:
+               if 'rate=(int)' in cap:
+                  self.audio_rate = cap.replace('rate=(int)','')
+                  if self.config['debug']==1:
+                     print ('def analyze_stream - rate: %s' % self.audio_rate)
+               if 'audio/' in cap:
+                  self.audio_info = cap.replace('audio/','')
+                  if self.config['debug']==1:
+                     print ('def analyze_stream - audio: %s' % self.audio_info)
 
-      duration = info.get_duration() / Gst.SECOND
-      if self.config['debug']==1:
-         print ('def analyze_stream - duration: %s' % duration)
+         duration = info.get_duration() / Gst.SECOND
+         if self.config['debug']==1:
+            print ('def analyze_stream - duration: %s' % duration)
 
 
 
