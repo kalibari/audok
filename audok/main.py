@@ -18,8 +18,6 @@ gi.require_version('Gst', '1.0')
 from gi.repository import Gst
 gi.require_version('GLib', '2.0')
 from gi.repository import GLib
-gi.require_version('GObject', '2.0')
-from gi.repository import GObject
 
 
 
@@ -75,7 +73,7 @@ class Music_Admin_Start(Gtk.Window):
          thread.start()
       except Exception as e:
          if self.config['debug']==1:
-            print ('def init - Main ipc_server error: %s' % str(e))
+            print ('def init - main ipc_server error: %s' % str(e))
 
 
       GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, self.signal_handler_sigint)
@@ -88,7 +86,7 @@ class Music_Admin_Start(Gtk.Window):
    def signal_handler_sigint(self):
 
       if self.config['debug']==1:
-         print ('def signal_handler_sigint start (Ctrl+C)')
+         print ('def signal_handler_sigint - start (Ctrl+C)')
       self.clean_shutdown()
       Gtk.main_quit()
       sys.exit()
@@ -174,16 +172,16 @@ class Music_Admin_Start(Gtk.Window):
       if hasattr(self, 'notebook_tab_converter'):
 
          if self.notebook_tab_converter.obj_timer_file2flac is not None:
-            GObject.source_remove(self.notebook_tab_converter.obj_timer_file2flac)
+            GLib.source_remove(self.notebook_tab_converter.obj_timer_file2flac)
 
          if self.notebook_tab_converter.obj_timer_pwrecord is not None:
-            GObject.source_remove(self.notebook_tab_converter.obj_timer_pwrecord)
+            GLib.source_remove(self.notebook_tab_converter.obj_timer_pwrecord)
 
          if self.notebook_tab_converter.obj_timer_file2mp3 is not None:
-            GObject.source_remove(self.notebook_tab_converter.obj_timer_file2mp3)
+            GLib.source_remove(self.notebook_tab_converter.obj_timer_file2mp3)
 
          if self.notebook_tab_converter.obj_timer_you2mp3 is not None:
-            GObject.source_remove(self.notebook_tab_converter.obj_timer_you2mp3)
+            GLib.source_remove(self.notebook_tab_converter.obj_timer_you2mp3)
 
 
 
@@ -193,16 +191,16 @@ class Music_Admin_Start(Gtk.Window):
             self.notebook_tab_audioplayer.player.set_state(Gst.State.NULL)
 
          if self.notebook_tab_audioplayer.obj_timer_refresh_slider is not None:
-            GObject.source_remove(self.notebook_tab_audioplayer.obj_timer_refresh_slider)
+            GLib.source_remove(self.notebook_tab_audioplayer.obj_timer_refresh_slider)
 
          if self.notebook_tab_audioplayer.obj_timer_play_time_check is not None:
-            GObject.source_remove(self.notebook_tab_audioplayer.obj_timer_play_time_check)
+            GLib.source_remove(self.notebook_tab_audioplayer.obj_timer_play_time_check)
 
 
       if hasattr(self, 'notebook_tab_streamripper'):
 
          if self.notebook_tab_streamripper.obj_timer_streamripper is not None:
-            GObject.source_remove(self.notebook_tab_streamripper.obj_timer_streamripper)
+            GLib.source_remove(self.notebook_tab_streamripper.obj_timer_streamripper)
 
 
 
@@ -250,15 +248,17 @@ class Music_Admin_Start(Gtk.Window):
 
       allfiles = []
 
-      for directory in directories:
+      for item in directories:
          if self.config['debug']==1:
-            print ('def file_scan - scan directory: %s' % directory)
+            print ('def file_scan - item: %s' % item)
+
          for ext in extensions:
-            for item in os.listdir(directory):
-               if item.endswith(ext):
-                  pitem = directory + '/' + item
-                  if os.path.isfile(pitem):
-                     allfiles.extend([pitem])
+            if os.path.isdir(item):
+               for filename in os.listdir(item):
+                  if filename.endswith(ext):
+                     pitem = item + '/' + filename
+                     if os.path.isfile(pitem):
+                        allfiles.extend([pitem])
 
 
       # reverse
@@ -308,7 +308,7 @@ class Music_Admin_Start(Gtk.Window):
 
 
       if self.config['debug']==1:
-         print ('def process_starter start')
+         print ('def process_starter - start')
 
 
       try:
@@ -317,7 +317,7 @@ class Music_Admin_Start(Gtk.Window):
          thread.start()
       except Exception as e:
          if self.config['debug']==1:
-            print ('def process_starter error: %s' % str(e))
+            print ('def process_starter - error: %s' % str(e))
 
 
 
@@ -325,7 +325,7 @@ class Music_Admin_Start(Gtk.Window):
    def process(self, cmd=[], cwd='', pnum='', p_database={}):
 
       if self.config['debug']==1:
-         print ('def process start cmd: %s cwd: %s' % (cmd,cwd))
+         print ('def process - cmd: %s cwd: %s' % (cmd,cwd))
 
 
       output_list=[]
@@ -343,7 +343,7 @@ class Music_Admin_Start(Gtk.Window):
 
          # add PID
          if self.config['debug']==1:
-            print ('def process: add pid %s' % process.pid)
+            print ('def process - pid %s' % process.pid)
          p_database[pnum]['pid']=process.pid
 
 
@@ -384,11 +384,11 @@ class Music_Admin_Start(Gtk.Window):
 
       except Exception as e:
          if self.config['debug']==1:
-            print ('def process error: %s job: %s' % (str(e),p_database[pnum]['job']))
+            print ('def process - error: %s job: %s' % (str(e),p_database[pnum]['job']))
 
 
       if self.config['debug']==1:
-         print ('def process job %s done' % p_database[pnum]['job'])
+         print ('def process - job %s done' % p_database[pnum]['job'])
       p_database[pnum]['todo']='result'
 
 
