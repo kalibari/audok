@@ -109,6 +109,10 @@ if __name__ == '__main__':
    filename = settings['filename_settings']
 
 
+   if config['debug']==1:
+      print ('def main - name: %s version: %s'  % (config['name'],config['version']))
+
+
    if os.path.exists(path + '/' + filename):
 
       bak_old_version=False
@@ -137,15 +141,24 @@ if __name__ == '__main__':
          bak_old_version=True
 
 
-      oldversion=0
+      old_version=0
       if 'old_version' in settings:
-         oldversion=int(settings['old_version'].replace('.',''))
+         old_version=int(settings['old_version'].replace('.',''))
+
+
+      min_version=0
+      if 'min_version' in settings:
+         min_version=int(settings['min_version'].replace('.',''))
+
+
+      if old_version < min_version:
+         bak_old_version=True
 
       if config['debug']==1:
-         print ('- oldversion: %s' % oldversion)
-
-      if oldversion < int(settings['min_version'].replace('.','')):
-         bak_old_version=True
+         if bak_old_version==True:
+            print ('def main - old version: %s < min version: %s' % (old_version,min_version))
+         else:
+            print ('def main - old version: %s >= min version: %s' % (old_version,min_version))
 
 
       if bak_old_version==True:
@@ -162,13 +175,12 @@ if __name__ == '__main__':
    settings['old_version']=config['version']
 
    if config['debug']==1:
-      print ('- name: %s version: %s'  % (config['name'],config['version']))
-      print ('- app_path: %s' % config['app_path'])
-      print ('- cwd: %s' % os.getcwd())
-      print ('- music path: %s' % settings['music_path'])
-      print ('- config path: %s' % settings['config_path'])
-      print ('- directory new: %s old: %s streamripper: %s' % (settings['directory_new'],settings['directory_old'],settings['directory_str']))
-      print ('- playlist: %s' % playlist)
+      print ('def main - app_path: %s' % config['app_path'])
+      print ('def main - cwd: %s' % os.getcwd())
+      print ('def main - music path: %s' % settings['music_path'])
+      print ('def main - config path: %s' % settings['config_path'])
+      print ('def main - directories new: %s old: %s streamripper: %s' % (settings['directory_new'],settings['directory_old'],settings['directory_str']))
+      print ('def main - playlist: %s' % playlist)
 
 
 
@@ -189,7 +201,6 @@ if __name__ == '__main__':
          port = f.read()
          if port:
             ipc_port = int(port)
-         f.close()
       
 
       send_file=''
@@ -198,7 +209,7 @@ if __name__ == '__main__':
 
 
       if config['debug']==1:
-         print ('- main %s is already running - try send file: %s via socket port: %s' % (config['name'],send_file,ipc_port))
+         print ('def main - name: %s is already running - try send file: %s via socket port: %s' % (config['name'],send_file,ipc_port))
 
       if not send_file:
          os.remove('%s/%s' % (settings['config_path'],settings['filename_ipcport']))
@@ -218,8 +229,7 @@ if __name__ == '__main__':
 
 
    if config['debug']==1:
-      print ('- main %s try to start -> Music_Admin_Start' % config['name'])
-
+      print ('def main - name: %s try to start -> Music_Admin_Start' % config['name'])
 
 
 
@@ -240,7 +250,7 @@ if __name__ == '__main__':
 
       except Exception as e:
          if config['debug']==1:
-            print ('- main wrong format stations.xml -> backup error: %s' % e)
+            print ('def main - wrong format stations.xml -> backup error: %s' % e)
          for i in range(1,100):
             if not os.path.exists('%s/%s.%s.bak' % (settings['config_path'],settings['filename_stations'],i)):
                os.rename('%s/%s' % (settings['config_path'],settings['filename_stations']), '%s/%s.%s.bak' % (settings['config_path'],settings['filename_stations'],i))
