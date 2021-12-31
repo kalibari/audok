@@ -45,6 +45,7 @@ if __name__ == '__main__':
    config['app_path'] = app_path
 
    config['play_num'] = 0
+
    config['stationlist_changed'] = False
 
 
@@ -54,6 +55,8 @@ if __name__ == '__main__':
    config['bin_pwcli'] = 'pw-cli'
    config['bin_pwrecord'] = 'pw-record'
    config['bin_nice'] = 'nice'
+
+   config['supported_audio_files'] = ['.mp3','.ogg','.aac','.flac','.midi','.mp4','.mpeg','.wma','.asx','.wav','.mpegurl']
 
 
    settings={}
@@ -84,7 +87,7 @@ if __name__ == '__main__':
    settings['position_x'] = 0
    settings['position_y'] = 0
 
-   settings['pwrecord_default_filename'] = 'pwrecord'
+   settings['pwrecord_default_filename'] = 'pwrecord.wav'
    settings['pwrecord_default'] = ''
    settings['choice_pwrecord_device'] = ['']
 
@@ -97,6 +100,8 @@ if __name__ == '__main__':
 
    settings['bitrate'] = '192k'
    settings['choice_bitrate'] = ['128k','192k','224k','320k']
+
+   settings['playlist_filename'] = 'playlist.m3u'
 
 
    # generate a new settings.xml
@@ -154,6 +159,7 @@ if __name__ == '__main__':
       if old_version < min_version:
          bak_old_version=True
 
+
       if config['debug']==1:
          if bak_old_version==True:
             print ('def main - old version: %s < min version: %s' % (old_version,min_version))
@@ -172,6 +178,7 @@ if __name__ == '__main__':
                break
 
 
+
    settings['old_version']=config['version']
 
    if config['debug']==1:
@@ -186,14 +193,29 @@ if __name__ == '__main__':
 
 
    if len(sys.argv)>=2:
-      if os.path.join(sys.argv[1]):
-         playlist = [sys.argv[1]]
-   
+
+      checkfile = sys.argv[1]
+
+      if checkfile.endswith('.m3u'):
+         m3ufiles = []
+         with open(checkfile,'r') as f:
+            m3ufiles = f.readlines()
+         for item in m3ufiles:
+            item=item.strip()
+            if os.path.isfile(item):
+               playlist.extend([item])
+
+      else:
+         for item in config['supported_audio_files']:
+            if checkfile.endswith(item):
+               playlist = [checkfile]
+               break
+
+
 
 
    # if audok is running + playlist
    if os.path.exists('%s/%s' % (settings['config_path'],settings['filename_ipcport'])):
-
 
       # cat /tmp/audok/audok_port
       ipc_port=settings['ipc_port']

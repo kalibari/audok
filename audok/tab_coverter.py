@@ -16,12 +16,10 @@ class TabConverter:
       self.config = config
       self.settings = settings
 
-
       self.obj_timer_file2flac=None
       self.obj_timer_pwrecord=None
       self.obj_timer_file2mp3=None
       self.obj_timer_you2mp3=None
-
 
       self.box = Gtk.Box()
       self.box.set_border_width(10)
@@ -345,23 +343,42 @@ class TabConverter:
             self.textbuffer_output.set_text('"/" in filename is not allowed')
          else:
 
+            pre_filename=filename
+            post_filename='wav'
+            if '.' in filename:
+               pre_filename = filename.rsplit('.',1)[0]
+
             if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_new']):
                os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_new'])
 
             directories = [self.settings['music_path'] + '/' + self.settings['directory_new']]
-            extensions = ['mp3','wav','aac','flac']
+
+            extensions = self.config['supported_audio_files']
 
             allfiles = self.main.file_scan(directories, extensions)
 
+
             num=0
+            fexist=False
             for item in allfiles:
-               x = re.search('%s-(\d+).wav' % filename, os.path.basename(item))
+               x = re.search('%s\.%s\s*$' % (pre_filename,post_filename), os.path.basename(item))
+               if x:
+                  fexist=True
+
+               x = re.search('%s-(\d+)\.%s\s*$' % (pre_filename,post_filename), os.path.basename(item))
                if x and x.group(1):
+                  fexist=True
                   if int(x.group(1))>num:
                      num=int(x.group(1))
-            newfilename='%s-%d.wav' % (filename, (num+1))
 
-            self.textbuffer_output.set_text('pwrecord device: %s target: %s filename: %s\n' % (device,target,newfilename))
+            if fexist==False:
+               new_filename='%s.%s' % (pre_filename,post_filename)
+            else:
+               new_filename='%s-%d.%s' % (pre_filename,num+1,post_filename)
+
+
+
+            self.textbuffer_output.set_text('pwrecord device: %s target: %s filename: %s\n' % (device,target,new_filename))
 
             self.button_you2mp3.set_sensitive(False)
             self.button_pwrecord.set_sensitive(False)
@@ -371,7 +388,7 @@ class TabConverter:
    
             # pw-record --verbose --record --channels=2 --format=s32 --rate=48000 --volume=0.99 --target=41  /MyDisc/Audio/Neu/test.wav
             cmd=[self.config['bin_pwrecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99',\
-            '--target=%s' % target, '%s/%s/%s' % (self.settings['music_path'],self.settings['directory_new'],newfilename)]
+            '--target=%s' % target, '%s/%s/%s' % (self.settings['music_path'],self.settings['directory_new'],new_filename)]
             cwd=self.settings['music_path'] + '/' + self.settings['directory_new']
             self.main.process_starter(cmd=cmd, cwd=cwd, job='pwrecord', identifier='', source='')
 
@@ -394,11 +411,11 @@ class TabConverter:
       self.textbuffer_output.set_text('')
 
       directories = [self.settings['music_path'] + '/' + self.settings['directory_new']]
-      extensions = ['wav','aac','flac','flv','webm']
 
       if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_new']):
          os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_new'])
 
+      extensions = self.config['supported_audio_files']
 
       allfiles = self.main.file_scan(directories, extensions)
       mp3files = self.main.file_scan(directories, ['mp3'])
@@ -465,12 +482,11 @@ class TabConverter:
       self.textbuffer_output.set_text('')
 
       directories = [self.settings['music_path'] + '/' + self.settings['directory_new']]
-      extensions = ['wav','aac','mp3','flv','webm']
-
 
       if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_new']):
          os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_new'])
 
+      extensions = self.config['supported_audio_files']
 
       allfiles = self.main.file_scan(directories, extensions)
       flacfiles = self.main.file_scan(directories, ['flac'])

@@ -1,7 +1,6 @@
 import os
 import re
 import sys
-import threading
 import signal
 import socket
 import subprocess
@@ -12,6 +11,7 @@ import tab_settings
 import tab_about
 import gi
 from time import sleep
+from threading import Thread
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 gi.require_version('Gst', '1.0')
@@ -68,7 +68,7 @@ class Music_Admin_Start(Gtk.Window):
 
 
       try:
-         thread = threading.Thread(target=self.ipc_server)
+         thread = Thread(target=self.ipc_server)
          thread.setDaemon(True)
          thread.start()
       except Exception as e:
@@ -80,6 +80,7 @@ class Music_Admin_Start(Gtk.Window):
 
       if self.playlist:
          self.notebook_tab_audioplayer.choose_song(choose='keep')
+         self.notebook_tab_audioplayer.play_file()
 
 
 
@@ -124,6 +125,7 @@ class Music_Admin_Start(Gtk.Window):
 
       if not os.path.exists(path):
          os.mkdir(path, 0o755)
+
 
       f = open(path + '/' + filename, 'w')
       f.write('<?xml version="1.0"?>\n')
@@ -260,7 +262,6 @@ class Music_Admin_Start(Gtk.Window):
                      if os.path.isfile(pitem):
                         allfiles.extend([pitem])
 
-
       # reverse
       if len(allfiles)>=1:
          allfiles=allfiles[::-1]
@@ -312,7 +313,7 @@ class Music_Admin_Start(Gtk.Window):
 
 
       try:
-         thread = threading.Thread(target=self.process, args=(cmd, cwd, self.pnum, self.process_database))
+         thread = Thread(target=self.process, args=(cmd, cwd, self.pnum, self.process_database))
          thread.setDaemon(True)
          thread.start()
       except Exception as e:
@@ -445,14 +446,14 @@ class Music_Admin_Start(Gtk.Window):
 
                   if data=='play_timer_end':
                      self.settings['interrupt']='play_timer_end'
-                     self.notebook_tab_audioplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_audioplayer.player,Gst.Structure.new_empty("song-changed")))
+                     self.notebook_tab_audioplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_audioplayer.player,Gst.Structure.new_empty('song-changed')))
 
                   elif data.startswith('play_new_file='):
                      self.settings['interrupt']='play_new_file'
                      data=data.replace('play_new_file=','',1)
                      self.config['play_num'] = 0
                      self.notebook_tab_audioplayer.playlist = [data]
-                     self.notebook_tab_audioplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_audioplayer.player,Gst.Structure.new_empty("song-changed")))
+                     self.notebook_tab_audioplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_audioplayer.player,Gst.Structure.new_empty('song-changed')))
 
                else:
                   if self.config['debug']==1:

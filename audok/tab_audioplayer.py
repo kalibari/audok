@@ -13,7 +13,8 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 gi.require_version('GLib', '2.0')
 from gi.repository import GLib
-
+gi.require_version('Gdk', '3.0')
+from gi.repository import Gdk
 
 
 class TabAudioPlayer:
@@ -114,7 +115,7 @@ class TabAudioPlayer:
       self.checkbutton_auto_move.set_tooltip_text('If file is finished, move to Directory: %s' % self.settings['directory_old'])
 
 
-      label_empty = Gtk.Label('', xalign=0)
+      space_label3 = Gtk.Label('', xalign=0)
 
 
       button5 = Gtk.Button(label='Scan')
@@ -159,7 +160,7 @@ class TabAudioPlayer:
       hbox1.pack_start(self.combo_random, False, False, 0)
       hbox1.pack_start(image4, False, False, 0)
       hbox1.pack_start(self.checkbutton_auto_move, False, False, 0)
-      hbox1.pack_start(label_empty, False, False, 0)
+      hbox1.pack_start(space_label3, False, False, 0)
       hbox1.pack_start(button5, False, False, 0)
       hbox1.pack_start(image6, False, False, 0)
       hbox1.pack_start(self.checkbutton_str, False, False, 0)
@@ -197,12 +198,23 @@ class TabAudioPlayer:
       self.button_pause.set_image(image)
       self.button_pause.set_tooltip_text('Pause')
 
+
+      image = Gtk.Image()
+      image.set_from_file('%s/stop_white.png' % self.config['app_path'])
+      self.button_stop = Gtk.Button()
+      self.button_stop.connect('clicked', self.button_stop_clicked)
+      self.button_stop.set_image(image)
+      self.button_stop.set_tooltip_text('Stop')
+
+
       image = Gtk.Image()
       image.set_from_file('%s/next_white.png' % self.config['app_path'])
       self.button_next = Gtk.Button()
       self.button_next.connect('clicked', self.button_next_clicked)
       self.button_next.set_image(image)
       self.button_next.set_tooltip_text('Next')
+
+      space_label1 = Gtk.Label()
 
       image = Gtk.Image()
       image.set_from_file('%s/olddir.png' % self.config['app_path'])
@@ -219,12 +231,26 @@ class TabAudioPlayer:
       self.button_move_new.set_tooltip_text('Move File to Directory: %s' % self.settings['directory_new'])
 
 
+      space_label2 = Gtk.Label()
+
+      image = Gtk.Image()
+      image.set_from_file('%s/playlist.png' % self.config['app_path'])
+      self.button_playlist = Gtk.Button()
+      self.button_playlist.connect('clicked', self.button_playlist_clicked)
+      self.button_playlist.set_image(image)
+      self.button_playlist.set_tooltip_text('Create a Playlist: playlist.m3u in Directory: %s' % self.settings['directory_new'])
+
+
       hbox2.pack_start(self.button_back, False, False, 0)
       hbox2.pack_start(self.button_play, False, False, 0)
       hbox2.pack_start(self.button_pause, False, False, 0)
+      hbox2.pack_start(self.button_stop, False, False, 0)
       hbox2.pack_start(self.button_next, False, False, 0)
+      hbox2.pack_start(space_label1, False, False, 10)
       hbox2.pack_start(self.button_move_old, False, False, 0)
       hbox2.pack_start(self.button_move_new, False, False, 0)
+      hbox2.pack_start(space_label2, False, False, 10)
+      hbox2.pack_start(self.button_playlist, False, False, 0)
 
 
 
@@ -237,8 +263,6 @@ class TabAudioPlayer:
       self.h_scale1.set_digits(0)
       self.h_scale1.set_hexpand(True)
       self.h_scale1_update = self.h_scale1.connect('change-value', self.slider_change)
-
-
 
       hbox3.pack_start(self.h_scale1, True, True, 0)
 
@@ -272,17 +296,19 @@ class TabAudioPlayer:
       self.scrolledwindow1 = Gtk.ScrolledWindow()
       self.listmodel1 = Gtk.ListStore(str, str)
 
-      treeview1 = Gtk.TreeView(model=self.listmodel1)
+      self.treeview1 = Gtk.TreeView(model=self.listmodel1)
 
       for i, column in enumerate(columns):
          cell = Gtk.CellRendererText()
          col = Gtk.TreeViewColumn(column, cell, text=i)
-         treeview1.append_column(col)
+         self.treeview1.append_column(col)
 
 
-      #treeview1.connect('size-allocate', self.treeview_size_changed)
-      treeview1.set_property('rules-hint', True) 
-      self.scrolledwindow1.add(treeview1)
+      #self.treeview1.connect('button-release-event', self.treeview_release_event)
+      self.treeview1.connect('button-press-event', self.treeview_press_event)
+      #self.treeview1.connect('size-allocate', self.treeview_size_changed)
+      self.treeview1.set_property('rules-hint', True)
+      self.scrolledwindow1.add(self.treeview1)
 
 
       hbox5.pack_start(self.scrolledwindow1, True, True, 0)
@@ -295,11 +321,15 @@ class TabAudioPlayer:
       self.box.add(box_outer)
 
 
-      if len(self.playlist)==0:
+      if len(self.playlist)>=1:
+         self.update_playlist()
+
+      else:
          self.button_next.set_sensitive(False)
          self.button_back.set_sensitive(False)
          self.button_play.set_sensitive(False)
          self.button_pause.set_sensitive(False)
+         self.button_stop.set_sensitive(False)
          self.button_move_old.set_sensitive(False)
          self.button_move_new.set_sensitive(False)
 
@@ -376,6 +406,7 @@ class TabAudioPlayer:
          if self.playlist:
             self.listmodel1.clear()
             self.choose_song(choose='keep')
+            self.update_playlist()
 
       elif self.settings['interrupt']=='play_timer_end':
          if self.checkbutton_auto_move.get_active():
@@ -471,7 +502,8 @@ class TabAudioPlayer:
          print ('def playlist_scan - directories: %s' % ', '.join(directories))
 
 
-      extensions = ['mp3','wav','aac','flac']
+      extensions = self.config['supported_audio_files']
+
       allfiles = self.main.file_scan(directories, extensions)
 
 
@@ -508,6 +540,7 @@ class TabAudioPlayer:
 
 
 
+
    def choose_song(self, choose='next'):
 
       len_playlist = len(self.playlist)
@@ -526,6 +559,7 @@ class TabAudioPlayer:
       else:
 
          if choose=='next':
+
             if (self.config['play_num']+1)>=len_playlist:
                if self.config['debug']==1:
                   print ('def choose_song - choose: %s -> playlist_scan' % choose)
@@ -538,6 +572,7 @@ class TabAudioPlayer:
 
 
          elif choose=='back':
+
             if self.config['play_num']==0:
                if self.config['debug']==1:
                   print ('def choose_song - choose: %s -> playlist_scan' % choose)
@@ -558,7 +593,8 @@ class TabAudioPlayer:
             print ('def choose_song - set_size: %s play_num: %s upper_size: %s page_size: %s' % (set_size,self.config['play_num'],upper_size,page_size))
          adj.set_value(set_size)
 
-         self.play_file()
+         if self.player.get_state(0).state == Gst.State.PLAYING:
+            self.play_file()
 
 
 
@@ -578,31 +614,35 @@ class TabAudioPlayer:
 
       if uri:
          self.discoverer = GstPbutils.Discoverer()
-         info = self.discoverer.discover_uri(uri)
 
-         for i in info.get_audio_streams():
-            audiocaps=i.get_caps().to_string().split(',')
-            for cap in audiocaps:
-               if 'rate=(int)' in cap:
-                  self.audio_rate = cap.replace('rate=(int)','')
-                  if self.config['debug']==1:
-                     print ('def analyze_stream - rate: %s' % self.audio_rate)
-               if 'audio/' in cap:
-                  self.audio_info = cap.replace('audio/','')
-                  if self.config['debug']==1:
-                     print ('def analyze_stream - audio: %s' % self.audio_info)
+         try:
+            info = self.discoverer.discover_uri(uri)
 
-         duration = info.get_duration() / Gst.SECOND
-         if self.config['debug']==1:
-            print ('def analyze_stream - duration: %s' % duration)
+            for i in info.get_audio_streams():
+               audiocaps=i.get_caps().to_string().split(',')
+               for cap in audiocaps:
+                  if 'rate=(int)' in cap:
+                     self.audio_rate = cap.replace('rate=(int)','')
+                     if self.config['debug']==1:
+                        print ('def analyze_stream - rate: %s' % self.audio_rate)
+                  if 'audio/' in cap:
+                     self.audio_info = cap.replace('audio/','')
+                     if self.config['debug']==1:
+                        print ('def analyze_stream - audio: %s' % self.audio_info)
 
+            duration = info.get_duration() / Gst.SECOND
+            if self.config['debug']==1:
+               print ('def analyze_stream - duration: %s' % duration)
+         except:
+            pass
 
 
 
    def player_start(self):
-      #if self.config['debug']==1:
-      #   self.analyze_stream()
+      if self.config['debug']==1:
+         self.analyze_stream()
 
+      self.treeview1.set_cursor(self.config['play_num'])
       self.player.set_state(Gst.State.PLAYING)
 
 
@@ -625,10 +665,10 @@ class TabAudioPlayer:
          self.mute(True)
 
 
-      for x in range(0,20):
+      for x in range(0,30):
 
          ret1, pos = self.player.query_position(Gst.Format.TIME)
-         sleep(0.1)
+         sleep(0.05)
          ret2, drt = self.player.query_duration(Gst.Format.TIME)
 
          if ret1==True and ret2==True:
@@ -636,7 +676,7 @@ class TabAudioPlayer:
             self.slider_range = drt / Gst.SECOND
             break
 
-         sleep(0.1)
+         sleep(0.05)
 
 
       self.h_scale1.set_range(0, self.slider_range)
@@ -710,8 +750,9 @@ class TabAudioPlayer:
          print ('def play_file - start newplaylist: %s' % newplaylist)
 
 
-      if self.obj_timer_refresh_slider is None:
-         self.obj_timer_refresh_slider = GLib.timeout_add(1000, self.refresh_slider)
+      if self.obj_timer_refresh_slider is not None:
+         GLib.source_remove(self.obj_timer_refresh_slider)
+      self.obj_timer_refresh_slider = GLib.timeout_add(1000, self.refresh_slider)
 
 
       if self.config['debug']==1:
@@ -768,6 +809,7 @@ class TabAudioPlayer:
          if len(self.playlist)==0:
             self.label_play_file.set_text('')
             self.button_pause.set_sensitive(False)
+            self.button_stop.set_sensitive(False)
             self.slider_position=0
             self.h_scale1.set_value(self.slider_position)
 
@@ -784,6 +826,7 @@ class TabAudioPlayer:
       if len(self.playlist)>=1:
 
          self.button_pause.set_sensitive(True)
+         self.button_stop.set_sensitive(True)
 
          if self.config['debug']==1:
             print ('def play_file - start playing')
@@ -802,6 +845,16 @@ class TabAudioPlayer:
 
 
 
+   def stop(self):
+      if self.config['debug']==1:
+         print ('def stop - start')
+
+      self.play_timer_stop()
+      self.slider_position=0
+      self.h_scale1.set_value(self.slider_position)
+      self.player.set_state(Gst.State.NULL)
+
+
 
    def move(self, dir):
 
@@ -814,6 +867,7 @@ class TabAudioPlayer:
       if dir=='old':
          path=self.settings['music_path'] + '/' + self.settings['directory_old']
 
+
       try:
          head, filename = os.path.split(path_filename)
          if not os.path.exists(path):
@@ -825,7 +879,7 @@ class TabAudioPlayer:
          if self.config['debug']==1:
             print ('def move - error: %s' % str(e))
 
-      if self.config['play_num']>0:
+      if (self.config['play_num']+1)>=len(self.playlist):
          self.config['play_num']-=1
 
       self.playlist_scan()
@@ -839,6 +893,36 @@ class TabAudioPlayer:
    def treeview_size_changed(self, event1, event2):
       if self.config['debug']==1:
          print ('def treeview_size_changed - start')
+
+
+
+
+   def treeview_press_event(self, view, event):
+
+      if self.config['debug']==1:
+         print ('def treeview_press_event - start')
+
+
+      if event.type == Gdk.EventType.BUTTON_PRESS:
+         pass
+
+
+      elif event.type == Gdk.EventType._2BUTTON_PRESS:
+
+         item1, item2 = view.get_selection().get_selected()
+         if item2:
+            play_num = item1.get_value(item2, 0)
+            self.config['play_num'] = int(play_num) -1
+
+         self.button_play.set_sensitive(False)
+         self.play_file()
+
+
+
+
+   def treeview_release_event(self, event1, event2):
+      if self.config['debug']==1:
+         print ('def treeview_release_event - start')
 
 
 
@@ -893,6 +977,13 @@ class TabAudioPlayer:
 
 
 
+   def update_playlist(self):
+      self.checkbutton_auto_move.set_sensitive(True)
+      self.button_play.set_sensitive(True)
+      for i,item in enumerate(self.playlist):
+         self.listmodel1.append([str(i+1),str(item)])
+
+
 
    def button_scan_clicked(self, event):
       if self.config['debug']==1:
@@ -903,14 +994,10 @@ class TabAudioPlayer:
       self.listmodel1.clear()
 
       self.play_timer_stop()
-
       self.playlist_scan()
 
       if len(self.playlist)>=1:
-         self.checkbutton_auto_move.set_sensitive(True)
-         self.button_play.set_sensitive(True)
-         for i,item in enumerate(self.playlist):
-            self.listmodel1.append([str(i+1),str(item)])
+         self.update_playlist()
 
 
 
@@ -942,9 +1029,24 @@ class TabAudioPlayer:
          print ('def button_pause_clicked - start')
       self.pause()
       self.button_pause.set_sensitive(False)
+      self.button_stop.set_sensitive(False)
       self.button_play.set_sensitive(True)
       self.button_back.set_sensitive(False)
       self.button_next.set_sensitive(False)
+
+
+
+
+   def button_stop_clicked(self, event):
+      if self.config['debug']==1:
+         print ('def button_stop_clicked - start')
+      self.stop()
+      self.button_pause.set_sensitive(False)
+      self.button_stop.set_sensitive(False)
+      self.button_play.set_sensitive(True)
+      self.button_back.set_sensitive(False)
+      self.button_next.set_sensitive(False)
+
 
 
 
@@ -956,9 +1058,24 @@ class TabAudioPlayer:
 
 
 
+
    def button_move_new_clicked(self, event):
       if self.config['debug']==1:
          print ('def button_move_new_clicked - start')
       self.move('new')
       self.choose_song(choose='keep')
+
+
+
+
+   def button_playlist_clicked(self, event):
+      if self.config['debug']==1:
+         print ('def button_playlist_clicked - start')
+
+      path=self.settings['music_path'] + '/' + self.settings['directory_new']
+
+      f = open(path + '/' + self.settings['playlist_filename'], 'w')
+      for item in self.playlist:
+         f.write('%s\n' % item)
+      f.close()
 
