@@ -604,53 +604,9 @@ class TabMusicPlayer:
 
 
 
-
-   def analyze_stream(self):
-
-      gi.require_version('GstPbutils', '1.0')
-      from gi.repository import GstPbutils
-
-      # properties
-      uri = self.player.get_property('uri')
-      flags = self.player.get_property('flags')
-
-      if self.config['debug']==1:
-         print('def analyze_stream - uri: %s' % uri)
-         print('def analyze_stream - flags: %s' % flags)
-
-      if uri:
-         self.discoverer = GstPbutils.Discoverer()
-
-         try:
-            info = self.discoverer.discover_uri(uri)
-
-            for i in info.get_audio_streams():
-               audiocaps=i.get_caps().to_string().split(',')
-               for cap in audiocaps:
-                  if 'rate=(int)' in cap:
-                     self.audio_rate = cap.replace('rate=(int)','')
-                     if self.config['debug']==1:
-                        print ('def analyze_stream - rate: %s' % self.audio_rate)
-                  if 'audio/' in cap:
-                     self.audio_info = cap.replace('audio/','')
-                     if self.config['debug']==1:
-                        print ('def analyze_stream - audio: %s' % self.audio_info)
-
-            duration = info.get_duration() / Gst.SECOND
-            if self.config['debug']==1:
-               print ('def analyze_stream - duration: %s' % duration)
-         except:
-            pass
-
-
-
    def player_start(self):
-      if self.config['debug']==1:
-         self.analyze_stream()
-
       self.treeview1.set_cursor(self.config['play_num'])
       self.player.set_state(Gst.State.PLAYING)
-
 
 
 
