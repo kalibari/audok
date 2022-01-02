@@ -11,7 +11,6 @@ TryExec=audok
 StartupNotify=false
 Terminal=false
 MimeType=application/ogg;application/x-ogg;audio/aac;audio/flac;audio/midi;audio/mp3;audio/mp4;audio/mpeg;audio/mpegurl;audio/ogg;audio/wav;audio/x-flac;audio/x-mp3;audio/x-mpeg;audio/x-mpegurl;audio/x-ms-asx;audio/x-ms-wma;audio/x-vorbis+ogg;audio/x-wav;audio/x-wavpack;
-#MimeType=application/ogg;application/x-ogg;audio/aac;audio/flac;audio/midi;audio/mp3;audio/mp4;audio/mpeg;audio/mpegurl;audio/ogg;audio/wav;audio/x-flac;audio/x-mp3;audio/x-mpeg;audio/x-mpegurl;audio/x-ms-asx;audio/x-ms-wma;audio/x-vorbis+ogg;audio/x-wav;audio/x-wavpack;audio/x-xm;
 Comment[ar]=استمع إلى الموسيقى
 Comment[be]=Слухайце музыку
 Comment[bg]=Слушане на музика

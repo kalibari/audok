@@ -3,9 +3,8 @@ import gi
 import main
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
-gi.require_version('GObject', '2.0')
-from gi.repository import GObject
-
+gi.require_version('GLib', '2.0')
+from gi.repository import GLib
 
 class TabStreamRipper:
 
@@ -40,25 +39,25 @@ class TabStreamRipper:
       self.treeview = Gtk.TreeView.new_with_model(model=self.station_liststore)
 
       self.renderer_spinner = Gtk.CellRendererSpinner()  
-      self.column_spinner = Gtk.TreeViewColumn("", self.renderer_spinner, active=0)
+      self.column_spinner = Gtk.TreeViewColumn('', self.renderer_spinner, active=0)
       self.treeview.append_column(self.column_spinner)
-      self.column_spinner.add_attribute(self.renderer_spinner, "pulse" , 0)
+      self.column_spinner.add_attribute(self.renderer_spinner, 'pulse' , 0)
 
       self.obj_timer_streamripper=None
 
 
       renderer_toggle = Gtk.CellRendererToggle()
-      column_toggle = Gtk.TreeViewColumn("Toggle", renderer_toggle, active=1)
-      renderer_toggle.connect("toggled", self.on_cell_toggled)
+      column_toggle = Gtk.TreeViewColumn('Toggle', renderer_toggle, active=1)
+      renderer_toggle.connect('toggled', self.on_cell_toggled)
       self.treeview.append_column(column_toggle)
 
 
 
 
       renderer = Gtk.CellRendererText()
-      renderer.set_property("editable", True)
-      column_text = Gtk.TreeViewColumn("Genre", renderer, text=3)
-      renderer.connect("edited", self.renderer_genre_edited)
+      renderer.set_property('editable', True)
+      column_text = Gtk.TreeViewColumn('Genre', renderer, text=3)
+      renderer.connect('edited', self.renderer_genre_edited)
       self.treeview.append_column(column_text)
 
 
@@ -66,18 +65,18 @@ class TabStreamRipper:
 
 
       renderer = Gtk.CellRendererText()
-      renderer.set_property("editable", True)
-      renderer.connect("edited", self.renderer_stations_edited)
-      column_text = Gtk.TreeViewColumn("Station", renderer, text=4)
+      renderer.set_property('editable', True)
+      renderer.connect('edited', self.renderer_stations_edited)
+      column_text = Gtk.TreeViewColumn('Station', renderer, text=4)
       self.treeview.append_column(column_text)
 
 
 
 
       renderer = Gtk.CellRendererText()
-      renderer.set_property("editable", True)
-      renderer.connect("edited", self.renderer_url_edited)
-      column_text = Gtk.TreeViewColumn("Url", renderer, text=5)
+      renderer.set_property('editable', True)
+      renderer.connect('edited', self.renderer_url_edited)
+      column_text = Gtk.TreeViewColumn('Url', renderer, text=5)
       self.treeview.append_column(column_text)
 
 
@@ -87,23 +86,23 @@ class TabStreamRipper:
       self.grid.attach(scrollable_treelist, 0, 0, 8, 10)
 
 
-      button_selectall = Gtk.Button(label="Select All")
-      button_selectall.connect("clicked", self.button_selectall_clicked)
+      button_selectall = Gtk.Button(label='Select All')
+      button_selectall.connect('clicked', self.button_selectall_clicked)
 
-      button_deselectall = Gtk.Button(label="Deselect All")
-      button_deselectall.connect("clicked", self.button_deselectall_clicked)
+      button_deselectall = Gtk.Button(label='Deselect All')
+      button_deselectall.connect('clicked', self.button_deselectall_clicked)
 
-      button_record_start = Gtk.Button(label="Record")
-      button_record_start.connect("clicked", self.button_record_clicked)
+      button_record_start = Gtk.Button(label='Record')
+      button_record_start.connect('clicked', self.button_record_clicked)
 
-      button_record_stop = Gtk.Button(label="Stop")
-      button_record_stop.connect("clicked", self.button_stop_clicked)
+      button_record_stop = Gtk.Button(label='Stop')
+      button_record_stop.connect('clicked', self.button_stop_clicked)
 
-      button_reset = Gtk.Button(label="Reset")
-      button_reset.connect("clicked", self.button_reset_clicked)
+      button_reset = Gtk.Button(label='Reset')
+      button_reset.connect('clicked', self.button_reset_clicked)
 
-      button_info = Gtk.Button(label="Info")
-      button_info.connect("clicked", self.button_info_clicked)
+      button_info = Gtk.Button(label='Info')
+      button_info.connect('clicked', self.button_info_clicked)
 
 
 
@@ -192,13 +191,13 @@ class TabStreamRipper:
       if self.config['debug']==1:
          print ('def button_info_clicked - start')
 
-      #button = Gtk.LinkButton("https://www.shoutcast.com", label=Shoutcast")
+      #button = Gtk.LinkButton('https://www.shoutcast.com', label='Shoutcast')
 
       dialog = Gtk.MessageDialog(parent=None,
                                  message_type=Gtk.MessageType.INFO,
                                  flags=Gtk.DialogFlags.MODAL,
-                                 buttons=("Ok",Gtk.ButtonsType.OK),
-                                 text="Get new stations from: https://www.shoutcast.com")
+                                 buttons=('Ok',Gtk.ButtonsType.OK),
+                                 text='Get new stations from: https://www.shoutcast.com')
 
 
       dialog.set_title('Info')
@@ -225,7 +224,7 @@ class TabStreamRipper:
             print ('def check_streamripper stop')
 
          if self.obj_timer_streamripper is not None:
-            GObject.source_remove(self.obj_timer_streamripper)
+            GLib.source_remove(self.obj_timer_streamripper)
             self.obj_timer_streamripper=None
 
          return False
@@ -297,7 +296,7 @@ class TabStreamRipper:
 
 
       if self.obj_timer_streamripper is None:
-         self.obj_timer_streamripper = GObject.timeout_add(1000, self.check_streamripper)
+         self.obj_timer_streamripper = GLib.timeout_add(1000, self.check_streamripper)
 
 
       if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_str']):
@@ -317,7 +316,7 @@ class TabStreamRipper:
             if self.config['debug']==1:
                print ('def button_record_clicked identifier: %s file: %s' % (i,self.stationlist[i]))
 
-            # streamripper http://www.top100station.de/switch/r3472.pls -u WinampMPEG/5.0 -d /MyDisc/Audio/Neu/Streamtuner/
+            # streamripper http://www.top100station.de/switch/r3472.pls -u WinampMPEG/5.0 -d /Music/Streamtuner/
             cmd=[self.config['bin_streamripper'], self.station_liststore[i][5],'-u','WinampMPEG/5.0','-d','%s/%s' % (self.settings['music_path'],self.settings['directory_str'])]
             cwd=self.settings['music_path'] + '/' + self.settings['directory_str']
             self.main.process_starter(cmd=cmd, cwd=cwd, job='streamripper', identifier=str(i), source=self.station_liststore[i][5])
@@ -341,7 +340,7 @@ class TabStreamRipper:
       if self.obj_timer_streamripper is not None:
          if self.config['debug']==1:
             print ('def button_stop_clicked remove glib timer')
-         GObject.source_remove(self.obj_timer_streamripper)
+         GLib.source_remove(self.obj_timer_streamripper)
          self.obj_timer_streamripper=None
 
       self.main.process_job_killer(job='streamripper')

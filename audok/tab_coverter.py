@@ -33,7 +33,7 @@ class TabConverter:
       hbox1.set_hexpand(True)
       row1.add(hbox1)
 
-      label1 = Gtk.Label('Audio', xalign=0)
+      label1 = Gtk.Label(label='Audio', xalign=0)
       label1.set_size_request(50, -1)
 
 
@@ -78,7 +78,7 @@ class TabConverter:
       row2.add(hbox2)
 
 
-      label2 = Gtk.Label('Input', xalign=0)
+      label2 = Gtk.Label(label='Url', xalign=0)
       label2.set_size_request(50, -1)
 
       self.textbuffer_input = Gtk.Entry()
@@ -97,7 +97,7 @@ class TabConverter:
       hbox3.set_hexpand(True)
       row3.add(hbox3)
 
-      label3 = Gtk.Label('Ouput', xalign=0)
+      label3 = Gtk.Label(label='Ouput', xalign=0)
       label3.set_size_request(50, -1)
 
 
@@ -313,14 +313,16 @@ class TabConverter:
 
       self.obj_timer_pwrecord = GLib.timeout_add(1000, self.refresh_output_textctrl_timer)
 
-      if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_new']):
-         os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_new'])
+
+      if not os.path.exists(self.settings['music_path'] + '/' + self.settings['pwrecord_directory']):
+         os.mkdir(self.settings['music_path'] + '/' + self.settings['pwrecord_directory'])
 
 
       target=-1
       device=''
-      if self.settings['pwrecord_default'] and ':' in self.settings['pwrecord_default']:
-         get_target = self.settings['pwrecord_default'].split(':')
+
+      if self.settings['device_pwrecord'] and ':' in self.settings['device_pwrecord']:
+         get_target = self.settings['device_pwrecord'].split(':')
          device = ', '.join(get_target[:-1])
          target=int(get_target[-1])
 
@@ -335,9 +337,7 @@ class TabConverter:
          self.button_file2flac.set_sensitive(False)
          self.button_stop.set_sensitive(True)
 
-         filename = self.settings['pwrecord_default_filename']
-         if self.textbuffer_input.get_text():
-            filename = self.textbuffer_input.get_text()
+         filename = self.settings['filename_pwrecord']
 
          if '/' in filename:
             self.textbuffer_output.set_text('"/" in filename is not allowed')
@@ -348,10 +348,10 @@ class TabConverter:
             if '.' in filename:
                pre_filename = filename.rsplit('.',1)[0]
 
-            if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_new']):
-               os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_new'])
+            if not os.path.exists(self.settings['music_path'] + '/' + self.settings['pwrecord_directory']):
+               os.mkdir(self.settings['music_path'] + '/' + self.settings['pwrecord_directory'])
 
-            directories = [self.settings['music_path'] + '/' + self.settings['directory_new']]
+            directories = [self.settings['music_path'] + '/' + self.settings['pwrecord_directory']]
 
             extensions = self.config['supported_audio_files']
 
@@ -388,8 +388,8 @@ class TabConverter:
    
             # pw-record --verbose --record --channels=2 --format=s32 --rate=48000 --volume=0.99 --target=41  /MyDisc/Audio/Neu/test.wav
             cmd=[self.config['bin_pwrecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99',\
-            '--target=%s' % target, '%s/%s/%s' % (self.settings['music_path'],self.settings['directory_new'],new_filename)]
-            cwd=self.settings['music_path'] + '/' + self.settings['directory_new']
+            '--target=%s' % target, '%s/%s/%s' % (self.settings['music_path'],self.settings['pwrecord_directory'],new_filename)]
+            cwd=self.settings['music_path'] + '/' + self.settings['pwrecord_directory']
             self.main.process_starter(cmd=cmd, cwd=cwd, job='pwrecord', identifier='', source='')
 
 

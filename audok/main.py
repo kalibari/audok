@@ -4,7 +4,7 @@ import sys
 import signal
 import socket
 import subprocess
-import tab_audioplayer
+import tab_musicplayer
 import tab_coverter
 import tab_streamripper
 import tab_settings
@@ -53,18 +53,18 @@ class Music_Admin_Start(Gtk.Window):
       self.add(self.notebook)
 
 
-      self.notebook_tab_audioplayer = tab_audioplayer.TabAudioPlayer(self, config, settings, playlist)
+      self.notebook_tab_musicplayer = tab_musicplayer.TabMusicPlayer(self, config, settings, playlist)
       self.notebook_tab_converter = tab_coverter.TabConverter(self, config, settings)
       self.notebook_tab_streamripper = tab_streamripper.TabStreamRipper(self, config, settings, stationlist)
       self.notebook_tab_settings = tab_settings.TabSettings(self, config, settings)
       self.notebook_tab_about = tab_about.TabAbout(self, config, settings)
 
 
-      self.notebook.append_page(self.notebook_tab_audioplayer.box, Gtk.Label('Audio Player'))
-      self.notebook.append_page(self.notebook_tab_converter.box, Gtk.Label('Converter'))
-      self.notebook.append_page(self.notebook_tab_streamripper.hbox, Gtk.Label('Streamripper'))
-      self.notebook.append_page(self.notebook_tab_settings.box, Gtk.Label('Settings'))
-      self.notebook.append_page(self.notebook_tab_about.box, Gtk.Image.new_from_icon_name("help-about",Gtk.IconSize.MENU))
+      self.notebook.append_page(self.notebook_tab_musicplayer.box, Gtk.Label(label='Music Player'))
+      self.notebook.append_page(self.notebook_tab_converter.box, Gtk.Label(label='Converter'))
+      self.notebook.append_page(self.notebook_tab_streamripper.hbox, Gtk.Label(label='Streamripper'))
+      self.notebook.append_page(self.notebook_tab_settings.box, Gtk.Label(label='Settings'))
+      self.notebook.append_page(self.notebook_tab_about.box, Gtk.Image.new_from_icon_name('help-about',Gtk.IconSize.MENU))
 
 
       try:
@@ -79,8 +79,8 @@ class Music_Admin_Start(Gtk.Window):
       GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, self.signal_handler_sigint)
 
       if self.playlist:
-         self.notebook_tab_audioplayer.choose_song(choose='keep')
-         self.notebook_tab_audioplayer.play_file()
+         self.notebook_tab_musicplayer.choose_song(choose='keep')
+         self.notebook_tab_musicplayer.play_file()
 
 
 
@@ -187,16 +187,16 @@ class Music_Admin_Start(Gtk.Window):
 
 
 
-      if hasattr(self, 'notebook_tab_audioplayer'):
+      if hasattr(self, 'notebook_tab_musicplayer'):
 
-         if self.notebook_tab_audioplayer.player:
-            self.notebook_tab_audioplayer.player.set_state(Gst.State.NULL)
+         if self.notebook_tab_musicplayer.player:
+            self.notebook_tab_musicplayer.player.set_state(Gst.State.NULL)
 
-         if self.notebook_tab_audioplayer.obj_timer_refresh_slider is not None:
-            GLib.source_remove(self.notebook_tab_audioplayer.obj_timer_refresh_slider)
+         if self.notebook_tab_musicplayer.obj_timer_refresh_slider is not None:
+            GLib.source_remove(self.notebook_tab_musicplayer.obj_timer_refresh_slider)
 
-         if self.notebook_tab_audioplayer.obj_timer_play_time_check is not None:
-            GLib.source_remove(self.notebook_tab_audioplayer.obj_timer_play_time_check)
+         if self.notebook_tab_musicplayer.obj_timer_play_time_check is not None:
+            GLib.source_remove(self.notebook_tab_musicplayer.obj_timer_play_time_check)
 
 
       if hasattr(self, 'notebook_tab_streamripper'):
@@ -334,8 +334,8 @@ class Music_Admin_Start(Gtk.Window):
       process_pid=''
       i=0
 
-      # cmd: ['streamripper', 'http://stream.freefm.de:8100/listen.pls', '-u', 'WinampMPEG/5.0', '-d', '/MyDisc/Audio/Neu/Streamripper']
-      # cwd: /MyDisc/Audio/Neu/Streamripper
+      # cmd: ['streamripper', 'http://stream.freefm.de:8100/listen.pls', '-u', 'WinampMPEG/5.0', '-d', '/Music/Streamripper']
+      # cwd: /Music/Streamripper
 
 
       try:
@@ -352,7 +352,7 @@ class Music_Admin_Start(Gtk.Window):
 
             line = process.stdout.readline(20)
 
-            line = line.decode("utf-8", 'ignore')
+            line = line.decode('utf-8', 'ignore')
 
             output_str = output_str + line
 
@@ -446,14 +446,14 @@ class Music_Admin_Start(Gtk.Window):
 
                   if data=='play_timer_end':
                      self.settings['interrupt']='play_timer_end'
-                     self.notebook_tab_audioplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_audioplayer.player,Gst.Structure.new_empty('song-changed')))
+                     self.notebook_tab_musicplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_musicplayer.player,Gst.Structure.new_empty('song-changed')))
 
                   elif data.startswith('play_new_file='):
                      self.settings['interrupt']='play_new_file'
                      data=data.replace('play_new_file=','',1)
                      self.config['play_num'] = 0
-                     self.notebook_tab_audioplayer.playlist = [data]
-                     self.notebook_tab_audioplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_audioplayer.player,Gst.Structure.new_empty('song-changed')))
+                     self.notebook_tab_musicplayer.playlist = [data]
+                     self.notebook_tab_musicplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_musicplayer.player,Gst.Structure.new_empty('song-changed')))
 
                else:
                   if self.config['debug']==1:

@@ -17,7 +17,7 @@ gi.require_version('Gdk', '3.0')
 from gi.repository import Gdk
 
 
-class TabAudioPlayer:
+class TabMusicPlayer:
 
 
    def __init__(self, main, config, settings, playlist):
@@ -39,6 +39,7 @@ class TabAudioPlayer:
 
       self.obj_timer_refresh_slider=None
       self.obj_timer_play_time_check=None
+
 
       self.slider_position = 0
       self.slider_range = 300
@@ -63,8 +64,8 @@ class TabAudioPlayer:
       bus.connect('message::error', self.bus_player_error)
       bus.connect('message::eos', self.bus_player_eos)
       #bus.connect('message', self.bus_message_check)
-      bus.connect("message::application", self.bus_application_message)
-      bus.connect("message::async-done", self.bus_async_done_message)
+      bus.connect('message::application', self.bus_application_message)
+      bus.connect('message::async-done', self.bus_async_done_message)
 
 
       if self.settings['random_time_min']==0 and self.settings['random_time_max']==0:
@@ -82,7 +83,7 @@ class TabAudioPlayer:
       row1.add(hbox1)
 
 
-      label1 = Gtk.Label('Play Time', xalign=0)
+      label1 = Gtk.Label(label='Play Time', xalign=0)
       self.combo_play_time = Gtk.ComboBoxText()
       choice_active=0
       choice_play_time = self.settings['choice_play_time']
@@ -94,7 +95,7 @@ class TabAudioPlayer:
       self.combo_play_time.set_active(choice_active)
 
 
-      label2 = Gtk.Label('Random Start', xalign=0)
+      label2 = Gtk.Label(label='Random Start', xalign=0)
       self.combo_random = Gtk.ComboBoxText()
       choice_active=0
       choice_random_time = self.settings['choice_random_time']
@@ -115,7 +116,7 @@ class TabAudioPlayer:
       self.checkbutton_auto_move.set_tooltip_text('If file is finished, move to Directory: %s' % self.settings['directory_old'])
 
 
-      space_label3 = Gtk.Label('', xalign=0)
+      space_label3 = Gtk.Label(label='', xalign=0)
 
 
       button5 = Gtk.Button(label='Scan')
@@ -184,12 +185,14 @@ class TabAudioPlayer:
       self.button_back.set_image(image)
       self.button_back.set_tooltip_text('Back')
 
+
       image = Gtk.Image()
       image.set_from_file('%s/play_white.png' % self.config['app_path'])
       self.button_play = Gtk.Button()
       self.button_play.connect('clicked', self.button_play_clicked)
       self.button_play.set_image(image)
       self.button_play.set_tooltip_text('Play')
+
 
       image = Gtk.Image()
       image.set_from_file('%s/pause_white.png' % self.config['app_path'])
@@ -214,31 +217,31 @@ class TabAudioPlayer:
       self.button_next.set_image(image)
       self.button_next.set_tooltip_text('Next')
 
-      space_label1 = Gtk.Label()
+      space_label1 = Gtk.Label(label='')
 
       image = Gtk.Image()
       image.set_from_file('%s/olddir.png' % self.config['app_path'])
       self.button_move_old = Gtk.Button()
       self.button_move_old.connect('clicked', self.button_move_old_clicked)
       self.button_move_old.set_image(image)
-      self.button_move_old.set_tooltip_text('Move File to Directory: %s' % self.settings['directory_old'])
+      self.button_move_old.set_tooltip_text('Move Current Music File to Directory: %s' % self.settings['directory_old'])
+
 
       image = Gtk.Image()
       image.set_from_file('%s/newdir.png' % self.config['app_path'])
       self.button_move_new = Gtk.Button()
       self.button_move_new.connect('clicked', self.button_move_new_clicked)
       self.button_move_new.set_image(image)
-      self.button_move_new.set_tooltip_text('Move File to Directory: %s' % self.settings['directory_new'])
+      self.button_move_new.set_tooltip_text('Move Current Music File to Directory: %s' % self.settings['directory_new'])
 
-
-      space_label2 = Gtk.Label()
+      space_label2 = Gtk.Label(label='')
 
       image = Gtk.Image()
       image.set_from_file('%s/playlist.png' % self.config['app_path'])
-      self.button_playlist = Gtk.Button()
-      self.button_playlist.connect('clicked', self.button_playlist_clicked)
-      self.button_playlist.set_image(image)
-      self.button_playlist.set_tooltip_text('Create a Playlist: playlist.m3u in Directory: %s' % self.settings['directory_new'])
+      button_playlist = Gtk.Button()
+      button_playlist.connect('clicked', self.button_playlist_clicked)
+      button_playlist.set_image(image)
+      button_playlist.set_tooltip_text('Create a Playlist Filename: playlist.m3u for Directory: %s' % self.settings['directory_playlist'])
 
 
       hbox2.pack_start(self.button_back, False, False, 0)
@@ -250,11 +253,12 @@ class TabAudioPlayer:
       hbox2.pack_start(self.button_move_old, False, False, 0)
       hbox2.pack_start(self.button_move_new, False, False, 0)
       hbox2.pack_start(space_label2, False, False, 10)
-      hbox2.pack_start(self.button_playlist, False, False, 0)
+      hbox2.pack_start(button_playlist, False, False, 0)
 
 
 
       #############################
+
       row3 = Gtk.ListBoxRow()
       hbox3 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
       row3.add(hbox3)
@@ -266,37 +270,31 @@ class TabAudioPlayer:
 
       hbox3.pack_start(self.h_scale1, True, True, 0)
 
-
       #############################
+
       row4 = Gtk.ListBoxRow()
       hbox4 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
       row4.add(hbox4)
 
-      label1 = Gtk.Label('Play File')
-      self.label_play_file = Gtk.Label('')
+      self.label_play_file = Gtk.Label()
+      self.label_play_file.set_use_markup(True)
+      self.set_label_play_file('')
 
-      self.infobar_play_file = Gtk.InfoBar()
-      self.infobar_play_file.add(self.label_play_file)
- 
-
-      hbox4.pack_start(label1, False, False, 0)
-      hbox4.pack_start(self.infobar_play_file, False, False, 0)
+      hbox4.pack_start(self.label_play_file, True, True, 0)
 
 
       #############################
+
       row5 = Gtk.ListBoxRow()
       hbox5 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
       row5.add(hbox5)
-
-
-
-
-      columns = ['Num', 'Filename']
 
       self.scrolledwindow1 = Gtk.ScrolledWindow()
       self.listmodel1 = Gtk.ListStore(str, str)
 
       self.treeview1 = Gtk.TreeView(model=self.listmodel1)
+
+      columns = ['Num', 'Filename']
 
       for i, column in enumerate(columns):
          cell = Gtk.CellRendererText()
@@ -336,6 +334,9 @@ class TabAudioPlayer:
 
 
 
+   def set_label_play_file(self, text):
+      self.label_play_file.set_markup('<span font_size="large">{}</span>'.format(GLib.markup_escape_text(text)))
+
 
    def slider_change(self, scroll, value, user_data):
       if self.config['debug']==1:
@@ -363,7 +364,7 @@ class TabAudioPlayer:
 
       err, dbg = msg.parse_error()
       if self.config['debug']==1:
-         print("def bus_player_error - error:", msg.src.get_name(), ":", err.message)
+         print('def bus_player_error - error:', msg.src.get_name(), ':', err.message)
 
       self.player.set_state(Gst.State.NULL)
       self.player.set_state(Gst.State.READY)
@@ -372,6 +373,7 @@ class TabAudioPlayer:
 
 
    def bus_player_eos(self, bus, msg):
+
       if self.config['debug']==1:
          print('bus_player_eos - start')
 
@@ -463,6 +465,7 @@ class TabAudioPlayer:
          print ('def play_timer_start - start with play_time: %s' % self.settings['play_time'])
 
       self.play_time_counter=0
+
       if self.obj_timer_play_time_check is None:
          self.obj_timer_play_time_check = GLib.timeout_add(1000, self.play_time_check)
 
@@ -523,10 +526,11 @@ class TabAudioPlayer:
 
       if len(self.playlist)>=1:
          filename = os.path.basename(self.playlist[self.config['play_num']])
-         self.label_play_file.set_text('%s - %s' % ((self.config['play_num']+1),filename))
+
+         self.set_label_play_file('%s - %s' % ((self.config['play_num']+1),filename))
 
       else:
-         self.label_play_file.set_text('')
+         self.set_label_play_file('')
          self.button_move_old.set_sensitive(False)
          self.button_move_new.set_sensitive(False)
 
@@ -544,7 +548,6 @@ class TabAudioPlayer:
    def choose_song(self, choose='next'):
 
       len_playlist = len(self.playlist)
-
 
       if self.config['debug']==1:
          print ('def choose_song - play_num: %s len_playlist: %s' % (self.config['play_num'],len_playlist))
@@ -593,7 +596,10 @@ class TabAudioPlayer:
             print ('def choose_song - set_size: %s play_num: %s upper_size: %s page_size: %s' % (set_size,self.config['play_num'],upper_size,page_size))
          adj.set_value(set_size)
 
-         if self.player.get_state(0).state == Gst.State.PLAYING:
+
+         state = self.player.get_state(0).state
+
+         if state == Gst.State.PLAYING or state == Gst.State.READY:
             self.play_file()
 
 
@@ -807,7 +813,7 @@ class TabAudioPlayer:
 
 
          if len(self.playlist)==0:
-            self.label_play_file.set_text('')
+            self.set_label_play_file('')
             self.button_pause.set_sensitive(False)
             self.button_stop.set_sensitive(False)
             self.slider_position=0
@@ -818,21 +824,17 @@ class TabAudioPlayer:
             filepath = os.path.realpath(self.playlist[self.config['play_num']])
             if self.config['debug']==1:
                print ('def play_file - filepath: %s' % filepath)
-            self.player.set_property("uri", "file://%s" % self.playlist[self.config['play_num']])
+            self.player.set_property('uri', 'file://%s' % self.playlist[self.config['play_num']])
             filename = os.path.basename(self.playlist[self.config['play_num']])
-            self.label_play_file.set_text('%s - %s' % ((self.config['play_num']+1),filename))
+            self.set_label_play_file('%s - %s' % ((self.config['play_num']+1),filename))
 
 
       if len(self.playlist)>=1:
-
          self.button_pause.set_sensitive(True)
          self.button_stop.set_sensitive(True)
-
          if self.config['debug']==1:
             print ('def play_file - start playing')
-
          self.player_start()
-
 
 
 
@@ -889,23 +891,18 @@ class TabAudioPlayer:
 
 
 
-
    def treeview_size_changed(self, event1, event2):
       if self.config['debug']==1:
          print ('def treeview_size_changed - start')
 
 
 
-
    def treeview_press_event(self, view, event):
-
       if self.config['debug']==1:
          print ('def treeview_press_event - start')
 
-
       if event.type == Gdk.EventType.BUTTON_PRESS:
          pass
-
 
       elif event.type == Gdk.EventType._2BUTTON_PRESS:
 
@@ -916,7 +913,6 @@ class TabAudioPlayer:
 
          self.button_play.set_sensitive(False)
          self.play_file()
-
 
 
 
@@ -1001,7 +997,6 @@ class TabAudioPlayer:
 
 
 
-
    def button_play_clicked(self, event):
       if self.config['debug']==1:
          print ('def button_play_clicked - start')
@@ -1036,7 +1031,6 @@ class TabAudioPlayer:
 
 
 
-
    def button_stop_clicked(self, event):
       if self.config['debug']==1:
          print ('def button_stop_clicked - start')
@@ -1049,13 +1043,11 @@ class TabAudioPlayer:
 
 
 
-
    def button_move_old_clicked(self, event):
       if self.config['debug']==1:
          print ('def button_move_old_clicked - start')
       self.move('old')
       self.choose_song(choose='keep')
-
 
 
 
@@ -1067,14 +1059,13 @@ class TabAudioPlayer:
 
 
 
-
    def button_playlist_clicked(self, event):
       if self.config['debug']==1:
          print ('def button_playlist_clicked - start')
 
       path=self.settings['music_path'] + '/' + self.settings['directory_new']
 
-      f = open(path + '/' + self.settings['playlist_filename'], 'w')
+      f = open(path + '/' + self.settings['filename_playlist'], 'w')
       for item in self.playlist:
          f.write('%s\n' % item)
       f.close()

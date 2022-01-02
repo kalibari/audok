@@ -22,6 +22,7 @@ gi.require_version('GLib', '2.0')
 from gi.repository import GLib
 
 
+
 def startup_notification_workaround():
    # https://specifications.freedesktop.org/startup-notification-spec/startup-notification-0.1.txt
    Gdk.notify_startup_complete()
@@ -40,14 +41,13 @@ if __name__ == '__main__':
       config['debug']=1
 
    config['name'] = 'audok'
-   config['version'] = '1.0.4'
+   config['version'] = '1.0.5'
 
    config['app_path'] = app_path
 
    config['play_num'] = 0
 
    config['stationlist_changed'] = False
-
 
    config['bin_youtubedl'] = 'youtube-dl'
    config['bin_streamripper'] = 'streamripper'
@@ -64,11 +64,11 @@ if __name__ == '__main__':
    # setup default settings
    settings['config_path'] = '%s/audok' % GLib.get_user_config_dir()
    if not settings['config_path']:
-      settings['config_path']=os.getenv("HOME")
+      settings['config_path']=os.getenv('HOME')
 
    settings['music_path'] = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_MUSIC)
    if not settings['music_path']:
-      settings['music_path']=os.getenv("HOME")
+      settings['music_path']=os.getenv('HOME')
 
    settings['filename_settings'] = 'settings.xml'
    settings['filename_stations'] = 'stations.xml'
@@ -87,9 +87,13 @@ if __name__ == '__main__':
    settings['position_x'] = 0
    settings['position_y'] = 0
 
-   settings['pwrecord_default_filename'] = 'pwrecord.wav'
-   settings['pwrecord_default'] = ''
-   settings['choice_pwrecord_device'] = ['']
+   settings['directory_converter'] = 'New'
+
+   settings['directory_pwrecord'] = 'New'
+   settings['filename_pwrecord'] = 'pwrecord.wav'
+   settings['device_pwrecord'] = ''
+
+   settings['choice_device_pwrecord'] = ['']
 
    settings['play_time'] = 0
    settings['choice_play_time'] = ['0','20','35','50','65']
@@ -101,7 +105,8 @@ if __name__ == '__main__':
    settings['bitrate'] = '192k'
    settings['choice_bitrate'] = ['128k','192k','224k','320k']
 
-   settings['playlist_filename'] = 'playlist.m3u'
+   settings['directory_playlist'] = 'New'
+   settings['filename_playlist'] = 'playlist.m3u'
 
 
    # generate a new settings.xml
@@ -188,7 +193,6 @@ if __name__ == '__main__':
       print ('def main - config path: %s' % settings['config_path'])
       print ('def main - directories new: %s old: %s streamripper: %s' % (settings['directory_new'],settings['directory_old'],settings['directory_str']))
       print ('def main - playlist: %s' % playlist)
-
 
 
 
@@ -295,7 +299,7 @@ if __name__ == '__main__':
                      ['Chipc_serverarts', 'radio Top 40 Weimar Charts', 'http://antenne-th.divicon-stream.net/antth_top40char_0f6x-mp3-192?sABC=58p2q6s8%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
                      ['Charts', 'Top 100 Station','http://www.top100station.de/switch/r3472.pls'],
                      ['Charts', 'radio Top 40 Weimar Live', 'http://antenne-th.divicon-stream.net/antth_top40live_SeJx-mp3-192?sABC=58p2q6rq%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
-                     ['Charts', '"TOP 20" Radio', 'http://listen.radionomy.com:80/-TOP20-Radio'],
+                     ['Charts', 'TOP 20 Radio', 'http://listen.radionomy.com:80/-TOP20-Radio'],
 
                      ['80s', '80s New Wave','http://yp.shoutcast.com/sbin/tunein-station.pls?id=99180471'],
 
