@@ -335,7 +335,9 @@ class TabMusicPlayer:
 
 
    def set_label_play_file(self, text):
-      self.label_play_file.set_markup('<span font_size="large">{}</span>'.format(GLib.markup_escape_text(text)))
+      fontsize=12000
+      self.label_play_file.set_markup('<span font_size="{}">{}</span>'.format(fontsize,GLib.markup_escape_text(text)))
+
 
 
    def slider_change(self, scroll, value, user_data):
@@ -371,7 +373,6 @@ class TabMusicPlayer:
 
 
 
-
    def bus_player_eos(self, bus, msg):
 
       if self.config['debug']==1:
@@ -398,7 +399,6 @@ class TabMusicPlayer:
 
 
 
-
    def interrupt(self):
 
       if self.config['debug']==1:
@@ -419,8 +419,6 @@ class TabMusicPlayer:
 
 
 
-
-
    def play_timer_stop(self):
 
       if self.config['debug']==1:
@@ -433,8 +431,6 @@ class TabMusicPlayer:
       if self.obj_timer_refresh_slider is not None:
          GLib.source_remove(self.obj_timer_refresh_slider)
          self.obj_timer_refresh_slider=None
-
-
 
 
 
@@ -468,7 +464,6 @@ class TabMusicPlayer:
 
       if self.obj_timer_play_time_check is None:
          self.obj_timer_play_time_check = GLib.timeout_add(1000, self.play_time_check)
-
 
 
 
@@ -540,7 +535,6 @@ class TabMusicPlayer:
          print ('def playlist_scan - len(playlist): %s' % len(self.playlist))
 
       self.entry_file_sum.set_text(str(len(self.playlist)))
-
 
 
 
