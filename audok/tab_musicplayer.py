@@ -263,7 +263,7 @@ class TabMusicPlayer:
       hbox3 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
       row3.add(hbox3)
 
-      self.h_scale1 = Gtk.HScale.new_with_range(0, 300, 1)
+      self.h_scale1 = Gtk.HScale()
       self.h_scale1.set_digits(0)
       self.h_scale1.set_hexpand(True)
       self.h_scale1_update = self.h_scale1.connect('change-value', self.slider_change)
@@ -344,6 +344,7 @@ class TabMusicPlayer:
       if self.config['debug']==1:
          print('def slider_change - user_data: %s' % user_data)
       self.player_seek(slider_value=user_data)
+
 
 
 
@@ -512,23 +513,15 @@ class TabMusicPlayer:
          self.playlist.extend([item])
 
 
-      self.button_next.set_sensitive(False)
-      self.button_back.set_sensitive(False)
-
       if self.config['debug']==1:
          print ('def playlist_scan - len(self.playlist): %s play_num: %s' % (len(self.playlist),self.config['play_num']))
 
 
       if len(self.playlist)>=1:
          filename = os.path.basename(self.playlist[self.config['play_num']])
-
          self.set_label_play_file('%s - %s' % ((self.config['play_num']+1),filename))
-
       else:
          self.set_label_play_file('')
-         self.button_move_old.set_sensitive(False)
-         self.button_move_new.set_sensitive(False)
-
 
 
       if self.config['debug']==1:
@@ -621,18 +614,22 @@ class TabMusicPlayer:
          self.mute(True)
 
 
-      for x in range(0,30):
-
+      for x in range(0,50):
          ret1, pos = self.player.query_position(Gst.Format.TIME)
-         sleep(0.05)
-         ret2, drt = self.player.query_duration(Gst.Format.TIME)
-
-         if ret1==True and ret2==True:
-            self.slider_position = pos / Gst.SECOND
-            self.slider_range = drt / Gst.SECOND
-            break
-
-         sleep(0.05)
+         sleep(0.02)
+         if ret1==True:
+            ret2, drt = self.player.query_duration(Gst.Format.TIME)
+            if self.config['debug']==1:
+               print('def bus_async_done_message - loop: %s ret1: %s ret2: %s' % (x,ret1,ret2))
+            if ret2==True:
+               self.slider_position = pos / Gst.SECOND
+               self.slider_range = drt / Gst.SECOND
+               break
+            else:
+               sleep(0.02)
+         else:
+            if self.config['debug']==1:
+               print('def bus_async_done_message - loop: %s ret1: %s' % (x,ret1))
 
 
       self.h_scale1.set_range(0, self.slider_range)
@@ -675,17 +672,23 @@ class TabMusicPlayer:
       if self.config['debug']==1:
          print('def player_seek - slider_value: %s' % slider_value)
 
-      # GST_SEEK_FLAG_KEY_UNIT (4) – seek to the nearest keyframe. This might be faster but less accurate.
-      # GST_SEEK_FLAG_TRICKMODE (16) – when doing fast forward or fast reverse playback, allow elements to skip frames instead of generating all frames. (Since: 1.6)
-      # GST_SEEK_FLAG_TRICKMODE_NO_AUDIO (256) – when doing fast forward or fast reverse playback, request that audio decoder elements skip decoding and output only gap events or silence. (Since: 1.6)
-      # GST_SEEK_FLAG_NONE (0) – no flag
-      # GST_SEEK_FLAG_FLUSH (1) – flush pipeline
+      # KEY_UNIT (4) – seek to the nearest keyframe. This might be faster but less accurate.
+      # TRICKMODE (16) – when doing fast forward or fast reverse playback, allow elements to skip frames instead of generating all frames. (Since: 1.6)
+      # TRICKMODE_NO_AUDIO (256) – when doing fast forward or fast reverse playback, request that audio decoder elements skip decoding and output only gap events or silence. (Since: 1.6)
+      # NONE (0) – no flag
+      # FLUSH (1) – flush pipeline
+      # TRICKMODE_KEY_UNITS (128)
+      # SEGMENT (8)
 
-      flags = Gst.SeekFlags.KEY_UNIT | Gst.SeekFlags.TRICKMODE
       #flags = Gst.SeekFlags.KEY_UNIT
       #flags = Gst.SeekFlags.NONE
+      #flags = Gst.SeekFlags.FLUSH 
+      #flags = Gst.SeekFlags.KEY_UNIT | Gst.SeekFlags.TRICKMODE
       #flags = Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT
+      #flags = Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT | Gst.SeekFlags.SEGMENT
+      flags = Gst.SeekFlags.TRICKMODE_KEY_UNITS
       self.player.seek_simple(Gst.Format.TIME, flags, slider_value * Gst.SECOND)
+
 
       # GST_SEEK_TYPE_END - relative position to duration is requested
       # GST_SEEK_TYPE_NONE - no change in position is required
@@ -831,10 +834,17 @@ class TabMusicPlayer:
          if self.config['debug']==1:
             print ('def move - error: %s' % str(e))
 
-      if (self.config['play_num']+1)>=len(self.playlist):
-         self.config['play_num']-=1
 
-      self.playlist_scan()
+      if len(self.playlist)==0:
+         self.playlist_scan()
+      else:
+         if (self.config['play_num']+1)==len(self.playlist):
+            del self.playlist[self.config['play_num']]
+            self.config['play_num']-=1
+         else:
+            del self.playlist[self.config['play_num']]
+
+
       self.listmodel1.clear()
       for i,item in enumerate(self.playlist):
          self.listmodel1.append([str(i+1),str(item)])
@@ -924,8 +934,6 @@ class TabMusicPlayer:
 
 
    def update_playlist(self):
-      self.checkbutton_auto_move.set_sensitive(True)
-      self.button_play.set_sensitive(True)
       for i,item in enumerate(self.playlist):
          self.listmodel1.append([str(i+1),str(item)])
 
@@ -944,6 +952,24 @@ class TabMusicPlayer:
 
       if len(self.playlist)>=1:
          self.update_playlist()
+
+      state = self.player.get_state(0).state
+
+      if state == Gst.State.PLAYING:
+         self.button_play.set_sensitive(True)
+
+      elif state == Gst.State.NULL or state == Gst.State.READY:
+         self.button_move_old.set_sensitive(False)
+         self.button_move_new.set_sensitive(False)
+         self.checkbutton_auto_move.set_sensitive(True)
+         self.button_play.set_sensitive(True)
+         self.button_next.set_sensitive(False)
+         self.button_back.set_sensitive(False)
+
+         if len(self.playlist)>=1:
+            self.button_play.set_sensitive(True)
+         else:
+            self.button_play.set_sensitive(False)
 
 
 
@@ -998,7 +1024,15 @@ class TabMusicPlayer:
          print ('def button_move_old_clicked - start')
       self.move('old')
       self.choose_song(choose='keep')
-
+      if len(self.playlist)==0:
+         self.button_move_old.set_sensitive(False)
+         self.button_move_new.set_sensitive(False)
+         self.checkbutton_auto_move.set_sensitive(False)
+         self.button_play.set_sensitive(False)
+         self.button_next.set_sensitive(False)
+         self.button_back.set_sensitive(False)
+         self.button_stop.set_sensitive(False)
+         self.button_pause.set_sensitive(False)
 
 
    def button_move_new_clicked(self, event):
@@ -1006,6 +1040,15 @@ class TabMusicPlayer:
          print ('def button_move_new_clicked - start')
       self.move('new')
       self.choose_song(choose='keep')
+      if len(self.playlist)==0:
+         self.button_move_old.set_sensitive(False)
+         self.button_move_new.set_sensitive(False)
+         self.checkbutton_auto_move.set_sensitive(False)
+         self.button_play.set_sensitive(False)
+         self.button_next.set_sensitive(False)
+         self.button_back.set_sensitive(False)
+         self.button_stop.set_sensitive(False)
+         self.button_pause.set_sensitive(False)
 
 
 
