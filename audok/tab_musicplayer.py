@@ -109,46 +109,48 @@ class TabMusicPlayer:
       self.combo_random.set_active(choice_active)
 
 
-      image4 = Gtk.Image()
-      image4.set_from_file('%s/auto_olddir_small.png' % self.config['app_path'])
-      image4.set_tooltip_text('If file is finished, move to Directory: %s' % self.settings['directory_old'])
+      self.image_auto_move = Gtk.Image()
+      self.image_auto_move.set_from_file('%s/auto_olddir_small.png' % self.config['app_path'])
+      self.image_auto_move_update_tooltip(directory=self.settings['directory_old'])
+
       self.checkbutton_auto_move = Gtk.CheckButton()
-      self.checkbutton_auto_move.set_tooltip_text('If file is finished, move to Directory: %s' % self.settings['directory_old'])
+      self.checkbutton_auto_move_update_tooltip(directory=self.settings['directory_old'])
 
 
       space_label3 = Gtk.Label(label='', xalign=0)
 
 
-      button5 = Gtk.Button(label='Scan')
-      button5.connect('clicked', self.button_scan_clicked)
-      button5.set_tooltip_text('Scan Directories')
+      button_scan = Gtk.Button(label='Scan')
+      button_scan.connect('clicked', self.button_scan_clicked)
+      button_scan.set_tooltip_text('Scan Directories')
 
 
-      image6 = Gtk.Image()
-      image6.set_from_file('%s/streamripperdir_small.png' % self.config['app_path'])
-      image6.set_tooltip_text('Scan Directory Streamripper')
+      self.image_str = Gtk.Image()
+      self.image_str.set_from_file('%s/streamripperdir_small.png' % self.config['app_path'])
+      self.image_str_update_tooltip(directory=self.settings['directory_str'])
+
       self.checkbutton_str = Gtk.CheckButton()
       self.checkbutton_str.set_active(self.settings['checkbutton_str'])
-      self.checkbutton_str.set_tooltip_text('Scan Directory Streamripper')
       self.checkbutton_str.connect('toggled', self.checkbutton_str_toggled)
+      self.checkbutton_str_update_tooltip(directory=self.settings['directory_str'])
 
+      self.image_new = Gtk.Image()
+      self.image_new.set_from_file('%s/newdir_small.png' % self.config['app_path'])
+      self.image_new_update_tooltip(directory=self.settings['directory_new'])
 
-      image7 = Gtk.Image()
-      image7.set_from_file('%s/newdir_small.png' % self.config['app_path'])
-      image7.set_tooltip_text('Scan Directory New')
       self.checkbutton_new = Gtk.CheckButton()
       self.checkbutton_new.set_active(self.settings['checkbutton_new'])
-      self.checkbutton_new.set_tooltip_text('Scan Directory New')
       self.checkbutton_new.connect('toggled', self.checkbutton_new_toggled)
+      self.checkbutton_new_update_tooltip(directory=self.settings['directory_new'])
 
+      self.image_old = Gtk.Image()
+      self.image_old.set_from_file('%s/olddir_small.png' % self.config['app_path'])
+      self.image_old_update_tooltip(directory=self.settings['directory_old'])
 
-      image8 = Gtk.Image()
-      image8.set_from_file('%s/olddir_small.png' % self.config['app_path'])
-      image8.set_tooltip_text('Scan Directory Old')
       self.checkbutton_old = Gtk.CheckButton()
       self.checkbutton_old.set_active(self.settings['checkbutton_old'])
-      self.checkbutton_old.set_tooltip_text('Scan Directory Old')
       self.checkbutton_old.connect('toggled', self.checkbutton_old_toggled)
+      self.checkbutton_old_update_tooltip(directory=self.settings['directory_old'])
 
 
       self.entry_file_sum = Gtk.Entry()
@@ -159,15 +161,15 @@ class TabMusicPlayer:
       hbox1.pack_start(self.combo_play_time, False, False, 0)
       hbox1.pack_start(label2, False, False, 0)
       hbox1.pack_start(self.combo_random, False, False, 0)
-      hbox1.pack_start(image4, False, False, 0)
+      hbox1.pack_start(self.image_auto_move, False, False, 0)
       hbox1.pack_start(self.checkbutton_auto_move, False, False, 0)
       hbox1.pack_start(space_label3, False, False, 0)
-      hbox1.pack_start(button5, False, False, 0)
-      hbox1.pack_start(image6, False, False, 0)
+      hbox1.pack_start(button_scan, False, False, 0)
+      hbox1.pack_start(self.image_str, False, False, 0)
       hbox1.pack_start(self.checkbutton_str, False, False, 0)
-      hbox1.pack_start(image7, False, False, 0)
+      hbox1.pack_start(self.image_new, False, False, 0)
       hbox1.pack_start(self.checkbutton_new, False, False, 0)
-      hbox1.pack_start(image8, False, False, 0)
+      hbox1.pack_start(self.image_old, False, False, 0)
       hbox1.pack_start(self.checkbutton_old, False, False, 0)
       hbox1.pack_start(self.entry_file_sum, False, False, 0)
 
@@ -224,7 +226,7 @@ class TabMusicPlayer:
       self.button_move_old = Gtk.Button()
       self.button_move_old.connect('clicked', self.button_move_old_clicked)
       self.button_move_old.set_image(image)
-      self.button_move_old.set_tooltip_text('Move Current Music File to Directory: %s' % self.settings['directory_old'])
+      self.button_move_old_update_tooltip(directory=self.settings['directory_old'])
 
 
       image = Gtk.Image()
@@ -232,16 +234,17 @@ class TabMusicPlayer:
       self.button_move_new = Gtk.Button()
       self.button_move_new.connect('clicked', self.button_move_new_clicked)
       self.button_move_new.set_image(image)
-      self.button_move_new.set_tooltip_text('Move Current Music File to Directory: %s' % self.settings['directory_new'])
+      self.button_move_new_update_tooltip(directory=self.settings['directory_new'])
+
 
       space_label2 = Gtk.Label(label='')
 
       image = Gtk.Image()
       image.set_from_file('%s/playlist.png' % self.config['app_path'])
-      button_playlist = Gtk.Button()
-      button_playlist.connect('clicked', self.button_playlist_clicked)
-      button_playlist.set_image(image)
-      button_playlist.set_tooltip_text('Create a Playlist Filename: playlist.m3u for Directory: %s' % self.settings['directory_playlist'])
+      self.button_playlist = Gtk.Button()
+      self.button_playlist.connect('clicked', self.button_playlist_clicked)
+      self.button_playlist.set_image(image)
+      self.button_playlist_new_update_tooltip(filename=self.settings['filename_playlist'], directory=self.settings['directory_playlist'])
 
 
       hbox2.pack_start(self.button_back, False, False, 0)
@@ -253,7 +256,7 @@ class TabMusicPlayer:
       hbox2.pack_start(self.button_move_old, False, False, 0)
       hbox2.pack_start(self.button_move_new, False, False, 0)
       hbox2.pack_start(space_label2, False, False, 10)
-      hbox2.pack_start(button_playlist, False, False, 0)
+      hbox2.pack_start(self.button_playlist, False, False, 0)
 
 
 
@@ -1063,3 +1066,47 @@ class TabMusicPlayer:
          f.write('%s\n' % item)
       f.close()
 
+
+
+   def checkbutton_auto_move_update_tooltip(self, directory):
+      self.checkbutton_auto_move.set_tooltip_text('If file is finished, move to Directory Old: %s' % directory)
+
+
+   def image_auto_move_update_tooltip(self, directory):
+      self.image_auto_move.set_tooltip_text('If file is finished, move to Directory Old: %s' % directory)
+
+
+   def checkbutton_old_update_tooltip(self, directory):
+      self.checkbutton_old.set_tooltip_text('Scan Directory Old: %s' % directory)
+
+
+   def checkbutton_str_update_tooltip(self, directory):
+      self.checkbutton_str.set_tooltip_text('Scan Directory Streamripper: %s' % directory)
+
+
+   def image_str_update_tooltip(self, directory):
+      self.image_str.set_tooltip_text('Scan Directory Streamripper: %s' % directory)
+
+
+   def checkbutton_new_update_tooltip(self, directory):
+      self.checkbutton_new.set_tooltip_text('Scan Directory New: %s' % directory)
+
+
+   def image_new_update_tooltip(self, directory):
+      self.image_new.set_tooltip_text('Scan Directory New: %s' % directory)
+
+
+   def image_old_update_tooltip(self, directory):
+      self.image_old.set_tooltip_text('Scan Directory Old: %s' % directory)
+
+
+   def button_move_old_update_tooltip(self, directory):
+      self.button_move_old.set_tooltip_text('Move Current Music File to Directory Old: %s' % directory)
+
+
+   def button_move_new_update_tooltip(self, directory):
+      self.button_move_new.set_tooltip_text('Move Current Music File to Directory New: %s' % directory)
+
+
+   def button_playlist_new_update_tooltip(self, filename, directory):
+      self.button_playlist.set_tooltip_text('Create a Playlist: %s for Directory: %s' % (filename,directory))

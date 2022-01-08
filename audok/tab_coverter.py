@@ -39,22 +39,22 @@ class TabConverter:
 
       self.button_you2mp3 = Gtk.Button(label='you2mp3')
       self.button_you2mp3.connect('clicked', self.button_you2mp3_chlicked)
-      self.button_you2mp3.set_tooltip_text('Convert a youtube video to mp3 - Directory: %s' % self.settings['directory_new'])
+      self.button_you2mp3_update_tooltip(directory=self.settings['directory_new'])
 
 
       self.button_pwrecord = Gtk.Button(label='pwrecord')
       self.button_pwrecord.connect('clicked', self.button_pwrecord_chlicked)
-      self.button_pwrecord.set_tooltip_text('Convert a youtube video to mp3 - Directory: %s' % self.settings['directory_new'])
+      self.button_pwrecord_update_tooltip(filename=self.settings['filename_pwrecord'], directory=self.settings['directory_pwrecord'])
 
 
       self.button_file2mp3 = Gtk.Button(label='file2mp3')
       self.button_file2mp3.connect('clicked', self.button_file2mp3_chlicked)
-      self.button_file2mp3.set_tooltip_text('Convert all files to mp3 - Directory: %s' % self.settings['directory_new'])
+      self.button_file2mp3_update_tooltip(directory=self.settings['directory_new'])
 
 
       self.button_file2flac = Gtk.Button(label='file2flac')
       self.button_file2flac.connect('clicked', self.button_file2flac_chlicked)
-      self.button_file2flac.set_tooltip_text('Convert all files to flac - Directory: %s' % self.settings['directory_new'])
+      self.button_file2flac_update_tooltip(directory=self.settings['directory_new'])
 
 
       self.button_stop = Gtk.Button(label='stop')
@@ -576,3 +576,16 @@ class TabConverter:
       self.button_file2flac.set_sensitive(True)
       self.button_stop.set_sensitive(False)
 
+
+
+   def button_you2mp3_update_tooltip(self, directory):
+      self.button_you2mp3.set_tooltip_text('Convert a Youtube Url to mp3 - Destination Directory: %s' % directory)
+
+   def button_pwrecord_update_tooltip(self, filename, directory):
+      self.button_pwrecord.set_tooltip_text('Record Pipewire Device - Destination Filename: %s Directory: %s' % (filename,directory))
+
+   def button_file2mp3_update_tooltip(self, directory):
+      self.button_file2mp3.set_tooltip_text('Convert all Files from Directory: %s to mp3' % directory)
+
+   def button_file2flac_update_tooltip(self, directory):
+      self.button_file2flac.set_tooltip_text('Convert all Files from Directory: %s to flac' % directory)

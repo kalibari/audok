@@ -330,48 +330,65 @@ class TabSettings:
       if self.config['debug']==1:
          print ('def change_directory_new - start')
       self.settings['directory_new'] = event.get_text().strip()
+      self.main.notebook_tab_musicplayer.checkbutton_new_update_tooltip(directory=self.settings['directory_new'])
+      self.main.notebook_tab_musicplayer.image_new_update_tooltip(directory=self.settings['directory_new'])
+      self.main.notebook_tab_musicplayer.button_move_new_update_tooltip(directory=self.settings['directory_new'])
 
 
    def change_directory_old(self, event):
       if self.config['debug']==1:
          print ('def change_directory_old - start')
       self.settings['directory_old'] = event.get_text().strip()
+      self.main.notebook_tab_musicplayer.checkbutton_auto_move_update_tooltip(directory=self.settings['directory_old'])
+      self.main.notebook_tab_musicplayer.checkbutton_old_update_tooltip(directory=self.settings['directory_old'])
+      self.main.notebook_tab_musicplayer.image_auto_move_update_tooltip(directory=self.settings['directory_old'])
+      self.main.notebook_tab_musicplayer.image_auto_move_update_tooltip(directory=self.settings['directory_old'])
+      self.main.notebook_tab_musicplayer.button_move_old_update_tooltip(directory=self.settings['directory_old'])
 
 
    def change_directory_streamripper(self, event):
       if self.config['debug']==1:
          print ('def change_directory_streamripper - start')
       self.settings['directory_str'] = event.get_text().strip()
+      self.main.notebook_tab_musicplayer.checkbutton_str_update_tooltip(directory=self.settings['directory_str'])
+      self.main.notebook_tab_musicplayer.image_str_update_tooltip(directory=self.settings['directory_str'])
 
 
    def change_directory_playlist(self, event):
       if self.config['debug']==1:
          print ('def change_directory_playlist - start')
       self.settings['directory_playlist'] = event.get_text().strip()
+      self.main.notebook_tab_musicplayer.button_playlist_new_update_tooltip(filename=self.settings['filename_playlist'],directory=self.settings['directory_playlist'])
 
 
    def change_filename_playlist(self, event):
       if self.config['debug']==1:
          print ('def change_filename_playlist - start')
       self.settings['filename_playlist'] = event.get_text().strip()
+      self.main.notebook_tab_musicplayer.button_playlist_new_update_tooltip(filename=self.settings['filename_playlist'],directory=self.settings['directory_playlist'])
 
 
    def change_directory_converter(self, event):
       if self.config['debug']==1:
          print ('def change_directory_converter - start')
       self.settings['directory_converter'] = event.get_text().strip()
+      self.main.notebook_tab_converter.button_you2mp3_update_tooltip(directory=self.settings['directory_converter'])
+      self.main.notebook_tab_converter.button_file2mp3_update_tooltip(directory=self.settings['directory_converter'])
+      self.main.notebook_tab_converter.button_file2flac_update_tooltip(directory=self.settings['directory_converter'])
 
 
    def change_filename_pwrecord(self, event):
       if self.config['debug']==1:
          print ('def change_filename_pwrecord - start')
       self.settings['filename_pwrecord'] = event.get_text().strip()
+      self.main.notebook_tab_converter.button_pwrecord_update_tooltip(filename=self.settings['filename_pwrecord'], directory=self.settings['directory_pwrecord'])
 
 
    def change_directory_pwrecord(self, event):
       if self.config['debug']==1:
          print ('def change_directory_pwrecord - start')
       self.settings['directory_pwrecord'] = event.get_text().strip()
+      self.main.notebook_tab_converter.button_pwrecord_update_tooltip(filename=self.settings['filename_pwrecord'], directory=self.settings['directory_pwrecord'])
 
 
    def combobox_bitrate_changed(self, event):
@@ -384,6 +401,7 @@ class TabSettings:
       if self.config['debug']==1:
          print ('def combobox_pwrecord_changed - start')
       self.settings['device_pwrecord'] = event.get_active_text()
+      self.main.notebook_tab_converter.button_pwrecord_update_tooltip(filename=self.settings['filename_pwrecord'], directory=self.settings['directory_pwrecord'])
 
 
    def button_scan_clicked(self, event):
