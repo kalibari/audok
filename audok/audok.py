@@ -10,7 +10,6 @@ import pwd
 import xml.etree.ElementTree
 app_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, app_path)
-import main
 import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
@@ -20,6 +19,8 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 gi.require_version('GLib', '2.0')
 from gi.repository import GLib
+import logging
+import main
 
 
 
@@ -36,13 +37,8 @@ if __name__ == '__main__':
 
    config={}
 
-   config['debug']=0
-   if sys.stdin.isatty():
-      config['debug']=1
-
    config['name'] = 'audok'
    config['version'] = '1.0.7'
-
    config['app_path'] = app_path
 
    config['play_num'] = 0
@@ -60,6 +56,20 @@ if __name__ == '__main__':
 
 
    settings={}
+
+
+   settings['journald_log'] = 0
+
+   log = logging.getLogger(config['name'])
+   if sys.stdin.isatty():
+      log.addHandler(logging.StreamHandler())
+      log.setLevel(logging.DEBUG)
+
+   if settings['journald_log'] == 1:
+      from systemd.journal import JournalHandler
+      log.addHandler(JournalHandler())
+      log.setLevel(logging.DEBUG)
+
 
    # setup default settings
    settings['config_path'] = '%s/audok' % GLib.get_user_config_dir()
@@ -119,8 +129,7 @@ if __name__ == '__main__':
    filename = settings['filename_settings']
 
 
-   if config['debug']==1:
-      print ('def main - name: %s version: %s'  % (config['name'],config['version']))
+   log.debug('def main - name: %s version: %s'  % (config['name'],config['version']))
 
 
    if os.path.exists(path + '/' + filename):
@@ -165,11 +174,10 @@ if __name__ == '__main__':
          bak_old_version=True
 
 
-      if config['debug']==1:
-         if bak_old_version==True:
-            print ('def main - old version: %s < min version: %s' % (old_version,min_version))
-         else:
-            print ('def main - old version: %s >= min version: %s' % (old_version,min_version))
+      if bak_old_version==True:
+         log.debug('def main - old version: %s < min version: %s' % (old_version,min_version))
+      else:
+         log.debug('def main - old version: %s >= min version: %s' % (old_version,min_version))
 
 
       if bak_old_version==True:
@@ -186,14 +194,12 @@ if __name__ == '__main__':
 
    settings['old_version']=config['version']
 
-   if config['debug']==1:
-      print ('def main - app_path: %s' % config['app_path'])
-      print ('def main - cwd: %s' % os.getcwd())
-      print ('def main - music path: %s' % settings['music_path'])
-      print ('def main - config path: %s' % settings['config_path'])
-      print ('def main - directories new: %s old: %s streamripper: %s' % (settings['directory_new'],settings['directory_old'],settings['directory_str']))
-      print ('def main - playlist: %s' % playlist)
-
+   log.debug('def main - app_path: %s' % config['app_path'])
+   log.debug('def main - cwd: %s' % os.getcwd())
+   log.debug('def main - music path: %s' % settings['music_path'])
+   log.debug('def main - config path: %s' % settings['config_path'])
+   log.debug('def main - directories new: %s old: %s streamripper: %s' % (settings['directory_new'],settings['directory_old'],settings['directory_str']))
+   log.debug('def main - playlist: %s' % playlist)
 
 
    if len(sys.argv)>=2:
@@ -234,8 +240,8 @@ if __name__ == '__main__':
          send_file='play_new_file=%s' % playlist[config['play_num']]
 
 
-      if config['debug']==1:
-         print ('def main - name: %s is already running - try send file: %s via socket port: %s' % (config['name'],send_file,ipc_port))
+      log.debug('def main - name: %s is already running - try send file: %s via socket port: %s' % (config['name'],send_file,ipc_port))
+
 
       if not send_file:
          os.remove('%s/%s' % (settings['config_path'],settings['filename_ipcport']))
@@ -254,9 +260,7 @@ if __name__ == '__main__':
             sock.close()
 
 
-   if config['debug']==1:
-      print ('def main - name: %s try to start -> Music_Admin_Start' % config['name'])
-
+   log.debug('def main - name: %s try to start -> Music_Admin_Start' % config['name'])
 
 
    if os.path.exists('%s/%s' % (settings['config_path'],settings['filename_stations'])):
@@ -275,8 +279,7 @@ if __name__ == '__main__':
             stationlist.extend([[child[0].text,child[1].text,child[2].text]])
 
       except Exception as e:
-         if config['debug']==1:
-            print ('def main - wrong format stations.xml -> backup error: %s' % e)
+         log.debug('def main - wrong format stations.xml -> backup error: %s' % e)
          for i in range(1,100):
             if not os.path.exists('%s/%s.%s.bak' % (settings['config_path'],settings['filename_stations'],i)):
                os.rename('%s/%s' % (settings['config_path'],settings['filename_stations']), '%s/%s.%s.bak' % (settings['config_path'],settings['filename_stations'],i))
@@ -322,7 +325,7 @@ if __name__ == '__main__':
 
    Gtk.init()
    
-   win = main.Music_Admin_Start(config, settings, playlist, stationlist)
+   win = main.Music_Admin_Start(log, config, settings, playlist, stationlist)
    win.connect('destroy', Gtk.main_quit)
    win.connect('delete-event', win.on_destroy)
    win.connect('configure-event', win.ReSize)

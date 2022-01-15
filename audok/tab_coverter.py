@@ -8,11 +8,13 @@ from gi.repository import Gdk
 gi.require_version('GLib', '2.0')
 from gi.repository import GLib
 
+
 class TabConverter:
 
-   def __init__(self, main, config, settings):
+   def __init__(self, madmin, log, config, settings):
 
-      self.main = main
+      self.madmin = madmin
+      self.log = log
       self.config = config
       self.settings = settings
 
@@ -25,7 +27,6 @@ class TabConverter:
       self.box.set_border_width(10)
 
 
-      #############################
       box_outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
 
       row1 = Gtk.ListBoxRow()
@@ -70,7 +71,7 @@ class TabConverter:
       hbox1.pack_start(self.button_file2flac, True, True, 0)
       hbox1.pack_start(self.button_stop, True, True, 0)
 
-      #############################
+
 
       row2 = Gtk.ListBoxRow()
       hbox2= Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
@@ -90,7 +91,6 @@ class TabConverter:
       hbox2.pack_start(self.textbuffer_input, True, True, 0)
 
 
-      #############################
 
       row3 = Gtk.ListBoxRow()
       hbox3 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
@@ -114,80 +114,74 @@ class TabConverter:
       hbox3.pack_start(self.scrolledwindow3, True, True, 0)
 
 
-
       box_outer.pack_start(row1, False, False, 2)
       box_outer.pack_start(row2, False, False, 2)
       box_outer.pack_start(row3, True, True, 2)
       self.box.add(box_outer)
 
-      ###################################################################################
 
 
 
    def refresh_output_textctrl_timer(self):
 
-      if self.config['debug']==1:
-         print ('\ndef refresh_output_textctrl_timer start')
-
+      self.log.debug('\ndef refresh_output_textctrl_timer start')
 
       inactive_processes=0
 
       # copy dict to prevent ->  RuntimeError: dictionary changed size during iteration
-      loop_process_database = dict(self.main.process_database)
+      loop_process_database = dict(self.madmin.process_database)
 
       for item in loop_process_database:
 
-         if self.config['debug']==1:
-            print ('\ndef refresh_output_textctrl_timer process_database: %s' % str(self.main.process_database[item]))
+         self.log.debug('\ndef refresh_output_textctrl_timer process_database: %s' % str(self.madmin.process_database[item]))
 
 
-
-         if self.main.process_database[item]['status']=='inactive':
+         if self.madmin.process_database[item]['status']=='inactive':
             inactive_processes+=1
 
 
-         if self.main.process_database[item]['status']=='active' or self.main.process_database[item]['status']=='killed':
+         if self.madmin.process_database[item]['status']=='active' or self.madmin.process_database[item]['status']=='killed':
 
-            if self.main.process_database[item]['status']=='killed':
-               self.main.process_database[item]['status']='inactive'
+            if self.madmin.process_database[item]['status']=='killed':
+               self.madmin.process_database[item]['status']='inactive'
 
 
             ############
             ### show ###
             ############
-            if self.main.process_database[item]['todo']=='show':
+            if self.madmin.process_database[item]['todo']=='show':
 
-               if self.main.process_database[item]['job']=='you2mp3':
-                  if self.main.process_database[item]['output']:
-                     self.textbuffer_output.set_text('%s\n' % '\n'.join(self.main.process_database[item]['output']))
-                     self.main.process_database[item]['output']=[]
-
-
-
-               if self.main.process_database[item]['job']=='pwrecord':
-                  if self.main.process_database[item]['identifier']=='pw-record':
-                     if self.main.process_database[item]['output']:
-                        self.textbuffer_output.set_text('%s\n' % self.main.process_database[item]['output'])
-                        self.main.process_database[item]['output']=[]
+               if self.madmin.process_database[item]['job']=='you2mp3':
+                  if self.madmin.process_database[item]['output']:
+                     self.textbuffer_output.set_text('%s\n' % '\n'.join(self.madmin.process_database[item]['output']))
+                     self.madmin.process_database[item]['output']=[]
 
 
 
-               if self.main.process_database[item]['job']=='file2mp3':
-                  if self.main.process_database[item]['output']:
-                     self.textbuffer_output.set_text('%s\n' % '\n'.join(self.main.process_database[item]['output']))
-                     self.main.process_database[item]['output']=[]
+               if self.madmin.process_database[item]['job']=='pwrecord':
+                  if self.madmin.process_database[item]['identifier']=='pw-record':
+                     if self.madmin.process_database[item]['output']:
+                        self.textbuffer_output.set_text('%s\n' % self.madmin.process_database[item]['output'])
+                        self.madmin.process_database[item]['output']=[]
 
 
-               if self.main.process_database[item]['job']=='file2flac':
-                  if self.main.process_database[item]['output']:
-                     self.textbuffer_output.set_text('%s\n' % '\n'.join(self.main.process_database[item]['output']))
-                     self.main.process_database[item]['output']=[]
+
+               if self.madmin.process_database[item]['job']=='file2mp3':
+                  if self.madmin.process_database[item]['output']:
+                     self.textbuffer_output.set_text('%s\n' % '\n'.join(self.madmin.process_database[item]['output']))
+                     self.madmin.process_database[item]['output']=[]
+
+
+               if self.madmin.process_database[item]['job']=='file2flac':
+                  if self.madmin.process_database[item]['output']:
+                     self.textbuffer_output.set_text('%s\n' % '\n'.join(self.madmin.process_database[item]['output']))
+                     self.madmin.process_database[item]['output']=[]
 
 
             ##############
             ### result ###
             ##############
-            if self.main.process_database[item]['todo']=='result':
+            if self.madmin.process_database[item]['todo']=='result':
 
                # enable buttons, stop refreh timer
                self.button_you2mp3.set_sensitive(True)
@@ -198,27 +192,27 @@ class TabConverter:
 
 
 
-               if self.main.process_database[item]['job']=='you2mp3':
-                  self.main.process_database[item]['status']='inactive'
-                  if self.main.process_database[item]['result']==True:
-                     self.textbuffer_output.set_text('-- job: %s successfully done\n' % self.main.process_database[item]['job'])
+               if self.madmin.process_database[item]['job']=='you2mp3':
+                  self.madmin.process_database[item]['status']='inactive'
+                  if self.madmin.process_database[item]['result']==True:
+                     self.textbuffer_output.set_text('-- job: %s successfully done\n' % self.madmin.process_database[item]['job'])
                      self.textbuffer_input.set_text('')
                   else:
-                     self.textbuffer_output.set_text('-- job: %s error\n' % self.main.process_database[item]['job'])
+                     self.textbuffer_output.set_text('-- job: %s error\n' % self.madmin.process_database[item]['job'])
 
 
-               if self.main.process_database[item]['job']=='pwrecord':
-                  if self.main.process_database[item]['identifier']=='pw-record':
-                     self.main.process_database[item]['status']='inactive'
+               if self.madmin.process_database[item]['job']=='pwrecord':
+                  if self.madmin.process_database[item]['identifier']=='pw-record':
+                     self.madmin.process_database[item]['status']='inactive'
 
 
 
-               if self.main.process_database[item]['job']=='file2mp3':
-                  self.main.process_database[item]['status']='inactive'
-                  if self.main.process_database[item]['result']==True:
-                     self.textbuffer_output.set_text('-- job: %s filename: %s successfully converted\n' % (self.main.process_database[item]['job'],self.main.process_database[item]['source']))
+               if self.madmin.process_database[item]['job']=='file2mp3':
+                  self.madmin.process_database[item]['status']='inactive'
+                  if self.madmin.process_database[item]['result']==True:
+                     self.textbuffer_output.set_text('-- job: %s filename: %s successfully converted\n' % (self.madmin.process_database[item]['job'],self.madmin.process_database[item]['source']))
 
-                     source_path_filename = self.main.process_database[item]['source']
+                     source_path_filename = self.madmin.process_database[item]['source']
                      filename = os.path.basename(source_path_filename)
                      dest_path = self.settings['music_path'] + '/' + self.settings['directory_old']
                      if not os.path.exists(dest_path):
@@ -227,16 +221,16 @@ class TabConverter:
                      os.rename(source_path_filename,'%s/%s' % (dest_path,filename))
 
                   else:
-                     self.textbuffer_output.set_text('-- job: %s filename: %s output: %s\n' % (self.main.process_database[item]['job'],self.main.process_database[item]['source'], ', '.join(self.main.process_database[item]['output'])))
+                     self.textbuffer_output.set_text('-- job: %s filename: %s output: %s\n' % (self.madmin.process_database[item]['job'],self.madmin.process_database[item]['source'], ', '.join(self.madmin.process_database[item]['output'])))
 
 
 
-               if self.main.process_database[item]['job']=='file2flac':
-                  self.main.process_database[item]['status']='inactive'
-                  if self.main.process_database[item]['result']==True:
-                     self.textbuffer_output.set_text('-- job: %s filename: %s successfully converted\n' % (self.main.process_database[item]['job'],self.main.process_database[item]['source']))
+               if self.madmin.process_database[item]['job']=='file2flac':
+                  self.madmin.process_database[item]['status']='inactive'
+                  if self.madmin.process_database[item]['result']==True:
+                     self.textbuffer_output.set_text('-- job: %s filename: %s successfully converted\n' % (self.madmin.process_database[item]['job'],self.madmin.process_database[item]['source']))
 
-                     source_path_filename = self.main.process_database[item]['source']
+                     source_path_filename = self.madmin.process_database[item]['source']
                      filename = os.path.basename(source_path_filename)
                      dest_path = self.settings['music_path'] + '/' + self.settings['directory_old']
                      if not os.path.exists(dest_path):
@@ -245,11 +239,11 @@ class TabConverter:
                      os.rename(source_path_filename,'%s/%s' % (dest_path,filename))
 
                   else:
-                     self.textbuffer_output.set_text('-- job: %s filename: %s output: %s\n' % (self.main.process_database[item]['job'],self.main.process_database[item]['source'], ', '.join(self.main.process_database[item]['output'])))
+                     self.textbuffer_output.set_text('-- job: %s filename: %s output: %s\n' % (self.madmin.process_database[item]['job'],self.madmin.process_database[item]['source'], ', '.join(self.madmin.process_database[item]['output'])))
 
 
 
-      if len(self.main.process_database)==inactive_processes:
+      if len(self.madmin.process_database)==inactive_processes:
 			# timer stop
          return False
       else:
@@ -257,14 +251,8 @@ class TabConverter:
 
 
 
-
-
-   ###### BUTTONS ######
-
    def button_you2mp3_chlicked(self, event):
-      if self.config['debug']==1:
-         print ('def button_you2mp3_chlicked - start')
-
+      self.log.debug('def button_you2mp3_chlicked - start')
 
       self.button_you2mp3.set_sensitive(False)
       self.button_pwrecord.set_sensitive(False)
@@ -300,14 +288,13 @@ class TabConverter:
          # youtube-dl --no-warnings --no-call-home --audio-quality=4 --extract-audio --audio-format=mp3 --title https://www.youtube.com/watch?v=w7BE3inS-NM
          cmd=[self.config['bin_youtubedl'],'--audio-quality=4','--no-warnings','--no-call-home','--extract-audio','--audio-format=mp3','--title',source]
          cwd=self.settings['music_path'] + '/' + self.settings['directory_new']
-         self.main.process_starter(cmd=cmd, cwd=cwd, job='you2mp3', identifier='', source='')
+         self.madmin.process_starter(cmd=cmd, cwd=cwd, job='you2mp3', identifier='', source='')
 
 
 
 
    def button_pwrecord_chlicked(self, event):
-      if self.config['debug']==1:
-         print ('def button_pwrecord_chlicked - start')
+      self.log.debug('def button_pwrecord_chlicked - start')
 
       self.textbuffer_output.set_text('')
 
@@ -355,7 +342,7 @@ class TabConverter:
 
             extensions = self.config['supported_audio_files']
 
-            allfiles = self.main.file_scan(directories, extensions)
+            allfiles = self.madmin.file_scan(directories, extensions)
 
 
             num=0
@@ -390,17 +377,12 @@ class TabConverter:
             cmd=[self.config['bin_pwrecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99',\
             '--target=%s' % target, '%s/%s/%s' % (self.settings['music_path'],self.settings['pwrecord_directory'],new_filename)]
             cwd=self.settings['music_path'] + '/' + self.settings['pwrecord_directory']
-            self.main.process_starter(cmd=cmd, cwd=cwd, job='pwrecord', identifier='', source='')
-
-
+            self.madmin.process_starter(cmd=cmd, cwd=cwd, job='pwrecord', identifier='', source='')
 
 
 
    def button_file2mp3_chlicked(self, event):
-
-      if self.config['debug']==1:
-         print ('def button_file2mp3_chlicked - start')
-
+      self.log.debug('def button_file2mp3_chlicked - start')
 
       self.button_you2mp3.set_sensitive(False)
       self.button_pwrecord.set_sensitive(False)
@@ -417,17 +399,15 @@ class TabConverter:
 
       extensions = self.config['supported_audio_files']
 
-      allfiles = self.main.file_scan(directories, extensions)
-      mp3files = self.main.file_scan(directories, ['mp3'])
+      allfiles = self.madmin.file_scan(directories, extensions)
+      mp3files = self.madmin.file_scan(directories, ['mp3'])
 
 
       self.textbuffer_output.set_text('number of files to change: %s\n' % len(allfiles))
 
       if len(allfiles)==0:
 
-         if self.config['debug']==1:
-            print ('def button_file2mp3_chlicked - no files to change')
-         
+         self.log.debug('def button_file2mp3_chlicked - no files to change')
 
          self.button_you2mp3.set_sensitive(True)
          self.button_pwrecord.set_sensitive(True)
@@ -438,8 +418,7 @@ class TabConverter:
 
       else:
 
-         if self.config['debug']==1:
-            print ('def button_file2mp3_chlicked - try start_popen_thread')
+         self.log.debug('def button_file2mp3_chlicked - try start_popen_thread')
 
          self.obj_timer_file2mp3 = GLib.timeout_add(1000, self.refresh_output_textctrl_timer)
 
@@ -463,15 +442,13 @@ class TabConverter:
 
                cwd=self.settings['music_path'] + '/' + self.settings['directory_new']
                cmd=[self.config['bin_nice'],'-n','19',self.config['bin_ffmpeg'],'-v','error','-i',item,'-ab', '%s' % str(self.settings['bitrate']),'-n',newfilename]
-               self.main.process_starter(cmd=cmd, cwd=cwd, job='file2mp3', identifier='', source=item)
-
+               self.madmin.process_starter(cmd=cmd, cwd=cwd, job='file2mp3', identifier='', source=item)
 
 
 
    def button_file2flac_chlicked(self, event):
 
-      if self.config['debug']==1:
-         print ('def button_file2flac_chlicked - start')
+      self.log.debug('def button_file2flac_chlicked - start')
 
       self.button_you2mp3.set_sensitive(False)
       self.button_pwrecord.set_sensitive(False)
@@ -488,16 +465,15 @@ class TabConverter:
 
       extensions = self.config['supported_audio_files']
 
-      allfiles = self.main.file_scan(directories, extensions)
-      flacfiles = self.main.file_scan(directories, ['flac'])
+      allfiles = self.madmin.file_scan(directories, extensions)
+      flacfiles = self.madmin.file_scan(directories, ['flac'])
 
 
       self.textbuffer_output.set_text('number of files to change: %s\n' % len(allfiles))
 
       if len(allfiles)==0:
 
-         if self.config['debug']==1:
-            print ('def button_file2flac_chlicked - no files to change')
+         self.log.debug('def button_file2flac_chlicked - no files to change')
 
          self.button_you2mp3.set_sensitive(True)
          self.button_pwrecord.set_sensitive(True)
@@ -507,11 +483,9 @@ class TabConverter:
 
       else:
 
-         if self.config['debug']==1:
-            print ('def button_file2flac_chlicked - try start_popen_thread')
+         self.log.debug('def button_file2flac_chlicked - try start_popen_thread')
 
          self.obj_timer_file2flac = GLib.timeout_add(1000, self.refresh_output_textctrl_timer)
-
 
 
          for item in allfiles:
@@ -536,16 +510,13 @@ class TabConverter:
                # ffmpeg -y -i /MyDisc/Audio/Neu/New/pwrecord-1.wav -af aformat=s32:48000 /MyDisc/Audio/Neu/test.flac
                cwd=self.settings['music_path'] + '/' + self.settings['directory_new']
                cmd=['nice','-n','19',self.config['bin_ffmpeg'], '-y', '-i',  item, '-af', 'aformat=s32:48000', newfilename]
-               self.main.process_starter(cmd=cmd, cwd=cwd, job='file2flac', identifier='', source=item)
-
+               self.madmin.process_starter(cmd=cmd, cwd=cwd, job='file2flac', identifier='', source=item)
 
 
 
    def button_stop_chlicked(self, event):
 
-      if self.config['debug']==1:
-         print ('def button_stop_chlicked - start')
-
+      self.log.debug('def button_stop_chlicked - start')
 
       if self.obj_timer_file2flac is not None:
          GLib.source_remove(self.obj_timer_file2flac)
@@ -564,11 +535,10 @@ class TabConverter:
          self.obj_timer_you2mp3=None
 
 
-      self.main.process_job_killer(job='you2mp3')
-      self.main.process_job_killer(job='pwrecord')
-      self.main.process_job_killer(job='file2mp3')
-      self.main.process_job_killer(job='file2flac')
-
+      self.madmin.process_job_killer(job='you2mp3')
+      self.madmin.process_job_killer(job='pwrecord')
+      self.madmin.process_job_killer(job='file2mp3')
+      self.madmin.process_job_killer(job='file2flac')
 
       self.button_you2mp3.set_sensitive(True)
       self.button_pwrecord.set_sensitive(True)
@@ -581,11 +551,17 @@ class TabConverter:
    def button_you2mp3_update_tooltip(self, directory):
       self.button_you2mp3.set_tooltip_text('Convert a Youtube Url to mp3 - Destination Directory: %s' % directory)
 
+
+
    def button_pwrecord_update_tooltip(self, filename, directory):
       self.button_pwrecord.set_tooltip_text('Record Pipewire Device - Destination Filename: %s Directory: %s' % (filename,directory))
 
+
+
    def button_file2mp3_update_tooltip(self, directory):
       self.button_file2mp3.set_tooltip_text('Convert all Files from Directory: %s to mp3' % directory)
+
+
 
    def button_file2flac_update_tooltip(self, directory):
       self.button_file2flac.set_tooltip_text('Convert all Files from Directory: %s to flac' % directory)

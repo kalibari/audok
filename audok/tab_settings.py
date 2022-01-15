@@ -2,7 +2,6 @@ import os
 import re
 import gi
 import subprocess
-import main
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 gi.require_version('Gdk', '3.0')
@@ -11,9 +10,10 @@ from gi.repository import Gdk
 
 class TabSettings:
 
-   def __init__(self, main, config, settings):
+   def __init__(self, madmin, log, config, settings):
 
-      self.main = main
+      self.madmin = madmin
+      self.log = log
       self.config = config
       self.settings = settings
 
@@ -24,7 +24,6 @@ class TabSettings:
       grid.set_column_homogeneous(True)
       grid.set_row_homogeneous(True)
 
-      #############################
 
       hbox_music_new= Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
       hbox_music_new.set_hexpand(True)
@@ -50,8 +49,6 @@ class TabSettings:
       hbox_music_new.pack_start(entry1, True, True, 0)
 
       grid.add(hbox_music_new)
-
-      #############################
 
 
       hbox_music_old= Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
@@ -81,7 +78,6 @@ class TabSettings:
       grid.attach_next_to(hbox_music_old, hbox_music_new, Gtk.PositionType.BOTTOM, 1, 1)
 
 
-      #############################
 
       hbox_streamripper= Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
 
@@ -105,8 +101,6 @@ class TabSettings:
       hbox_streamripper.pack_start(entry1, True, True, 0)
 
       grid.attach_next_to(hbox_streamripper, hbox_music_old, Gtk.PositionType.BOTTOM, 1, 1)
-
-      #############################
 
 
       hbox_playlist= Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
@@ -145,8 +139,6 @@ class TabSettings:
       grid.attach_next_to(hbox_playlist, hbox_streamripper, Gtk.PositionType.BOTTOM, 1, 1)
 
 
-      #############################
-
 
       hbox_converter_dir = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
 
@@ -172,8 +164,6 @@ class TabSettings:
 
       grid.attach_next_to(hbox_converter_dir, hbox_playlist, Gtk.PositionType.BOTTOM, 1, 1)
 
-
-      #############################
 
 
       hbox_filename_pwrecord = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
@@ -216,8 +206,6 @@ class TabSettings:
       grid.attach_next_to(hbox_filename_pwrecord, hbox_converter_dir, Gtk.PositionType.BOTTOM, 1, 1)
 
 
-      #############################
-
 
       hbox_pwrecord_bitrate = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
 
@@ -246,10 +234,6 @@ class TabSettings:
 
       grid.attach_next_to(hbox_pwrecord_bitrate, hbox_filename_pwrecord, Gtk.PositionType.BOTTOM, 1, 1)
 
-
-
-
-      #############################
 
 
       hbox_device_pwrecord = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
@@ -297,20 +281,16 @@ class TabSettings:
 
 
 
-      #############################
-
       # empty box for space
       hbox_window = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
       grid.attach_next_to(hbox_window, hbox_device_pwrecord, Gtk.PositionType.BOTTOM, 1, 1)
 
-      #############################
 
       # empty box for space
       hbox_space = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
       grid.attach_next_to(hbox_space, hbox_window, Gtk.PositionType.BOTTOM, 1, 2)
 
 
-      #############################
       hbox_buttons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
       
       self.button_reset = Gtk.Button(label='Reset')
@@ -320,94 +300,91 @@ class TabSettings:
 
       grid.attach_next_to(hbox_buttons, hbox_space, Gtk.PositionType.BOTTOM, 1, 1)
 
-      #############################
 
       self.box.add(grid)
 
 
 
    def change_directory_new(self, event):
-      if self.config['debug']==1:
-         print ('def change_directory_new - start')
+      self.log.debug('def change_directory_new - start')
       self.settings['directory_new'] = event.get_text().strip()
-      self.main.notebook_tab_musicplayer.checkbutton_new_update_tooltip(directory=self.settings['directory_new'])
-      self.main.notebook_tab_musicplayer.image_new_update_tooltip(directory=self.settings['directory_new'])
-      self.main.notebook_tab_musicplayer.button_move_new_update_tooltip(directory=self.settings['directory_new'])
+      self.madmin.notebook_tab_musicplayer.checkbutton_new_update_tooltip(directory=self.settings['directory_new'])
+      self.madmin.notebook_tab_musicplayer.image_new_update_tooltip(directory=self.settings['directory_new'])
+      self.madmin.notebook_tab_musicplayer.button_move_new_update_tooltip(directory=self.settings['directory_new'])
+
 
 
    def change_directory_old(self, event):
-      if self.config['debug']==1:
-         print ('def change_directory_old - start')
+      self.log.debug('def change_directory_old - start')
       self.settings['directory_old'] = event.get_text().strip()
-      self.main.notebook_tab_musicplayer.checkbutton_auto_move_update_tooltip(directory=self.settings['directory_old'])
-      self.main.notebook_tab_musicplayer.checkbutton_old_update_tooltip(directory=self.settings['directory_old'])
-      self.main.notebook_tab_musicplayer.image_auto_move_update_tooltip(directory=self.settings['directory_old'])
-      self.main.notebook_tab_musicplayer.image_auto_move_update_tooltip(directory=self.settings['directory_old'])
-      self.main.notebook_tab_musicplayer.button_move_old_update_tooltip(directory=self.settings['directory_old'])
+      self.madmin.notebook_tab_musicplayer.checkbutton_auto_move_update_tooltip(directory=self.settings['directory_old'])
+      self.madmin.notebook_tab_musicplayer.checkbutton_old_update_tooltip(directory=self.settings['directory_old'])
+      self.madmin.notebook_tab_musicplayer.image_auto_move_update_tooltip(directory=self.settings['directory_old'])
+      self.madmin.notebook_tab_musicplayer.image_auto_move_update_tooltip(directory=self.settings['directory_old'])
+      self.madmin.notebook_tab_musicplayer.button_move_old_update_tooltip(directory=self.settings['directory_old'])
+
 
 
    def change_directory_streamripper(self, event):
-      if self.config['debug']==1:
-         print ('def change_directory_streamripper - start')
+      self.log.debug('def change_directory_streamripper - start')
       self.settings['directory_str'] = event.get_text().strip()
-      self.main.notebook_tab_musicplayer.checkbutton_str_update_tooltip(directory=self.settings['directory_str'])
-      self.main.notebook_tab_musicplayer.image_str_update_tooltip(directory=self.settings['directory_str'])
+      self.madmin.notebook_tab_musicplayer.checkbutton_str_update_tooltip(directory=self.settings['directory_str'])
+      self.madmin.notebook_tab_musicplayer.image_str_update_tooltip(directory=self.settings['directory_str'])
+
 
 
    def change_directory_playlist(self, event):
-      if self.config['debug']==1:
-         print ('def change_directory_playlist - start')
+      self.log.debug('def change_directory_playlist - start')
       self.settings['directory_playlist'] = event.get_text().strip()
-      self.main.notebook_tab_musicplayer.button_playlist_new_update_tooltip(filename=self.settings['filename_playlist'],directory=self.settings['directory_playlist'])
+      self.madmin.notebook_tab_musicplayer.button_playlist_new_update_tooltip(filename=self.settings['filename_playlist'],directory=self.settings['directory_playlist'])
+
 
 
    def change_filename_playlist(self, event):
-      if self.config['debug']==1:
-         print ('def change_filename_playlist - start')
+      self.log.debug('def change_filename_playlist - start')
       self.settings['filename_playlist'] = event.get_text().strip()
-      self.main.notebook_tab_musicplayer.button_playlist_new_update_tooltip(filename=self.settings['filename_playlist'],directory=self.settings['directory_playlist'])
+      self.madmin.notebook_tab_musicplayer.button_playlist_new_update_tooltip(filename=self.settings['filename_playlist'],directory=self.settings['directory_playlist'])
+
 
 
    def change_directory_converter(self, event):
-      if self.config['debug']==1:
-         print ('def change_directory_converter - start')
+      self.log.debug('def change_directory_converter - start')
       self.settings['directory_converter'] = event.get_text().strip()
-      self.main.notebook_tab_converter.button_you2mp3_update_tooltip(directory=self.settings['directory_converter'])
-      self.main.notebook_tab_converter.button_file2mp3_update_tooltip(directory=self.settings['directory_converter'])
-      self.main.notebook_tab_converter.button_file2flac_update_tooltip(directory=self.settings['directory_converter'])
+      self.madmin.notebook_tab_converter.button_you2mp3_update_tooltip(directory=self.settings['directory_converter'])
+      self.madmin.notebook_tab_converter.button_file2mp3_update_tooltip(directory=self.settings['directory_converter'])
+      self.madmin.notebook_tab_converter.button_file2flac_update_tooltip(directory=self.settings['directory_converter'])
+
 
 
    def change_filename_pwrecord(self, event):
-      if self.config['debug']==1:
-         print ('def change_filename_pwrecord - start')
+      self.log.debug('def change_filename_pwrecord - start')
       self.settings['filename_pwrecord'] = event.get_text().strip()
-      self.main.notebook_tab_converter.button_pwrecord_update_tooltip(filename=self.settings['filename_pwrecord'], directory=self.settings['directory_pwrecord'])
+      self.madmin.notebook_tab_converter.button_pwrecord_update_tooltip(filename=self.settings['filename_pwrecord'], directory=self.settings['directory_pwrecord'])
+
 
 
    def change_directory_pwrecord(self, event):
-      if self.config['debug']==1:
-         print ('def change_directory_pwrecord - start')
+      self.log.debug('def change_directory_pwrecord - start')
       self.settings['directory_pwrecord'] = event.get_text().strip()
-      self.main.notebook_tab_converter.button_pwrecord_update_tooltip(filename=self.settings['filename_pwrecord'], directory=self.settings['directory_pwrecord'])
+      self.madmin.notebook_tab_converter.button_pwrecord_update_tooltip(filename=self.settings['filename_pwrecord'], directory=self.settings['directory_pwrecord'])
+
 
 
    def combobox_bitrate_changed(self, event):
-      if self.config['debug']==1:
-         print ('def combobox_bitrate_changed - start')
+      self.log.debug('def combobox_bitrate_changed - start')
       self.settings['bitrate'] = event.get_active_text()
 
 
+
    def combobox_pwrecord_changed(self, event):
-      if self.config['debug']==1:
-         print ('def combobox_pwrecord_changed - start')
+      self.log.debug('def combobox_pwrecord_changed - start')
       self.settings['device_pwrecord'] = event.get_active_text()
-      self.main.notebook_tab_converter.button_pwrecord_update_tooltip(filename=self.settings['filename_pwrecord'], directory=self.settings['directory_pwrecord'])
+      self.madmin.notebook_tab_converter.button_pwrecord_update_tooltip(filename=self.settings['filename_pwrecord'], directory=self.settings['directory_pwrecord'])
+
 
 
    def button_scan_clicked(self, event):
-      if self.config['debug']==1:
-         print ('def button_scan_clicked - start')
-
+      self.log.debug('def button_scan_clicked - start')
 
       audio_devices = []
 
@@ -454,19 +431,15 @@ class TabSettings:
 
 
 
-
-
    def button_reset_clicked(self, event):
-      if self.config['debug']==1:
-         print ('def button_reset_clicked - start')
+      self.log.debug('def button_reset_clicked - start')
 
       settings_file = self.settings['config_path'] + '/' + self.settings['filename_settings']
 
-      if self.config['debug']==1:
-         print ('def button_reset_clicked - settings_file: %s' % settings_file)
+      self.log.debug('def button_reset_clicked - settings_file: %s' % settings_file)
 
       if os.path.exists(settings_file):
          os.remove(settings_file)
 
-      self.main.on_reset_close()
+      self.madmin.on_reset_close()
 

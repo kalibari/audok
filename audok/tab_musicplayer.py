@@ -20,15 +20,15 @@ from gi.repository import Gdk
 class TabMusicPlayer:
 
 
-   def __init__(self, main, config, settings, playlist):
+   def __init__(self, madmin, log, config, settings, playlist):
 
-      self.main = main
+      self.madmin = madmin
+      self.log = log
       self.config = config
       self.settings = settings
       self.playlist = playlist
 
 
-      ######################
       # initialize GStreamer
       Gst.init(None)
 
@@ -48,8 +48,8 @@ class TabMusicPlayer:
 
       self.player = Gst.ElementFactory.make('playbin3', self.config['name'])
       if not self.player:
-         print('ERROR: Could not create a gst player')
-         self.main.clean_shutdown()
+         self.log.debug('ERROR: Could not create a gst player')
+         self.madmin.clean_shutdown()
          sys.exit()
 
 
@@ -174,7 +174,6 @@ class TabMusicPlayer:
       hbox1.pack_start(self.entry_file_sum, False, False, 0)
 
 
-      #############################
       row2 = Gtk.ListBoxRow()
       hbox2 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
       row2.add(hbox2)
@@ -260,8 +259,6 @@ class TabMusicPlayer:
 
 
 
-      #############################
-
       row3 = Gtk.ListBoxRow()
       hbox3 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
       row3.add(hbox3)
@@ -273,7 +270,7 @@ class TabMusicPlayer:
 
       hbox3.pack_start(self.h_scale1, True, True, 0)
 
-      #############################
+
 
       row4 = Gtk.ListBoxRow()
       hbox4 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
@@ -286,7 +283,6 @@ class TabMusicPlayer:
       hbox4.pack_start(self.label_play_file, True, True, 0)
 
 
-      #############################
 
       row5 = Gtk.ListBoxRow()
       hbox5 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
@@ -336,7 +332,6 @@ class TabMusicPlayer:
 
 
 
-
    def set_label_play_file(self, text):
       fontsize=12000
       self.label_play_file.set_markup('<span font_size="{}">{}</span>'.format(fontsize,GLib.markup_escape_text(text)))
@@ -344,33 +339,27 @@ class TabMusicPlayer:
 
 
    def slider_change(self, scroll, value, user_data):
-      if self.config['debug']==1:
-         print('def slider_change - user_data: %s' % user_data)
+      self.log.debug('def slider_change - user_data: %s' % user_data)
       self.player_seek(slider_value=user_data)
 
 
 
-
    def bus_application_message(self, bus, message):
-      if self.config['debug']==1:
-         print('def bus_application_message - start %s' % message.type)
+      self.log.debug('def bus_application_message - start %s' % message.type)
       self.interrupt()
 
 
 
    def bus_message_check(self, bus, message):
-      if self.config['debug']==1:
-         print('def bus_message_check - start %s' % message.type)
+      self.log.debug('def bus_message_check - start %s' % message.type)
 
 
 
    def bus_player_error(self, bus, msg):
-      if self.config['debug']==1:
-         print('def bus_player_error - start')
+      self.log.debug('def bus_player_error - start')
 
       err, dbg = msg.parse_error()
-      if self.config['debug']==1:
-         print('def bus_player_error - error:', msg.src.get_name(), ':', err.message)
+      self.log.debug('def bus_player_error - error:', msg.src.get_name(), ':', err.message)
 
       self.player.set_state(Gst.State.NULL)
       self.player.set_state(Gst.State.READY)
@@ -379,20 +368,17 @@ class TabMusicPlayer:
 
    def bus_player_eos(self, bus, msg):
 
-      if self.config['debug']==1:
-         print('bus_player_eos - start')
+      self.log.debug('bus_player_eos - start')
 
       if self.checkbutton_auto_move.get_active():
          self.move('old')
 
-      if self.config['debug']==1:
-         print('bus_player_eos - state ready')
+      self.log.debug('bus_player_eos - state ready')
 
       self.player.set_state(Gst.State.NULL)
       self.player.set_state(Gst.State.READY)
 
-      if self.config['debug']==1:
-         print('bus_player_eos - state ready')
+      self.log.debug('bus_player_eos - state ready')
 
 
       if len(self.playlist)>=2:
@@ -405,8 +391,7 @@ class TabMusicPlayer:
 
    def interrupt(self):
 
-      if self.config['debug']==1:
-         print ('def interrupt - start interrupt: %s' % self.settings['interrupt'])
+      self.log.debug('def interrupt - start interrupt: %s' % self.settings['interrupt'])
 
       if self.settings['interrupt']=='play_new_file':
          if self.playlist:
@@ -425,8 +410,7 @@ class TabMusicPlayer:
 
    def play_timer_stop(self):
 
-      if self.config['debug']==1:
-         print ('def play_timer_stop - start')
+      self.log.debug('def play_timer_stop - start')
 
       if self.obj_timer_play_time_check is not None:
          GLib.source_remove(self.obj_timer_play_time_check)
@@ -447,8 +431,7 @@ class TabMusicPlayer:
             sock.connect(('localhost', self.settings['ipc_port']))
             sock.sendall('play_timer_end'.encode())
          except Exception as e:
-            if self.config['debug']==1:
-               print ('def play_timer_end error: %s' % str(e))
+            self.log.debug('def play_timer_end error: %s' % str(e))
          finally:
             sock.close()
 
@@ -459,10 +442,8 @@ class TabMusicPlayer:
 
 
 
-
    def play_timer_start(self):
-      if self.config['debug']==1:
-         print ('def play_timer_start - start with play_time: %s' % self.settings['play_time'])
+      self.log.debug('def play_timer_start - start with play_time: %s' % self.settings['play_time'])
 
       self.play_time_counter=0
 
@@ -471,11 +452,8 @@ class TabMusicPlayer:
 
 
 
-
    def playlist_scan(self):
-
-      if self.config['debug']==1:
-         print ('def playlist_scan - start')
+      self.log.debug('def playlist_scan - start')
 
       directories = []
 
@@ -500,13 +478,11 @@ class TabMusicPlayer:
                directories.extend([d + '/' + o])
 
 
-      if self.config['debug']==1:
-         print ('def playlist_scan - directories: %s' % ', '.join(directories))
-
+      self.log.debug('def playlist_scan - directories: %s' % ', '.join(directories))
 
       extensions = self.config['supported_audio_files']
 
-      allfiles = self.main.file_scan(directories, extensions)
+      allfiles = self.madmin.file_scan(directories, extensions)
 
 
       # reset
@@ -516,8 +492,7 @@ class TabMusicPlayer:
          self.playlist.extend([item])
 
 
-      if self.config['debug']==1:
-         print ('def playlist_scan - len(self.playlist): %s play_num: %s' % (len(self.playlist),self.config['play_num']))
+      self.log.debug('def playlist_scan - len(self.playlist): %s play_num: %s' % (len(self.playlist),self.config['play_num']))
 
 
       if len(self.playlist)>=1:
@@ -527,11 +502,9 @@ class TabMusicPlayer:
          self.set_label_play_file('')
 
 
-      if self.config['debug']==1:
-         print ('def playlist_scan - len(playlist): %s' % len(self.playlist))
+      self.log.debug('def playlist_scan - len(playlist): %s' % len(self.playlist))
 
       self.entry_file_sum.set_text(str(len(self.playlist)))
-
 
 
 
@@ -539,9 +512,7 @@ class TabMusicPlayer:
 
       len_playlist = len(self.playlist)
 
-      if self.config['debug']==1:
-         print ('def choose_song - play_num: %s len_playlist: %s' % (self.config['play_num'],len_playlist))
-
+      self.log.debug('def choose_song - play_num: %s len_playlist: %s' % (self.config['play_num'],len_playlist))
 
       if len_playlist==0:
          self.slider_position=0
@@ -554,26 +525,22 @@ class TabMusicPlayer:
          if choose=='next':
 
             if (self.config['play_num']+1)>=len_playlist:
-               if self.config['debug']==1:
-                  print ('def choose_song - choose: %s -> playlist_scan' % choose)
+               self.log.debug('def choose_song - choose: %s -> playlist_scan' % choose)
                self.playlist_scan()
                self.config['play_num']=0
             else:
-               if self.config['debug']==1:
-                  print ('def choose_song - choose: %s' % choose)
+               self.log.debug('def choose_song - choose: %s' % choose)
                self.config['play_num']+=1
 
 
          elif choose=='back':
 
             if self.config['play_num']==0:
-               if self.config['debug']==1:
-                  print ('def choose_song - choose: %s -> playlist_scan' % choose)
+               self.log.debug('def choose_song - choose: %s -> playlist_scan' % choose)
                self.playlist_scan()
                self.config['play_num']=len_playlist-1
             else:
-               if self.config['debug']==1:
-                  print ('def choose_song - choose: %s' % choose)
+               self.log.debug('def choose_song - choose: %s' % choose)
                self.config['play_num']-=1
 
 
@@ -582,8 +549,7 @@ class TabMusicPlayer:
          upper_size = adj.get_upper()
          page_size = adj.get_page_size()
          set_size = (upper_size / len_playlist) * self.config['play_num']
-         if self.config['debug']==1:
-            print ('def choose_song - set_size: %s play_num: %s upper_size: %s page_size: %s' % (set_size,self.config['play_num'],upper_size,page_size))
+         self.log.debug('def choose_song - set_size: %s play_num: %s upper_size: %s page_size: %s' % (set_size,self.config['play_num'],upper_size,page_size))
          adj.set_value(set_size)
 
 
@@ -601,8 +567,7 @@ class TabMusicPlayer:
 
 
    def mute(self, value):
-      if self.config['debug']==1:
-         print('def mute - value: %s' % value)
+      self.log.debug('def mute - value: %s' % value)
       self.player.set_property('mute', value)
 
 
@@ -622,8 +587,7 @@ class TabMusicPlayer:
          sleep(0.02)
          if ret1==True:
             ret2, drt = self.player.query_duration(Gst.Format.TIME)
-            if self.config['debug']==1:
-               print('def bus_async_done_message - loop: %s ret1: %s ret2: %s' % (x,ret1,ret2))
+            self.log.debug('def bus_async_done_message - loop: %s ret1: %s ret2: %s' % (x,ret1,ret2))
             if ret2==True:
                self.slider_position = pos / Gst.SECOND
                self.slider_range = drt / Gst.SECOND
@@ -631,8 +595,7 @@ class TabMusicPlayer:
             else:
                sleep(0.02)
          else:
-            if self.config['debug']==1:
-               print('def bus_async_done_message - loop: %s ret1: %s' % (x,ret1))
+            self.log.debug('def bus_async_done_message - loop: %s ret1: %s' % (x,ret1))
 
 
       self.h_scale1.set_range(0, self.slider_range)
@@ -643,9 +606,7 @@ class TabMusicPlayer:
          self.player_seek(slider_value=float(slider_random_value))
          self.unmute=2
 
-      if self.config['debug']==1:
-         print('def bus_async_done_message - slider range: %s slider position: %s' % (self.slider_range,self.slider_position))
-
+      self.log.debug('def bus_async_done_message - slider range: %s slider position: %s' % (self.slider_range,self.slider_position))
 
 
 
@@ -669,11 +630,9 @@ class TabMusicPlayer:
 
 
 
-
    def player_seek(self, slider_value=0):
 
-      if self.config['debug']==1:
-         print('def player_seek - slider_value: %s' % slider_value)
+      self.log.debug('def player_seek - slider_value: %s' % slider_value)
 
       # KEY_UNIT (4) – seek to the nearest keyframe. This might be faster but less accurate.
       # TRICKMODE (16) – when doing fast forward or fast reverse playback, allow elements to skip frames instead of generating all frames. (Since: 1.6)
@@ -705,11 +664,9 @@ class TabMusicPlayer:
 
 
 
-
    def play_file(self, newplaylist=[]):
 
-      if self.config['debug']==1:
-         print ('def play_file - start newplaylist: %s' % newplaylist)
+      self.log.debug('def play_file - start newplaylist: %s' % newplaylist)
 
 
       if self.obj_timer_refresh_slider is not None:
@@ -717,8 +674,7 @@ class TabMusicPlayer:
       self.obj_timer_refresh_slider = GLib.timeout_add(1000, self.refresh_slider)
 
 
-      if self.config['debug']==1:
-         print ('def play_file - obj_timer_refresh_slider: %s' % self.obj_timer_refresh_slider)
+      self.log.debug('def play_file - obj_timer_refresh_slider: %s' % self.obj_timer_refresh_slider)
 
 
       if self.settings['play_time']>0:
@@ -753,8 +709,7 @@ class TabMusicPlayer:
       state = self.player.get_state(0).state
 
 
-      if self.config['debug']==1:
-         print ('def play_file - play_num: %s state: %s len(self.playlist): %s' % (self.config['play_num'],state,len(self.playlist)))
+      self.log.debug('def play_file - play_num: %s state: %s len(self.playlist): %s' % (self.config['play_num'],state,len(self.playlist)))
 
 
       if state == Gst.State.PAUSED:
@@ -778,8 +733,7 @@ class TabMusicPlayer:
 
          elif len(self.playlist)>=1:
             filepath = os.path.realpath(self.playlist[self.config['play_num']])
-            if self.config['debug']==1:
-               print ('def play_file - filepath: %s' % filepath)
+            self.log.debug('def play_file - filepath: %s' % filepath)
             self.player.set_property('uri', 'file://%s' % self.playlist[self.config['play_num']])
             filename = os.path.basename(self.playlist[self.config['play_num']])
             self.set_label_play_file('%s - %s' % ((self.config['play_num']+1),filename))
@@ -788,25 +742,20 @@ class TabMusicPlayer:
       if len(self.playlist)>=1:
          self.button_pause.set_sensitive(True)
          self.button_stop.set_sensitive(True)
-         if self.config['debug']==1:
-            print ('def play_file - start playing')
+         self.log.debug('def play_file - start playing')
          self.player_start()
 
 
 
    def pause(self):
-      if self.config['debug']==1:
-         print ('def pause - start')
-
+      self.log.debug('def pause - start')
       self.play_timer_stop()
       self.player.set_state(Gst.State.PAUSED)
 
 
 
    def stop(self):
-      if self.config['debug']==1:
-         print ('def stop - start')
-
+      self.log.debug('def stop - start')
       self.play_timer_stop()
       self.slider_position=0
       self.h_scale1.set_value(self.slider_position)
@@ -815,9 +764,7 @@ class TabMusicPlayer:
 
 
    def move(self, dir):
-
-      if self.config['debug']==1:
-         print ('def move - dir: %s len(self.playlist): %s play_num: %s' % (dir,len(self.playlist),self.config['play_num']))
+      self.log.debug('def move - dir: %s len(self.playlist): %s play_num: %s' % (dir,len(self.playlist),self.config['play_num']))
 
       path_filename = self.playlist[self.config['play_num']]
 
@@ -830,12 +777,10 @@ class TabMusicPlayer:
          head, filename = os.path.split(path_filename)
          if not os.path.exists(path):
             os.mkdir(path)
-         if self.config['debug']==1:
-            print ('def move - path_filename: %s' % path_filename)
+         self.log.debug('def move - path_filename: %s' % path_filename)
          os.rename(path_filename,'%s/%s' % (path,filename))
       except Exception as e:
-         if self.config['debug']==1:
-            print ('def move - error: %s' % str(e))
+         self.log.debug('def move - error: %s' % str(e))
 
 
       if len(self.playlist)==0:
@@ -855,14 +800,12 @@ class TabMusicPlayer:
 
 
    def treeview_size_changed(self, event1, event2):
-      if self.config['debug']==1:
-         print ('def treeview_size_changed - start')
+      self.log.debug('def treeview_size_changed - start')
 
 
 
    def treeview_press_event(self, view, event):
-      if self.config['debug']==1:
-         print ('def treeview_press_event - start')
+      self.log.debug('def treeview_press_event - start')
 
       if event.type == Gdk.EventType.BUTTON_PRESS:
          pass
@@ -880,28 +823,24 @@ class TabMusicPlayer:
 
 
    def treeview_release_event(self, event1, event2):
-      if self.config['debug']==1:
-         print ('def treeview_release_event - start')
+      self.log.debug('def treeview_release_event - start')
 
 
 
    def checkbutton_str_toggled(self, event):
-      if self.config['debug']==1:
-         print ('def checkbutton_str_toggled - start')
+      self.log.debug('def checkbutton_str_toggled - start')
       self.settings['checkbutton_str']=event.get_active()
 
 
 
    def checkbutton_old_toggled(self, event):
-      if self.config['debug']==1:
-         print ('def checkbutton_old_toggled - start')
+      self.log.debug('def checkbutton_old_toggled - start')
       self.settings['checkbutton_old']=event.get_active()
 
 
 
    def checkbutton_new_toggled(self, event):
-      if self.config['debug']==1:
-         print ('def checkbutton_new_toggled - start')
+      self.log.debug('def checkbutton_new_toggled - start')
       self.settings['checkbutton_new']=event.get_active()
 
 
@@ -909,8 +848,7 @@ class TabMusicPlayer:
    def combobox_playtime_changed(self, event):
       self.settings['play_time'] = int(event.get_active_text())
 
-      if self.config['debug']==1:
-         print ('def combobox_playtime_changed - start play_time: %s' % self.settings['play_time'])
+      self.log.debug('def combobox_playtime_changed - start play_time: %s' % self.settings['play_time'])
 
       state = self.player.get_state(0).state
 
@@ -923,8 +861,7 @@ class TabMusicPlayer:
 
 
    def combobox_random_changed(self, event):
-      if self.config['debug']==1:
-         print ('def combobox_random_changed - start active_text: %s' % event.get_active_text())
+      self.log.debug('def combobox_random_changed - start active_text: %s' % event.get_active_text())
 
       random_min=0
       random_max=0
@@ -943,8 +880,7 @@ class TabMusicPlayer:
 
 
    def button_scan_clicked(self, event):
-      if self.config['debug']==1:
-         print ('def button_scan_clicked - start')
+      self.log.debug('def button_scan_clicked - start')
 
       self.config['play_num'] = 0
 
@@ -977,30 +913,26 @@ class TabMusicPlayer:
 
 
    def button_play_clicked(self, event):
-      if self.config['debug']==1:
-         print ('def button_play_clicked - start')
+      self.log.debug('def button_play_clicked - start')
       self.button_play.set_sensitive(False)
       self.play_file()
 
 
 
    def button_next_clicked(self, event):
-      if self.config['debug']==1:
-         print ('def button_next_clicked - start')
+      self.log.debug('def button_next_clicked - start')
       self.choose_song(choose='next')
 
 
 
    def button_back_clicked(self, event):
-      if self.config['debug']==1:
-         print ('def button_back_clicked - start')
+      self.log.debug('def button_back_clicked - start')
       self.choose_song(choose='back')
 
 
 
    def button_pause_clicked(self, event):
-      if self.config['debug']==1:
-         print ('def button_pause_clicked - start')
+      self.log.debug('def button_pause_clicked - start')
       self.pause()
       self.button_pause.set_sensitive(False)
       self.button_stop.set_sensitive(False)
@@ -1011,8 +943,7 @@ class TabMusicPlayer:
 
 
    def button_stop_clicked(self, event):
-      if self.config['debug']==1:
-         print ('def button_stop_clicked - start')
+      self.log.debug('def button_stop_clicked - start')
       self.stop()
       self.button_pause.set_sensitive(False)
       self.button_stop.set_sensitive(False)
@@ -1023,8 +954,7 @@ class TabMusicPlayer:
 
 
    def button_move_old_clicked(self, event):
-      if self.config['debug']==1:
-         print ('def button_move_old_clicked - start')
+      self.log.debug('def button_move_old_clicked - start')
       self.move('old')
       self.choose_song(choose='keep')
       if len(self.playlist)==0:
@@ -1038,9 +968,9 @@ class TabMusicPlayer:
          self.button_pause.set_sensitive(False)
 
 
+
    def button_move_new_clicked(self, event):
-      if self.config['debug']==1:
-         print ('def button_move_new_clicked - start')
+      self.log.debug('def button_move_new_clicked - start')
       self.move('new')
       self.choose_song(choose='keep')
       if len(self.playlist)==0:
@@ -1056,8 +986,7 @@ class TabMusicPlayer:
 
 
    def button_playlist_clicked(self, event):
-      if self.config['debug']==1:
-         print ('def button_playlist_clicked - start')
+      self.log.debug('def button_playlist_clicked - start')
 
       path=self.settings['music_path'] + '/' + self.settings['directory_new']
 
@@ -1072,12 +1001,15 @@ class TabMusicPlayer:
       self.checkbutton_auto_move.set_tooltip_text('If file is finished, move to Directory Old: %s' % directory)
 
 
+
    def image_auto_move_update_tooltip(self, directory):
       self.image_auto_move.set_tooltip_text('If file is finished, move to Directory Old: %s' % directory)
 
 
+
    def checkbutton_old_update_tooltip(self, directory):
       self.checkbutton_old.set_tooltip_text('Scan Directory Old: %s' % directory)
+
 
 
    def checkbutton_str_update_tooltip(self, directory):
@@ -1088,25 +1020,31 @@ class TabMusicPlayer:
       self.image_str.set_tooltip_text('Scan Directory Streamripper: %s' % directory)
 
 
+
    def checkbutton_new_update_tooltip(self, directory):
       self.checkbutton_new.set_tooltip_text('Scan Directory New: %s' % directory)
+
 
 
    def image_new_update_tooltip(self, directory):
       self.image_new.set_tooltip_text('Scan Directory New: %s' % directory)
 
 
+
    def image_old_update_tooltip(self, directory):
       self.image_old.set_tooltip_text('Scan Directory Old: %s' % directory)
+
 
 
    def button_move_old_update_tooltip(self, directory):
       self.button_move_old.set_tooltip_text('Move Current Music File to Directory Old: %s' % directory)
 
 
+
    def button_move_new_update_tooltip(self, directory):
       self.button_move_new.set_tooltip_text('Move Current Music File to Directory New: %s' % directory)
 
 
+
    def button_playlist_new_update_tooltip(self, filename, directory):
-      self.button_playlist.set_tooltip_text('Create a Playlist: %s for Directory: %s' % (filename,directory))
+      self.button_playlist.set_tooltip_text('Create a Playlist: %s (Destination Directory: %s)' % (filename,directory))
