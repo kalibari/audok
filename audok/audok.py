@@ -91,6 +91,7 @@ if __name__ == '__main__':
    settings['checkbutton_new'] = 0
    settings['checkbutton_old'] = 0
    settings['checkbutton_str'] = 0
+   settings['checkbutton_auto_move'] = 0
 
    settings['size_x'] = 1000
    settings['size_y'] = 500

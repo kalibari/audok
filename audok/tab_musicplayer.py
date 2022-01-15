@@ -114,6 +114,8 @@ class TabMusicPlayer:
       self.image_auto_move_update_tooltip(directory=self.settings['directory_old'])
 
       self.checkbutton_auto_move = Gtk.CheckButton()
+      self.checkbutton_auto_move.set_active(self.settings['checkbutton_auto_move'])
+      self.checkbutton_auto_move.connect('toggled', self.checkbutton_auto_move_toggled)
       self.checkbutton_auto_move_update_tooltip(directory=self.settings['directory_old'])
 
 
@@ -845,6 +847,12 @@ class TabMusicPlayer:
 
 
 
+   def checkbutton_auto_move_toggled(self, event):
+      self.log.debug('def checkbutton_auto_move_toggled - start')
+      self.settings['checkbutton_auto_move']=event.get_active()
+
+
+
    def combobox_playtime_changed(self, event):
       self.settings['play_time'] = int(event.get_active_text())
 
@@ -1014,6 +1022,7 @@ class TabMusicPlayer:
 
    def checkbutton_str_update_tooltip(self, directory):
       self.checkbutton_str.set_tooltip_text('Scan Directory Streamripper: %s' % directory)
+
 
 
    def image_str_update_tooltip(self, directory):
