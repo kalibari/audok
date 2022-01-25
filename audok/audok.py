@@ -38,7 +38,7 @@ if __name__ == '__main__':
    config={}
 
    config['name'] = 'audok'
-   config['version'] = '1.0.7'
+   config['version'] = '1.0.8'
    config['app_path'] = app_path
 
    config['play_num'] = 0
