@@ -415,8 +415,10 @@ class Music_Admin_Start(Gtk.Window):
                   elif data.startswith('play_new_file='):
                      self.settings['interrupt']='play_new_file'
                      data=data.replace('play_new_file=','',1)
-                     self.config['play_num'] = 0
-                     self.notebook_tab_musicplayer.playlist = [data]
+                     self.notebook_tab_musicplayer.playlist.insert(0, data)
+                     #self.notebook_tab_musicplayer.playlist.extend([data])
+                     #self.config['play_num'] = len(self.notebook_tab_musicplayer.playlist)-1
+                     #self.config['play_num'] = 0
                      self.notebook_tab_musicplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_musicplayer.player,Gst.Structure.new_empty('song-changed')))
 
                else:

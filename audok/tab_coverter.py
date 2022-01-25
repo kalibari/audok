@@ -97,7 +97,7 @@ class TabConverter:
       hbox3.set_hexpand(True)
       row3.add(hbox3)
 
-      label3 = Gtk.Label(label='Ouput', xalign=0)
+      label3 = Gtk.Label(label='Out', xalign=0)
       label3.set_size_request(50, -1)
 
 
@@ -301,8 +301,8 @@ class TabConverter:
       self.obj_timer_pwrecord = GLib.timeout_add(1000, self.refresh_output_textctrl_timer)
 
 
-      if not os.path.exists(self.settings['music_path'] + '/' + self.settings['pwrecord_directory']):
-         os.mkdir(self.settings['music_path'] + '/' + self.settings['pwrecord_directory'])
+      if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_pwrecord']):
+         os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_pwrecord'])
 
 
       target=-1
@@ -335,10 +335,10 @@ class TabConverter:
             if '.' in filename:
                pre_filename = filename.rsplit('.',1)[0]
 
-            if not os.path.exists(self.settings['music_path'] + '/' + self.settings['pwrecord_directory']):
-               os.mkdir(self.settings['music_path'] + '/' + self.settings['pwrecord_directory'])
+            if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_pwrecord']):
+               os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_pwrecord'])
 
-            directories = [self.settings['music_path'] + '/' + self.settings['pwrecord_directory']]
+            directories = [self.settings['music_path'] + '/' + self.settings['directory_pwrecord']]
 
             extensions = self.config['supported_audio_files']
 
@@ -375,8 +375,8 @@ class TabConverter:
    
             # pw-record --verbose --record --channels=2 --format=s32 --rate=48000 --volume=0.99 --target=41  /MyDisc/Audio/Neu/test.wav
             cmd=[self.config['bin_pwrecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99',\
-            '--target=%s' % target, '%s/%s/%s' % (self.settings['music_path'],self.settings['pwrecord_directory'],new_filename)]
-            cwd=self.settings['music_path'] + '/' + self.settings['pwrecord_directory']
+            '--target=%s' % target, '%s/%s/%s' % (self.settings['music_path'],self.settings['directory_pwrecord'],new_filename)]
+            cwd=self.settings['music_path'] + '/' + self.settings['directory_pwrecord']
             self.madmin.process_starter(cmd=cmd, cwd=cwd, job='pwrecord', identifier='', source='')
 
 
@@ -549,12 +549,12 @@ class TabConverter:
 
 
    def button_you2mp3_update_tooltip(self, directory):
-      self.button_you2mp3.set_tooltip_text('Convert a Youtube Url to mp3 - Destination Directory: %s' % directory)
+      self.button_you2mp3.set_tooltip_text('Convert a Youtube url to mp3 - Destination Directory: %s' % directory)
 
 
 
    def button_pwrecord_update_tooltip(self, filename, directory):
-      self.button_pwrecord.set_tooltip_text('Record Pipewire Device - Destination Filename: %s Directory: %s' % (filename,directory))
+      self.button_pwrecord.set_tooltip_text('Record via Pipewire - Destination Filename: %s Directory: %s' % (filename,directory))
 
 
 
