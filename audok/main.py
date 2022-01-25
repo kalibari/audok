@@ -81,7 +81,7 @@ class Music_Admin_Start(Gtk.Window):
       GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, self.signal_handler_sigint)
 
       if self.playlist:
-         self.notebook_tab_musicplayer.choose_song(choose='keep')
+         self.notebook_tab_musicplayer.choose_song(num=self.config['play_num'])
          self.notebook_tab_musicplayer.play_file()
 
 

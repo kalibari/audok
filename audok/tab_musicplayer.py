@@ -375,7 +375,8 @@ class TabMusicPlayer:
       self.log.debug('def bus_player_error - start')
 
       err, dbg = msg.parse_error()
-      self.log.debug('def bus_player_error - error:', msg.src.get_name(), ':', err.message)
+
+      self.log.debug('def bus_player_error - error: %s' % err.message)
 
       self.player.set_state(Gst.State.NULL)
       self.player.set_state(Gst.State.READY)
@@ -551,13 +552,13 @@ class TabMusicPlayer:
    def update_scrolled_window(self, num=0):
       self.log.debug('def update_scrolled_window - start')
 
-      len_playlist = len(self.playlist)
-      adj = self.scrolledwindow1.get_vadjustment()
-      upper_size = adj.get_upper()
-      page_size = adj.get_page_size()
-      set_size = (upper_size / len_playlist) * num
-      self.log.debug('def choose_song - set_size: %s play_num: %s upper_size: %s page_size: %s' % (set_size,num,upper_size,page_size))
-      adj.set_value(set_size)
+      #len_playlist = len(self.playlist)
+      #adj = self.scrolledwindow1.get_vadjustment()
+      #upper_size = adj.get_upper()
+      #page_size = adj.get_page_size()
+      #set_size = (upper_size / len_playlist) * num
+      #self.log.debug('def choose_song - set_size: %s play_num: %s upper_size: %s page_size: %s' % (set_size,num,upper_size,page_size))
+      #adj.set_value(set_size)
 
 
 
@@ -837,13 +838,14 @@ class TabMusicPlayer:
 
    def checkbutton_auto_move_toggled(self, event):
       self.log.debug('def checkbutton_auto_move_toggled - start')
-      # do not save auto move
+      # do not save
       #self.settings['checkbutton_auto_move']=event.get_active()
 
 
    def checkbutton_auto_scan_toggled(self, event):
       self.log.debug('def checkbutton_auto_scan_toggled - start')
-      self.settings['checkbutton_auto_scan']=event.get_active()
+      # do not save
+      #self.settings['checkbutton_auto_scan']=event.get_active()
 
 
 
