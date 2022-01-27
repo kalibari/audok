@@ -5,7 +5,6 @@ from gi.repository import Gtk
 gi.require_version('GLib', '2.0')
 from gi.repository import GLib
 
-
 class TabStreamRipper:
 
    def __init__(self, madmin, log, config, settings, stationlist):
@@ -16,69 +15,105 @@ class TabStreamRipper:
       self.settings = settings
       self.stationlist = stationlist
 
+      self.obj_timer_streamripper=None
+
       self.count=0
 
-      #############################
-      self.hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+      self.pre_stationlist = [['Alternative', 'Radio freeFM Ulm', 'http://stream.freefm.de:7000/Studio'],
+                              ['Alternative', 'Radio FM 4 at', 'https://orf-live.ors-shoutcast.at/fm4-q2a'],
+                              ['Alternative', 'Zeilsteen Radio', 'http://live.zeilsteen.com:80'],
 
+                              ['Mix', '1.FM - Gorilla FM', 'http://185.33.21.112:80/gorillafm_128'],
+
+                              ['Electro', 'radio Top 40 Elekcro', 'http://antenne-th.divicon-stream.net/antth_top40electro_JlSz-mp3-192?sABC=58p2q700%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
+                              ['Electro', 'Sunshine Live','http://sunshinelive.hoerradar.de/sunshinelive-live-mp3-hq'],
+
+                              ['Charts', 'radio Top 40 Weimar Charts', 'http://antenne-th.divicon-stream.net/antth_top40char_0f6x-mp3-192?sABC=58p2q6s8%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
+                              ['Charts', 'Top 100 Station','http://www.top100station.de/switch/r3472.pls'],
+                              ['Charts', 'radio Top 40 Weimar Live', 'http://antenne-th.divicon-stream.net/antth_top40live_SeJx-mp3-192?sABC=58p2q6rq%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
+
+                              ['Pop', 'Gizmo New 102 (The Mixx)', 'http://206.190.135.28:8302/stream'],
+                              ['Pop', 'Antenne Bayern Fresh4You', 'http://mp3channels.webradio.antenne.de/fresh'],
+
+                              ['Rock', 'PureRock.US', 'http://167.114.64.181:8524/stream']]
+
+
+
+
+      #############################
       self.grid = Gtk.Grid()
       self.grid.set_column_homogeneous(True)
-      self.grid.set_row_homogeneous(True)
+      #self.grid.set_row_homogeneous(True)
 
 
       self.record_station = []
 
-      self.station_not_running = []
+      toogle_num=0
 
       self.station_liststore = Gtk.ListStore(int, bool, bool, str, str, str)
-      for i, stlist in enumerate(self.stationlist):
-         self.station_liststore.append([0, False, False, stlist[0], stlist[1], stlist[2]])
+      for stlist in self.stationlist:
+         toogle_on=False
+         if str(toogle_num) in self.settings['stations_toogle_on']:
+            toogle_on=True
+         toogle_num+=1
+         self.station_liststore.append([0, toogle_on, False, stlist[0], stlist[1], stlist[2]])
+
+
+      for i, stlist in enumerate(self.pre_stationlist):
+         toogle_on=False
+         if str(toogle_num) in self.settings['stations_toogle_on']:
+            toogle_on=True
+         toogle_num+=1
+         self.station_liststore.append([0, toogle_on, False, stlist[0], stlist[1], stlist[2]])
+
 
 
       self.treeview = Gtk.TreeView.new_with_model(model=self.station_liststore)
+      self.treeview.connect('button-press-event', self.treeview_press_event)
+
 
       self.renderer_spinner = Gtk.CellRendererSpinner()  
       self.column_spinner = Gtk.TreeViewColumn('', self.renderer_spinner, active=0)
       self.treeview.append_column(self.column_spinner)
       self.column_spinner.add_attribute(self.renderer_spinner, 'pulse' , 0)
 
-      self.obj_timer_streamripper=None
 
 
       renderer_toggle = Gtk.CellRendererToggle()
       column_toggle = Gtk.TreeViewColumn('Toggle', renderer_toggle, active=1)
       renderer_toggle.connect('toggled', self.on_cell_toggled)
       self.treeview.append_column(column_toggle)
+      self.treeview.set_activate_on_single_click(True)
 
 
-
-      renderer = Gtk.CellRendererText()
-      renderer.set_property('editable', True)
-      column_text = Gtk.TreeViewColumn('Genre', renderer, text=3)
-      renderer.connect('edited', self.renderer_genre_edited)
+      self.renderer_genre = Gtk.CellRendererText()
+      self.renderer_genre.set_property('editable', True)
+      column_text = Gtk.TreeViewColumn('Genre', self.renderer_genre, text=3)
+      self.renderer_genre.connect('edited', self.renderer_genre_edited)
       self.treeview.append_column(column_text)
 
 
 
-      renderer = Gtk.CellRendererText()
-      renderer.set_property('editable', True)
-      renderer.connect('edited', self.renderer_stations_edited)
-      column_text = Gtk.TreeViewColumn('Station', renderer, text=4)
+      self.renderer_stations = Gtk.CellRendererText()
+      self.renderer_stations.set_property('editable', True)
+      self.renderer_stations.connect('edited', self.renderer_stations_edited)
+      column_text = Gtk.TreeViewColumn('Station', self.renderer_stations, text=4)
       self.treeview.append_column(column_text)
 
 
 
-      renderer = Gtk.CellRendererText()
-      renderer.set_property('editable', True)
-      renderer.connect('edited', self.renderer_url_edited)
-      column_text = Gtk.TreeViewColumn('Url', renderer, text=5)
+      self.renderer_url = Gtk.CellRendererText()
+      self.renderer_url.set_property('editable', True)
+      self.renderer_url.connect('edited', self.renderer_url_edited)
+      column_text = Gtk.TreeViewColumn('Url', self.renderer_url, text=5)
       self.treeview.append_column(column_text)
-
 
 
       scrollable_treelist = Gtk.ScrolledWindow()
       scrollable_treelist.set_vexpand(True)
+      scrollable_treelist.add(self.treeview)
       self.grid.attach(scrollable_treelist, 0, 0, 8, 10)
+
 
 
       button_selectall = Gtk.Button(label='Select All')
@@ -93,73 +128,138 @@ class TabStreamRipper:
       button_record_stop = Gtk.Button(label='Stop')
       button_record_stop.connect('clicked', self.button_stop_clicked)
 
+      button_new_station = Gtk.Button(label='New Station')
+      button_new_station.connect('clicked', self.button_new_station_clicked)
+
+      button_delete_station = Gtk.Button(label='Delete Station')
+      button_delete_station.connect('clicked', self.button_delete_station_clicked)
+
       button_reset = Gtk.Button(label='Reset')
       button_reset.connect('clicked', self.button_reset_clicked)
 
       button_info = Gtk.Button(label='Info')
       button_info.connect('clicked', self.button_info_clicked)
 
-
-
       self.grid.attach_next_to(button_selectall, scrollable_treelist, Gtk.PositionType.BOTTOM, 1, 1)
       self.grid.attach_next_to(button_deselectall, button_selectall, Gtk.PositionType.RIGHT, 1, 1)
       self.grid.attach_next_to(button_record_start, button_deselectall, Gtk.PositionType.RIGHT, 1, 1)
       self.grid.attach_next_to(button_record_stop, button_record_start, Gtk.PositionType.RIGHT, 1, 1)
-      self.grid.attach_next_to(button_reset, button_record_stop, Gtk.PositionType.RIGHT, 1, 1)
+      self.grid.attach_next_to(button_new_station, button_record_stop, Gtk.PositionType.RIGHT, 1, 1)
+      self.grid.attach_next_to(button_delete_station, button_new_station, Gtk.PositionType.RIGHT, 1, 1)
+      self.grid.attach_next_to(button_reset, button_delete_station, Gtk.PositionType.RIGHT, 1, 1)
       self.grid.attach_next_to(button_info, button_reset, Gtk.PositionType.RIGHT, 1, 1)
 
 
-      scrollable_treelist.add(self.treeview)
+      self.hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
       self.hbox.pack_start(self.grid, True, True, 0)
 
 
 
-   def on_cell_toggled(self, widget, path):
-      self.log.debug('def on_cell_toggled start widget: %s path: %s' % (widget, path))
-      self.station_liststore[path][1] = not self.station_liststore[path][1]
+   def on_cell_toggled(self, widget, row):
+
+      self.log.debug('def on_cell_toggled start row: %s' % row)
+
+      toogle = widget.get_active()
+
+      if toogle==True:
+         self.station_liststore[row][1] = False
+         if row in self.settings['stations_toogle_on']:
+            self.settings['stations_toogle_on'].remove(row)
+
+      else:
+         self.station_liststore[row][1] = True
+         if not row in self.settings['stations_toogle_on']:
+            self.settings['stations_toogle_on'].extend([row])
+
+      self.log.debug('def on_cell_toggled stations_toogle_on: %s' % self.settings['stations_toogle_on'])
 
 
 
-   def renderer_genre_edited(self, widget, path, text):
-      self.log.debug('def renderer_genre_edited start widget: %s path: %s text: %s' % (widget, path, text))
-      self.station_liststore[path][3] = text
-      self.stationlist[int(path)][0] = self.station_liststore[path][3]
-      self.config['stationlist_changed']=True
 
 
-   def renderer_stations_edited(self, widget, path, text):
-      self.log.debug('def renderer_stations_edited start widget: %s path: %s text: %s' % (widget, path, text))
-      self.station_liststore[path][4] = text
-      self.stationlist[int(path)][1] = self.station_liststore[path][4]
-      self.config['stationlist_changed']=True
+   def treeview_press_event(self, treeview, event):
+
+      self.log.debug('def treeview_press_event - start')
+
+      model, treeiter = treeview.get_selection().get_selected()
+      if treeiter is not None:
+         path = model.get_path(treeiter)
+         num = int(path.to_string())
+
+         self.log.debug('def treeview_press_event - num: %s' % num)
+
+         if num>=len(self.stationlist):
+            self.renderer_genre.set_property('editable', False)
+            self.renderer_stations.set_property('editable', False)
+            self.renderer_url.set_property('editable', False)
+         else:
+            self.renderer_genre.set_property('editable', True)
+            self.renderer_stations.set_property('editable', True)
+            self.renderer_url.set_property('editable', True)
 
 
 
-   def renderer_url_edited(self, widget, path, text):
-      self.log.debug('def renderer_url_edited start widget: %s path: %s text: %s' % (widget, path, text))
-      self.station_liststore[path][5] = text
-      self.stationlist[int(path)][2] = self.station_liststore[path][5]
-      self.config['stationlist_changed']=True
+   def renderer_genre_edited(self, widget, row, text):
+
+      self.log.debug('def renderer_genre_edited start row: %s text: %s len(self.stationlist): %s' % (row, text, len(self.stationlist)))
+
+      row=int(row)
+      self.station_liststore[row][3] = text
+      self.stationlist[row][0] = text
+      self.config['stations_changed']=True
+
+
+
+
+   def renderer_stations_edited(self, widget, row, text):
+
+      self.log.debug('def renderer_stations_edited start row: %s text: %s len(self.stationlist): %s' % (row, text, len(self.stationlist)))
+
+      row=int(row)
+      self.station_liststore[row][4] = text
+      self.stationlist[row][1] = text
+      self.config['stations_changed']=True
+
+
+
+
+   def renderer_url_edited(self, widget, row, text):
+
+      self.log.debug('def renderer_url_edited start row: %s text: %s len(self.stationlist): %s' % (row, text, len(self.stationlist)))
+
+      row=int(row)
+      self.station_liststore[row][5] = text
+      self.stationlist[row][2] = text
+      self.config['stations_changed']=True
+
 
 
 
    def button_selectall_clicked(self, event):
+
       self.log.debug('def button_selectall_clicked start')
 
+      self.settings['stations_toogle_on']=[]
       for i, item in enumerate(self.station_liststore):
          self.station_liststore[i][1] = True
+         self.settings['stations_toogle_on'].extend([str(i)])
+
 
 
 
    def button_deselectall_clicked(self, event):
+
       self.log.debug('def button_deselectall_clicked start')
 
       for i, item in enumerate(self.station_liststore):
          self.station_liststore[i][1] = False
 
+      self.settings['stations_toogle_on'] = []
+
 
 
    def button_reset_clicked(self, event):
+
       self.log.debug('def button_reset_clicked - start')
 
       if os.path.exists('%s/%s' % (self.settings['config_path'],self.settings['filename_stations'])):
@@ -168,18 +268,18 @@ class TabStreamRipper:
       self.madmin.on_reset_close()
 
 
-   
+
    def button_info_clicked(self, event):
+
       self.log.debug('def button_info_clicked - start')
 
-      #button = Gtk.LinkButton('https://www.shoutcast.com', label='Shoutcast')
+      url=['https://directory.shoutcast.com','https://radio.alltrack.org']
 
       dialog = Gtk.MessageDialog(parent=None,
                                  message_type=Gtk.MessageType.INFO,
                                  flags=Gtk.DialogFlags.MODAL,
                                  buttons=('Ok',Gtk.ButtonsType.OK),
-                                 text='Get new stations from: https://www.shoutcast.com')
-
+                                 text='Get new stations from: %s' % ', '.join(url))
 
       dialog.set_title('Info')
       dialog.show()
@@ -192,12 +292,10 @@ class TabStreamRipper:
 
       self.count+=1
 
-      if self.station_not_running:
-         self.log.debug('def check_streamripper record_station: %s' % self.record_station)
-         self.log.debug('def check_streamripper station_not_running: %s' % self.station_not_running)
+      self.log.debug('def check_streamripper record_station: %s' % self.record_station)
 
 
-      if not bool(list(set(self.record_station) - set(self.station_not_running))):
+      if not self.record_station:
          self.log.debug('def check_streamripper stop')
 
          if self.obj_timer_streamripper is not None:
@@ -207,90 +305,92 @@ class TabStreamRipper:
          return False
 
 
-
-      station_update_counter = []
-
-      for i in self.record_station:
-         not_runing=0
-         for z in self.station_not_running:
-            if i==z:
-               not_runing=1
-         if not_runing==0:
-            station_update_counter.extend([i])
-
-
       for i, item in enumerate(self.station_liststore):
-         for z in station_update_counter:
-            if i==z:
-               self.station_liststore[i][0]=self.count
+         if i in self.record_station:
+            self.station_liststore[i][0]=self.count
 
 
-
+      remove_pnum=[]
 
       # find stations that are not running
-      count_active=[]
-      count_inactive=[]
+      for pnum in self.madmin.process_database:
+         if self.madmin.process_database[pnum]['job']=='streamripper':
 
-      for item in self.record_station:
+            identifier = self.madmin.process_database[pnum]['identifier']
 
-         for num in self.madmin.process_database:
-            if self.madmin.process_database[num]['job']=='streamripper':
+            if int(identifier) in self.record_station:
 
-               if int(self.madmin.process_database[num]['identifier'])==item:
+               # set status inactive
+               if self.madmin.process_database[pnum]['todo']=='result':
+                  self.madmin.process_database[pnum]['status']='inactive'
 
-                  # set status inactive
-                  if self.madmin.process_database[num]['todo']=='result':
-                     self.madmin.process_database[num]['status']='inactive'
-
-                  if self.madmin.process_database[num]['status']=='killed':
-                     self.madmin.process_database[num]['status']='inactive'
-
-                  if self.madmin.process_database[num]['status']=='inactive':
-                     self.station_liststore[item][0]=0
-                     self.station_not_running.extend([item])
-                  else:
-                     count_active.extend(['%s/%s' % (item,self.station_liststore[item][0])])
+               if self.madmin.process_database[pnum]['status']=='killed':
+                  self.madmin.process_database[pnum]['status']='inactive'
 
 
-      if count_active:
-         self.log.debug('def check_streamripper station: %s' % ', '.join(count_active))
+               if self.madmin.process_database[pnum]['status']=='inactive':
+                  remove_pnum.extend([pnum])
+                  self.station_liststore[int(identifier)][0]=0
+                  self.record_station.remove(int(identifier))
 
 
-      self.station_not_running = list(set(self.station_not_running))
+      for pnum in remove_pnum:
+         del self.madmin.process_database[pnum]
+      #self.log.debug('def check_streamripper process_database: %s' % self.madmin.process_database)
 
       return True
 
 
 
+
    def button_record_clicked(self, event):
+
       self.log.debug('def button_record_clicked start')
 
-
-      if self.obj_timer_streamripper is None:
-         self.obj_timer_streamripper = GLib.timeout_add(1000, self.check_streamripper)
-
-
-      if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_str']):
-         os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_str'])
-
-
-      # reset
-      self.record_station = []
-
-
+      toogle_on = []
       for i, item in enumerate(self.station_liststore):
          if self.station_liststore[i][1]==True:
+            toogle_on.extend([i])
 
-            self.record_station.extend([i])
+      if toogle_on:
 
-            self.log.debug('def button_record_clicked identifier: %s file: %s' % (i,self.stationlist[i]))
+         if self.obj_timer_streamripper is None:
+            self.obj_timer_streamripper = GLib.timeout_add(1000, self.check_streamripper)
 
-            # streamripper http://www.top100station.de/switch/r3472.pls -u WinampMPEG/5.0 -d /Music/Streamtuner/
-            cmd=[self.config['bin_streamripper'], self.station_liststore[i][5],'-u','WinampMPEG/5.0','-d','%s/%s' % (self.settings['music_path'],self.settings['directory_str'])]
-            cwd=self.settings['music_path'] + '/' + self.settings['directory_str']
-            self.madmin.process_starter(cmd=cmd, cwd=cwd, job='streamripper', identifier=str(i), source=self.station_liststore[i][5])
 
-      self.record_station = list(set(self.record_station))
+         if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_str']):
+            os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_str'])
+
+
+         self.log.debug('def button_record_clicked record_station: %s' % self.record_station)
+
+
+         for i in toogle_on:
+            if not i in self.record_station:
+
+               self.record_station.extend([i])
+
+               self.log.debug('def button_record_clicked i: %s' % i)
+
+               # streamripper http://www.top100station.de/switch/r3472.pls -u WinampMPEG/5.0 -d /Music/Streamtuner/
+               cmd=[self.config['bin_streamripper'], self.station_liststore[i][5],'-u','WinampMPEG/5.0','-d','%s/%s' % (self.settings['music_path'],self.settings['directory_str'])]
+               cwd=self.settings['music_path'] + '/' + self.settings['directory_str']
+               self.madmin.process_starter(cmd=cmd, cwd=cwd, job='streamripper', identifier=str(i), source=self.station_liststore[i][5])
+
+
+
+
+
+   def stop_ripper_process(self):
+      self.log.debug('def stop_ripper_process start')
+
+      toogle_on = []
+      for i, item in enumerate(self.station_liststore):
+         if self.station_liststore[i][1]==True:
+            toogle_on.extend([i])
+
+      for i in toogle_on:
+         self.madmin.process_job_identifier_killer(job='streamripper', identifier=str(i))
 
 
 
@@ -298,16 +398,61 @@ class TabStreamRipper:
    def button_stop_clicked(self, event):
 
       self.log.debug('def button_stop_clicked start')
+      self.stop_ripper_process()
 
-      # reset
-      self.station_not_running = []
+
+
+
+   def button_delete_station_clicked(self, event):
+
+      len_stationlist=len(self.stationlist)
+      len_pre_stationlist=len(self.pre_stationlist)
+
+      self.log.debug('def button_delete_station_clicked len_stationlist: %s len_pre_stationlist: %s' % (len_stationlist,len_pre_stationlist))
+
+
+      self.stop_ripper_process()
+
+
+      remove_iter = []
+      remove_stationlist = []
       for i, item in enumerate(self.station_liststore):
-         self.station_liststore[i][0]=0
+         if self.station_liststore[i][1]==True:
+            x = self.station_liststore.get_iter(i)
+            if i<len_stationlist:
+               remove_iter.extend([x])
+               remove_stationlist.extend([i])
 
 
-      if self.obj_timer_streamripper is not None:
-         self.log.debug('def button_stop_clicked remove glib timer')
-         GLib.source_remove(self.obj_timer_streamripper)
-         self.obj_timer_streamripper=None
+      if remove_iter:
+         for x in remove_iter:
+            self.station_liststore.remove(x)
 
-      self.madmin.process_job_killer(job='streamripper')
+
+      if remove_stationlist:
+         new_playlist=[]
+         for i,item in enumerate(self.stationlist):
+            if not i in remove_stationlist:
+               new_playlist.extend([item])
+         self.stationlist=new_playlist
+
+
+      self.settings['stations_toogle_on'] = []
+      self.config['stations_changed'] = True
+
+      self.log.debug('def button_delete_station_clicked len(stationlist): %s' % len(self.stationlist))
+
+
+
+
+
+   def button_new_station_clicked(self, event):
+      
+      self.log.debug('def button_new_station_clicked start')
+
+      self.station_liststore.insert(position=0, row=[0, False, False, '','New Station', ''])
+      self.stationlist.extend([['','New Station','']])
+
+      self.settings['stations_toogle_on'] = []
+      self.config['stations_changed']=True
+

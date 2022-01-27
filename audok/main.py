@@ -34,8 +34,8 @@ class Music_Admin_Start(Gtk.Window):
       self.stationlist = stationlist
 
 
-      self.set_default_size(settings['size_x'],settings['size_y'])
-      self.move(settings['position_x'], settings['position_y'])
+      self.set_default_size(int(settings['size_x']),int(settings['size_y']))
+      self.move(int(settings['position_x']), int(settings['position_y']))
       self.set_resizable(True) 
 
 
@@ -63,7 +63,7 @@ class Music_Admin_Start(Gtk.Window):
       self.notebook.append_page(self.notebook_tab_musicplayer.box, Gtk.Label(label='Music Player'))
       self.notebook.append_page(self.notebook_tab_converter.box, Gtk.Label(label='Converter'))
       self.notebook.append_page(self.notebook_tab_streamripper.hbox, Gtk.Label(label='Streamripper'))
-      self.notebook.append_page(self.notebook_tab_settings.box, Gtk.Label(label='Settings'))
+      self.notebook.append_page(self.notebook_tab_settings.hbox, Gtk.Label(label='Settings'))
       self.notebook.append_page(self.notebook_tab_about.box, Gtk.Image.new_from_icon_name('help-about',Gtk.IconSize.MENU))
 
 
@@ -128,32 +128,31 @@ class Music_Admin_Start(Gtk.Window):
       f.write('<data>\n')
       for element in self.settings:
          value = self.settings[element]
-         if isinstance(value, int):
-            value = int(value)
-         elif isinstance(value, str):
-            value = value.strip()
-         elif isinstance(value, list):
+         if isinstance(value, list):
             value = '[' + ','.join(value) + ']'
+         else:
+            value = value.strip()
 
          f.write('\t<' + str(element) + '>' + str(value) + '</' + str(element) + '>\n')
       f.write('</data>\n')
       f.close()
 
 
-      if self.config['stationlist_changed']==True:
+      if self.config['stations_changed']==True:
 
-         station_liststore=self.notebook_tab_streamripper.station_liststore
          stationlist=self.notebook_tab_streamripper.stationlist
-
 
          f = open('%s/%s' % (self.settings['config_path'],self.settings['filename_stations']), 'w')
          f.write('<?xml version="1.0"?>\n')
          f.write('<data>\n')
-         for i, item in enumerate(station_liststore):
-            # stationlist[i][0]  # Alternative
-            # stationlist[i][1]  # Radio freeFM Ulm
-            # stationlist[i][2]  # http://stream.freefm.de:8100/listen.pls
-            f.write('\t<station>\n' + '\t\t<name>' + str(stationlist[i][0]) + '</name>\n'  + '\t\t<genre>' + str(stationlist[i][1]) + '</genre>\n'  + '\t\t<url>' + str(stationlist[i][2]) +  '</url>\n' +  '\t</station>\n')
+         for genre,station,url in stationlist:
+            #print (genre)
+            #print (type(genre))
+            #print (station)
+            #print (type(station))
+            #print (url)
+            #print (type(url))
+            f.write('\t<stations>\n' + '\t\t<genre>' + genre + '</genre>\n'  + '\t\t<station>' + station + '</station>\n'  + '\t\t<url>' + url +  '</url>\n' +  '\t</stations>\n')
          f.write('</data>\n')
          f.close()
 
@@ -183,11 +182,15 @@ class Music_Admin_Start(Gtk.Window):
          if self.notebook_tab_musicplayer.player:
             self.notebook_tab_musicplayer.player.set_state(Gst.State.NULL)
 
-         if self.notebook_tab_musicplayer.obj_timer_refresh_slider is not None:
-            GLib.source_remove(self.notebook_tab_musicplayer.obj_timer_refresh_slider)
+         if self.notebook_tab_musicplayer.obj_timer_slider is not None:
+            GLib.source_remove(self.notebook_tab_musicplayer.obj_timer_slider)
 
-         if self.notebook_tab_musicplayer.obj_timer_play_time_check is not None:
-            GLib.source_remove(self.notebook_tab_musicplayer.obj_timer_play_time_check)
+         if self.notebook_tab_musicplayer.obj_timer_play_time is not None:
+            GLib.source_remove(self.notebook_tab_musicplayer.obj_timer_play_time)
+
+         if self.notebook_tab_musicplayer.obj_timer_auto_play is not None:
+            GLib.source_remove(self.notebook_tab_musicplayer.obj_timer_auto_play)
+
 
 
       if hasattr(self, 'notebook_tab_streamripper'):
@@ -208,10 +211,10 @@ class Music_Admin_Start(Gtk.Window):
       (width,height) = self.get_size()
       (position_x, position_y) = self.get_position()
 
-      self.settings['size_x'] = width
-      self.settings['size_y'] = height
-      self.settings['position_x'] = position_x
-      self.settings['position_y'] = position_y
+      self.settings['size_x'] = str(width)
+      self.settings['size_y'] = str(height)
+      self.settings['position_x'] = str(position_x)
+      self.settings['position_y'] = str(position_y)
 
 
 
@@ -240,9 +243,15 @@ class Music_Admin_Start(Gtk.Window):
          self.log.debug('def file_scan - item: %s' % item)
 
          for ext in extensions:
+
+            self.log.debug('def file_scan - ext: %s' % ext)
+
             if os.path.isdir(item):
                for filename in os.listdir(item):
-                  if filename.endswith(ext):
+
+                  self.log.debug('def file_scan - filename: %s' % filename)
+
+                  if filename.endswith('.' + ext):
                      pitem = item + '/' + filename
                      if os.path.isfile(pitem):
                         allfiles.extend([pitem])
@@ -255,23 +264,56 @@ class Music_Admin_Start(Gtk.Window):
 
 
 
+
+   def process_job_identifier_killer(self, job, identifier):
+
+      self.log.debug('def process_job_identifier_killer - start job: %s identifier: %s' % (job,identifier))
+
+      for pnum in self.process_database:
+
+         self.log.debug('def process_job_identifier_killer - status: %s' % self.process_database[pnum]['status'])
+         if self.process_database[pnum]['status']=='active':
+
+            self.log.debug('def process_job_identifier_killer - job: %s' % self.process_database[pnum]['job'])
+            if self.process_database[pnum]['job']==job:
+
+               self.log.debug('def process_job_identifier_killer - identifier: %s' % self.process_database[pnum]['identifier'])
+               if self.process_database[pnum]['identifier']==identifier:
+
+                  pid=''
+                  try:
+                     pid=int(self.process_database[pnum]['pid'])
+                     os.kill(pid, signal.SIGINT)
+                     self.process_database[pnum]['status']='killed'
+                     self.log.debug('def process_job_identifier_killer - job: %s pid: %s killed' % (self.process_database[pnum]['job'],pid))
+                  except:
+                     self.log.debug('def process_job_identifier_killer - job: %s cannot kill pid: %s' % (self.process_database[pnum]['job'],pid))
+
+
+
+
    def process_job_killer(self, job):
 
-      self.log.debug('def process_job_killer - start')
+      self.log.debug('def process_job_killer - start job: %s' % job)
 
-      for item in self.process_database:
-         if self.process_database[item]['status']=='active':
-            if self.process_database[item]['job']==job:
+      for pnum in self.process_database:
+
+         self.log.debug('def process_job_killer - status: %s' % self.process_database[pnum]['status'])
+         if self.process_database[pnum]['status']=='active':
+
+            self.log.debug('def process_job_killer - job: %s' % self.process_database[pnum]['job'])
+            if self.process_database[pnum]['job']==job:
+
+               pid=''
                try:
-                  os.kill(int(self.process_database[item]['pid']), signal.SIGINT)
-                  self.process_database[item]['status']='killed'
+                  pid=int(self.process_database[pnum]['pid'])
+                  os.kill(pid, signal.SIGINT)
+                  self.process_database[pnum]['status']='killed'
+                  self.log.debug('def process_job_killer - job: %s pid: %s killed' % (self.process_database[pnum]['job'],pid))
                except:
-                  pass
+                  self.log.debug('def process_job_killer - job: %s cannot kill pid: %s' % (self.process_database[pnum]['job'],pid))
 
-               if self.process_database[item]['status']=='killed':
-                  self.log.debug('def process_job_killer - job: %s killed pid: %s' % (self.process_database[item]['job'],self.process_database[item]['pid']))
-               else:
-                  self.log.debug('def process_job_killer - job: %s cannot kill pid: %s' % (self.process_database[item]['job'],self.process_database[item]['pid']))
+
 
 
 
@@ -375,14 +417,14 @@ class Music_Admin_Start(Gtk.Window):
 
       for num in range(0,10):
 
-         self.settings['ipc_port'] = self.settings['ipc_port'] + num
+         self.settings['ipc_port'] = str(int(self.settings['ipc_port']) + num)
 
          try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.bind(('localhost', self.settings['ipc_port']))
+            sock.bind(('localhost', int(self.settings['ipc_port'])))
             sock.listen(1)
             with open('%s/%s' % (self.settings['config_path'],self.settings['filename_ipcport']),'w') as f:
-               f.write(str(self.settings['ipc_port']))
+               f.write(self.settings['ipc_port'])
                f.close()
                self.log.debug('def ipc_server - write %s/%s' % (self.settings['config_path'],self.settings['filename_ipcport']))
             break
@@ -409,16 +451,25 @@ class Music_Admin_Start(Gtk.Window):
                   self.log.debug('def ipc_server - thread received "%s"' % data)
 
                   if data=='play_timer_end':
+                     self.log.debug('def ipc_server - play_timer_end')
+
                      self.settings['interrupt']='play_timer_end'
                      self.notebook_tab_musicplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_musicplayer.player,Gst.Structure.new_empty('song-changed')))
 
                   elif data.startswith('play_new_file='):
+                     self.log.debug('def ipc_server - play_new_file -> bus_application_message')
+
+                     state = self.notebook_tab_musicplayer.player.get_state(0).state
+
                      self.settings['interrupt']='play_new_file'
                      data=data.replace('play_new_file=','',1)
                      self.notebook_tab_musicplayer.playlist.insert(0, data)
-                     #self.notebook_tab_musicplayer.playlist.extend([data])
-                     #self.config['play_num'] = len(self.notebook_tab_musicplayer.playlist)-1
-                     #self.config['play_num'] = 0
+
+                     if state==Gst.State.PAUSED or state==Gst.State.NULL:
+                        self.notebook_tab_musicplayer.button_play.set_sensitive(False)
+                        self.notebook_tab_musicplayer.play_file()
+
+
                      self.notebook_tab_musicplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_musicplayer.player,Gst.Structure.new_empty('song-changed')))
 
                else:

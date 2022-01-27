@@ -397,15 +397,17 @@ class TabConverter:
       if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_new']):
          os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_new'])
 
-      extensions = self.config['supported_audio_files']
+      extensions = list(self.config['supported_audio_files'])
+      if 'mp3' in extensions:
+         extensions.remove('mp3')
 
-      allfiles = self.madmin.file_scan(directories, extensions)
+      files_to_change = self.madmin.file_scan(directories, extensions)
       mp3files = self.madmin.file_scan(directories, ['mp3'])
 
 
-      self.textbuffer_output.set_text('number of files to change: %s\n' % len(allfiles))
+      self.textbuffer_output.set_text('number of files to change: %s\n' % len(files_to_change))
 
-      if len(allfiles)==0:
+      if len(files_to_change)==0:
 
          self.log.debug('def button_file2mp3_chlicked - no files to change')
 
@@ -422,7 +424,7 @@ class TabConverter:
 
          self.obj_timer_file2mp3 = GLib.timeout_add(1000, self.refresh_output_textctrl_timer)
 
-         for item in allfiles:
+         for item in files_to_change:
 
             x = re.search('^(.*)(-\d)?\.(%s)' % '|'.join(extensions), item)
             if x and x.group(1) and x.group(3):
@@ -463,15 +465,17 @@ class TabConverter:
       if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_new']):
          os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_new'])
 
-      extensions = self.config['supported_audio_files']
+      extensions = list(self.config['supported_audio_files'])
+      if 'flac' in extensions:
+         extensions.remove('flac')
 
-      allfiles = self.madmin.file_scan(directories, extensions)
+      files_to_change = self.madmin.file_scan(directories, extensions)
       flacfiles = self.madmin.file_scan(directories, ['flac'])
 
 
-      self.textbuffer_output.set_text('number of files to change: %s\n' % len(allfiles))
+      self.textbuffer_output.set_text('number of files to change: %s\n' % len(files_to_change))
 
-      if len(allfiles)==0:
+      if len(files_to_change)==0:
 
          self.log.debug('def button_file2flac_chlicked - no files to change')
 
@@ -488,7 +492,7 @@ class TabConverter:
          self.obj_timer_file2flac = GLib.timeout_add(1000, self.refresh_output_textctrl_timer)
 
 
-         for item in allfiles:
+         for item in files_to_change:
 
             x = re.search('^(.*)(-\d)?\.(%s)' % '|'.join(extensions), item)
             if x and x.group(1) and x.group(3):

@@ -38,12 +38,12 @@ if __name__ == '__main__':
    config={}
 
    config['name'] = 'audok'
-   config['version'] = '1.0.9'
+   config['version'] = '1.0.10'
    config['app_path'] = app_path
 
    config['play_num'] = 0
 
-   config['stationlist_changed'] = False
+   config['stations_changed'] = False
 
    config['bin_youtubedl'] = 'youtube-dl'
    config['bin_streamripper'] = 'streamripper'
@@ -52,20 +52,24 @@ if __name__ == '__main__':
    config['bin_pwrecord'] = 'pw-record'
    config['bin_nice'] = 'nice'
 
-   config['supported_audio_files'] = ['.mp3','.ogg','.aac','.flac','.midi','.mp4','.mpeg','.wma','.asx','.wav','.mpegurl']
+   config['supported_audio_files'] = ['mp3','ogg','aac','flac','midi','mp4','mpeg','wma','asx','wav','mpegurl']
 
 
    settings={}
 
+   settings['version'] = config['version']
+   settings['journald_log'] = '0'
+   settings['tty_debug'] = '0'
+   #settings['tty_debug'] = '1'
 
-   settings['journald_log'] = 0
 
    log = logging.getLogger(config['name'])
-   if sys.stdin.isatty():
-      log.addHandler(logging.StreamHandler())
-      log.setLevel(logging.DEBUG)
+   if settings['tty_debug'] == '1':
+      if sys.stdin.isatty():
+         log.addHandler(logging.StreamHandler())
+         log.setLevel(logging.DEBUG)
 
-   if settings['journald_log'] == 1:
+   if settings['journald_log'] == '1':
       from systemd.journal import JournalHandler
       log.addHandler(JournalHandler())
       log.setLevel(logging.DEBUG)
@@ -88,16 +92,16 @@ if __name__ == '__main__':
    settings['directory_old'] = 'Old'
    settings['directory_str'] = 'Streamripper'
 
-   settings['checkbutton_new'] = 0
-   settings['checkbutton_old'] = 0
-   settings['checkbutton_str'] = 0
-   settings['checkbutton_auto_move'] = 0
-   settings['checkbutton_auto_scan'] = 0
+   settings['checkbutton_new'] = '0'
+   settings['checkbutton_old'] = '0'
+   settings['checkbutton_str'] = '0'
+   settings['checkbutton_auto_move'] = '0'
+   settings['checkbutton_auto_play'] = '0'
 
-   settings['size_x'] = 1000
-   settings['size_y'] = 500
-   settings['position_x'] = 0
-   settings['position_y'] = 0
+   settings['size_x'] = '1000'
+   settings['size_y'] = '500'
+   settings['position_x'] = '0'
+   settings['position_y'] = '0'
 
    settings['directory_converter'] = 'New'
 
@@ -107,11 +111,11 @@ if __name__ == '__main__':
 
    settings['choice_device_pwrecord'] = ['']
 
-   settings['play_time'] = 0
-   settings['choice_play_time'] = ['0','20','35','50','65']
+   settings['play_time'] = '0'
+   settings['choice_play_time'] = ['0','10','20','35','50','65']
 
-   settings['random_time_min'] = 0
-   settings['random_time_max'] = 0
+   settings['random_time_min'] = '0'
+   settings['random_time_max'] = '0'
    settings['choice_random_time'] = ['0','10-30','30-50','50-70','70-90']
 
    settings['bitrate'] = '192k'
@@ -120,69 +124,46 @@ if __name__ == '__main__':
    settings['directory_playlist'] = 'New'
    settings['filename_playlist'] = 'playlist.m3u'
 
+   settings['ipc_port'] = '10001'
 
-   # generate a new settings.xml
-   settings['min_version'] = '0.8.6'
-   settings['ipc_port'] = 10001
+   settings['stations_toogle_on'] = []
+
+
 
 
    # read the settings file
    path = settings['config_path']
    filename = settings['filename_settings']
 
-
-   log.debug('def main - name: %s version: %s'  % (config['name'],config['version']))
-
-
    if os.path.exists(path + '/' + filename):
-
-      bak_old_version=False
-
-      tree = xml.etree.ElementTree.parse(path + '/' + filename)
-      root = tree.getroot()
+      log.debug('def main - try to read file: %s' % settings['filename_settings'])
 
       try:
+         tree = xml.etree.ElementTree.parse(path + '/' + filename)
+         root = tree.getroot()
+
          for child in root:
             if child.text is not None and child.tag is not None:
 
                element = child.tag.strip()
                value = child.text
-               try:
-                  value = int(value)
-               except:
-                  if value.startswith('[') and value.endswith(']'):
-                     value=value.replace('[','',1)
-                     value=value.replace(']','',1)
-                     if ',' in value:
-                        value=value.split(',')
-                     else:
+
+               if value.startswith('[') and value.endswith(']'):
+                  value=value.replace('[','',1)
+                  value=value.replace(']','',1)
+                  if ',' in value:
+                     value=value.split(',')
+                  else:
+                     if value:
                         value=[value]
+                     else:
+                        value=[]
+
                settings[element]=value
-      except:
-         bak_old_version=True
 
 
-      old_version=0
-      if 'old_version' in settings:
-         old_version=int(settings['old_version'].replace('.',''))
-
-
-      min_version=0
-      if 'min_version' in settings:
-         min_version=int(settings['min_version'].replace('.',''))
-
-
-      if old_version < min_version:
-         bak_old_version=True
-
-
-      if bak_old_version==True:
-         log.debug('def main - old version: %s < min version: %s' % (old_version,min_version))
-      else:
-         log.debug('def main - old version: %s >= min version: %s' % (old_version,min_version))
-
-
-      if bak_old_version==True:
+      except Exception as e:
+         log.debug('def main - cannot read file: %s error: %s -> mv to .bak' % (settings['filename_settings'],e))
 
          path = settings['config_path']
          filename = settings['filename_settings']
@@ -192,9 +173,6 @@ if __name__ == '__main__':
                os.rename('%s/%s' % (path,filename), '%s/%s.%s.bak' % (path,filename,i))
                break
 
-
-
-   settings['old_version']=config['version']
 
    log.debug('def main - app_path: %s' % config['app_path'])
    log.debug('def main - cwd: %s' % os.getcwd())
@@ -234,7 +212,7 @@ if __name__ == '__main__':
       with open('%s/%s' % (settings['config_path'],settings['filename_ipcport']),'r') as f:
          port = f.read()
          if port:
-            ipc_port = int(port)
+            ipc_port = port
       
 
       send_file=''
@@ -251,7 +229,7 @@ if __name__ == '__main__':
       else:
          try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.connect(('localhost', ipc_port))
+            sock.connect(('localhost', int(ipc_port)))
             sock.sendall(send_file.encode())
          except:
             os.remove('%s/%s' % (settings['config_path'],settings['filename_ipcport']))
@@ -271,14 +249,16 @@ if __name__ == '__main__':
          tree = xml.etree.ElementTree.parse('%s/%s' % (settings['config_path'],settings['filename_stations']))
          root = tree.getroot()
          for child in root:
-            try:
-               child[0].text.strip()
-               child[1].text.strip()
-               child[2].text.strip()
-            except:
-               pass
-
-            stationlist.extend([[child[0].text,child[1].text,child[2].text]])
+            col0=''
+            col1=''
+            col2=''
+            if child[0].text:
+               col0=child[0].text.strip()
+            if child[1].text:
+               col1=child[1].text.strip()
+            if child[2].text:
+               col2=child[2].text.strip()
+            stationlist.extend([[col0,col1,col2]])
 
       except Exception as e:
          log.debug('def main - wrong format stations.xml -> backup error: %s' % e)
@@ -287,42 +267,6 @@ if __name__ == '__main__':
                os.rename('%s/%s' % (settings['config_path'],settings['filename_stations']), '%s/%s.%s.bak' % (settings['config_path'],settings['filename_stations'],i))
                break
          stationlist = []
-
-
-
-   if not stationlist:
-
-      stationlist = [['Alternative', 'Radio freeFM Ulm', 'http://stream.freefm.de:7000/Studio'],
-                     ['Alternative', 'Radio FM 4 at', 'https://orf-live.ors-shoutcast.at/fm4-q2a'],
-                     ['Alternative', 'Zeilsteen Radio', 'http://live.zeilsteen.com:80'],
-
-                     ['Mix', '1.FM - Gorilla FM', 'http://185.33.21.112:80/gorillafm_128'],
-
-                     ['Electro', 'radio Top 40 Weimar Clubsound', 'http://antenne-th.divicon-stream.net/antth_top40electro_JlSz-mp3-192?sABC=58p2q700%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
-                     ['Electro', 'Sunshine Live','http://sunshinelive.hoerradar.de/sunshinelive-live-mp3-hq'],
-
-                     ['Chipc_serverarts', 'radio Top 40 Weimar Charts', 'http://antenne-th.divicon-stream.net/antth_top40char_0f6x-mp3-192?sABC=58p2q6s8%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
-                     ['Charts', 'Top 100 Station','http://www.top100station.de/switch/r3472.pls'],
-                     ['Charts', 'radio Top 40 Weimar Live', 'http://antenne-th.divicon-stream.net/antth_top40live_SeJx-mp3-192?sABC=58p2q6rq%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
-                     ['Charts', 'TOP 20 Radio', 'http://listen.radionomy.com:80/-TOP20-Radio'],
-
-                     ['80s', '80s New Wave','http://yp.shoutcast.com/sbin/tunein-station.pls?id=99180471'],
-
-                     ['Pop', 'Pophits Station', 'http://yp.shoutcast.com/sbin/tunein-station.pls?id=99183408'],
-                     ['Pop', 'Bailiwick Radio_00s', 'http://listen.radionomy.com:80/BailiwickRadio-00s'],
-                     ['Pop', 'Antenne 1','http://stream.antenne1.de/stream1/livestream.mp3'],
-                     ['Pop', 'Antenne Bayern Fresh4You', 'http://mp3channels.webradio.antenne.de/fresh'],
-
-                     ['Rap', 'WHOA UK!!!!', 'http://listen.radionomy.com:80/WHOAUK----'],
-
-                     ['None', '', ''],
-                     ['None', '', ''],
-                     ['None', '', ''],
-                     ['None', '', ''],
-                     ['None', '', ''],
-                     ['None', '', '']]
-
-
 
 
    Gtk.init()

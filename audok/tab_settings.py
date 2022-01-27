@@ -22,7 +22,8 @@ class TabSettings:
 
       grid = Gtk.Grid()
       grid.set_column_homogeneous(True)
-      grid.set_row_homogeneous(True)
+      #grid.set_row_homogeneous(True)
+      grid.set_row_spacing(spacing=5)
 
 
       hbox_music_new= Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
@@ -279,29 +280,21 @@ class TabSettings:
 
       grid.attach_next_to(hbox_device_pwrecord, hbox_pwrecord_bitrate, Gtk.PositionType.BOTTOM, 1, 1)
 
+      button_reset = Gtk.Button(label='Reset')
+      button_reset.connect('clicked', self.button_reset_clicked)
+      button_reset.set_size_request(100, -1)
 
 
-      # empty box for space
-      hbox_window = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
-      grid.attach_next_to(hbox_window, hbox_device_pwrecord, Gtk.PositionType.BOTTOM, 1, 1)
+      hbox1 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
+      hbox1.pack_start(button_reset, False, False, 0)
+
+      grid.attach_next_to(hbox1, hbox_device_pwrecord, Gtk.PositionType.BOTTOM, 1, 1)
 
 
-      # empty box for space
-      hbox_space = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
-      grid.attach_next_to(hbox_space, hbox_window, Gtk.PositionType.BOTTOM, 1, 2)
+      self.hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+      self.hbox.pack_start(grid, False, True, 0)
 
 
-      hbox_buttons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
-      
-      self.button_reset = Gtk.Button(label='Reset')
-      self.button_reset.connect('clicked', self.button_reset_clicked)
-
-      hbox_buttons.pack_start(self.button_reset, False, True, 0)
-
-      grid.attach_next_to(hbox_buttons, hbox_space, Gtk.PositionType.BOTTOM, 1, 1)
-
-
-      self.box.add(grid)
 
 
 
