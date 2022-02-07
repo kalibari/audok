@@ -112,8 +112,13 @@ class TabStreamRipper:
       scrollable_treelist = Gtk.ScrolledWindow()
       scrollable_treelist.set_vexpand(True)
       scrollable_treelist.add(self.treeview)
-      self.grid.attach(scrollable_treelist, 0, 0, 8, 10)
+      #self.grid.attach(scrollable_treelist, 0, 0, 8, 10)
 
+      self.grid.attach(scrollable_treelist, 0, 0, 1, 1)
+
+
+
+      hbox_buttons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
 
 
       button_selectall = Gtk.Button(label='Select All')
@@ -140,14 +145,16 @@ class TabStreamRipper:
       button_info = Gtk.Button(label='Info')
       button_info.connect('clicked', self.button_info_clicked)
 
-      self.grid.attach_next_to(button_selectall, scrollable_treelist, Gtk.PositionType.BOTTOM, 1, 1)
-      self.grid.attach_next_to(button_deselectall, button_selectall, Gtk.PositionType.RIGHT, 1, 1)
-      self.grid.attach_next_to(button_record_start, button_deselectall, Gtk.PositionType.RIGHT, 1, 1)
-      self.grid.attach_next_to(button_record_stop, button_record_start, Gtk.PositionType.RIGHT, 1, 1)
-      self.grid.attach_next_to(button_new_station, button_record_stop, Gtk.PositionType.RIGHT, 1, 1)
-      self.grid.attach_next_to(button_delete_station, button_new_station, Gtk.PositionType.RIGHT, 1, 1)
-      self.grid.attach_next_to(button_reset, button_delete_station, Gtk.PositionType.RIGHT, 1, 1)
-      self.grid.attach_next_to(button_info, button_reset, Gtk.PositionType.RIGHT, 1, 1)
+
+      hbox_buttons.pack_start(button_selectall, True, True, 0)
+      hbox_buttons.pack_start(button_deselectall, True, True, 0)
+      hbox_buttons.pack_start(button_record_start, True, True, 0)
+      hbox_buttons.pack_start(button_record_stop, True, True, 0)
+      hbox_buttons.pack_start(button_new_station, True, True, 0)
+      hbox_buttons.pack_start(button_delete_station, True, True, 0)
+      hbox_buttons.pack_start(button_reset, True, True, 0)
+      hbox_buttons.pack_start(button_info, True, True, 0)
+      self.grid.attach_next_to(hbox_buttons, scrollable_treelist, Gtk.PositionType.BOTTOM, 1, 1)
 
 
       self.hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)

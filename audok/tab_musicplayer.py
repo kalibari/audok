@@ -186,8 +186,7 @@ class TabMusicPlayer:
 
 
       self.entry_file_sum = Gtk.Entry()
-      self.entry_file_sum.set_text('')
-
+      self.entry_file_sum.set_width_chars(10)
 
       hbox1.pack_start(label1, False, False, 0)
       hbox1.pack_start(self.combo_play_time, False, False, 0)
