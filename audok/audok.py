@@ -37,6 +37,7 @@ def parse_args(name: str):
     argparser.add_argument('-d', action='store_true', dest='debug', help="debug to tty")
     argparser.add_argument('-l', action='store_true', dest='log', help="redirect debug to journald log")
     argparser.add_argument('-v', action='store_true', dest='version', help="show version and exit")
+    argparser.add_argument('filename', metavar='filename', nargs='?')
 
     result = argparser.parse_args()
 
@@ -229,13 +230,13 @@ if __name__ == '__main__':
    log.debug('playlist: %s' % playlist)
 
 
-   if len(sys.argv)>=2:
+   if result.filename:
 
-      checkfile = sys.argv[1]
+      log.debug('filename: %s' % result.filename)
 
-      if checkfile.endswith('.m3u'):
+      if result.filename.endswith('.m3u'):
          m3ufiles = []
-         with open(checkfile,'r') as f:
+         with open(result.filename,'r') as f:
             m3ufiles = f.readlines()
          for item in m3ufiles:
             item=item.strip()
@@ -244,8 +245,8 @@ if __name__ == '__main__':
 
       else:
          for item in config['supported_audio_files']:
-            if checkfile.endswith(item):
-               playlist = [checkfile]
+            if result.filename.endswith(item):
+               playlist = [result.filename]
                break
 
 
