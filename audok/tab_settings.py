@@ -20,13 +20,14 @@ class TabSettings:
       self.box = Gtk.Box()
       self.box.set_border_width(10)
 
+
       grid = Gtk.Grid()
       grid.set_column_homogeneous(True)
-      #grid.set_row_homogeneous(True)
+      grid.set_row_homogeneous(True)
       grid.set_row_spacing(spacing=5)
 
 
-      hbox_music_new= Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+      hbox_music_new = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
       hbox_music_new.set_hexpand(True)
 
       image1 = Gtk.Image()
@@ -38,16 +39,16 @@ class TabSettings:
       label2.set_size_request(140, -1)
 
       entry1 = Gtk.Entry()
-      entry1.set_size_request(-1, 10)
+      entry1.set_size_request(300, 10)
       entry1.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       entry1.set_text(self.settings['directory_new'])
       entry1.connect('changed', self.change_directory_new)
 
 
       hbox_music_new.pack_start(image1, False, False, 0)
-      hbox_music_new.pack_start(label1, False, True, 0)
-      hbox_music_new.pack_start(label2, False, True, 0)
-      hbox_music_new.pack_start(entry1, True, True, 0)
+      hbox_music_new.pack_start(label1, False, False, 0)
+      hbox_music_new.pack_start(label2, False, False, 0)
+      hbox_music_new.pack_start(entry1, False, False, 0)
 
       grid.add(hbox_music_new)
 
@@ -65,16 +66,16 @@ class TabSettings:
 
 
       entry1 = Gtk.Entry()
-      entry1.set_size_request(-1, 10)
+      entry1.set_size_request(300, 10)
       entry1.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       entry1.set_text(self.settings['directory_old'])
       entry1.connect('changed', self.change_directory_old)
 
 
       hbox_music_old.pack_start(image1, False, False, 0)
-      hbox_music_old.pack_start(label1, False, True, 0)
-      hbox_music_old.pack_start(label2, False, True, 0)
-      hbox_music_old.pack_start(entry1, True, True, 0)
+      hbox_music_old.pack_start(label1, False, False, 0)
+      hbox_music_old.pack_start(label2, False, False, 0)
+      hbox_music_old.pack_start(entry1, False, False, 0)
 
       grid.attach_next_to(hbox_music_old, hbox_music_new, Gtk.PositionType.BOTTOM, 1, 1)
 
@@ -91,15 +92,15 @@ class TabSettings:
       label2.set_size_request(140, -1)
 
       entry1 = Gtk.Entry()
-      entry1.set_size_request(-1, 10)
+      entry1.set_size_request(300, 10)
       entry1.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       entry1.set_text(self.settings['directory_str'])
       entry1.connect('changed', self.change_directory_streamripper)
 
       hbox_streamripper.pack_start(image1, False, False, 0)
-      hbox_streamripper.pack_start(label1, False, True, 0)
-      hbox_streamripper.pack_start(label2, False, True, 0)
-      hbox_streamripper.pack_start(entry1, True, True, 0)
+      hbox_streamripper.pack_start(label1, False, False, 0)
+      hbox_streamripper.pack_start(label2, False, False, 0)
+      hbox_streamripper.pack_start(entry1, False, False, 0)
 
       grid.attach_next_to(hbox_streamripper, hbox_music_old, Gtk.PositionType.BOTTOM, 1, 1)
 
@@ -116,26 +117,26 @@ class TabSettings:
       label2.set_size_request(140, -1)
 
       entry1 = Gtk.Entry()
-      entry1.set_size_request(-1, 10)
+      entry1.set_size_request(300, 10)
       entry1.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       entry1.set_text(self.settings['directory_playlist'])
       entry1.connect('changed', self.change_directory_playlist)
 
-      label3 = Gtk.Label(label=' Filename:', xalign=0)
-      label3.set_size_request(100, -1)
+      label3 = Gtk.Label(label='Filename:', xalign=0.5)
+      label3.set_size_request(110, 10)
 
       entry2 = Gtk.Entry()
-      entry2.set_size_request(-1, 10)
+      entry2.set_size_request(200, 10)
       entry2.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       entry2.set_text(self.settings['filename_playlist'])
       entry2.connect('changed', self.change_filename_playlist)
 
       hbox_playlist.pack_start(image1, False, False, 0)
-      hbox_playlist.pack_start(label1, False, True, 0)
-      hbox_playlist.pack_start(label2, False, True, 0)
-      hbox_playlist.pack_start(entry1, True, True, 0)
-      hbox_playlist.pack_start(label3, False, True, 0)
-      hbox_playlist.pack_start(entry2, True, True, 0)
+      hbox_playlist.pack_start(label1, False, False, 0)
+      hbox_playlist.pack_start(label2, False, False, 0)
+      hbox_playlist.pack_start(entry1, False, False, 0)
+      hbox_playlist.pack_start(label3, False, False, 0)
+      hbox_playlist.pack_start(entry2, False, False, 0)
 
       grid.attach_next_to(hbox_playlist, hbox_streamripper, Gtk.PositionType.BOTTOM, 1, 1)
 
@@ -153,15 +154,15 @@ class TabSettings:
       label2.set_size_request(140, -1)
 
       entry1 = Gtk.Entry()
-      entry1.set_size_request(-1, 10)
+      entry1.set_size_request(300, 10)
       entry1.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       entry1.set_text(self.settings['directory_converter'])
       entry1.connect('changed', self.change_directory_converter)
 
       hbox_converter_dir.pack_start(image1, False, False, 0)
-      hbox_converter_dir.pack_start(label1, False, True, 0)
-      hbox_converter_dir.pack_start(label2, False, True, 0)
-      hbox_converter_dir.pack_start(entry1, True, True, 0)
+      hbox_converter_dir.pack_start(label1, False, False, 0)
+      hbox_converter_dir.pack_start(label2, False, False, 0)
+      hbox_converter_dir.pack_start(entry1, False, False, 0)
 
       grid.attach_next_to(hbox_converter_dir, hbox_playlist, Gtk.PositionType.BOTTOM, 1, 1)
 
@@ -179,18 +180,18 @@ class TabSettings:
       label2.set_size_request(140, -1)
 
       entry1 = Gtk.Entry()
-      entry1.set_size_request(-1, 10)
+      entry1.set_size_request(300, 10)
       entry1.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       entry1.set_text(self.settings['directory_pwrecord'])
       entry1.connect('changed', self.change_directory_pwrecord)
 
 
-      label3 = Gtk.Label('Filename:', xalign=0)
-      label3.set_size_request(100, -1)
+      label3 = Gtk.Label('Filename:', xalign=0.5)
+      label3.set_size_request(110, 10)
 
 
       entry2 = Gtk.Entry()
-      entry2.set_size_request(-1, 10)
+      entry2.set_size_request(200, 10)
       entry2.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       entry2.set_text(self.settings['filename_pwrecord'])
       entry2.connect('changed', self.change_filename_pwrecord)
@@ -199,9 +200,9 @@ class TabSettings:
       hbox_filename_pwrecord.pack_start(image1, False, False, 0)
       hbox_filename_pwrecord.pack_start(label1, False, False, 0)
       hbox_filename_pwrecord.pack_start(label2, False, False, 0)
-      hbox_filename_pwrecord.pack_start(entry1, True, True, 0)
+      hbox_filename_pwrecord.pack_start(entry1, False, False, 0)
       hbox_filename_pwrecord.pack_start(label3, False, False, 0)
-      hbox_filename_pwrecord.pack_start(entry2, True, True, 0)
+      hbox_filename_pwrecord.pack_start(entry2, False, False, 0)
 
 
       grid.attach_next_to(hbox_filename_pwrecord, hbox_converter_dir, Gtk.PositionType.BOTTOM, 1, 1)
@@ -257,11 +258,11 @@ class TabSettings:
          self.combo_pwrecord.insert(i, str(i), item)
       self.combo_pwrecord.set_active(choice_active)
       self.combo_pwrecord.connect('changed', self.combobox_pwrecord_changed)
+      self.combo_pwrecord.set_size_request(700, 10)
 
 
       self.button_device_pwrecord_scan = Gtk.Button(label='Scan')
       self.button_device_pwrecord_scan.connect('clicked', self.button_scan_clicked)
-      self.button_device_pwrecord_scan.set_size_request(100, -1)
 
 
       entry1 = Gtk.Entry()
@@ -299,7 +300,7 @@ class TabSettings:
 
 
    def change_directory_new(self, event):
-      self.log.debug('def change_directory_new - start')
+      self.log.debug('start')
       self.settings['directory_new'] = event.get_text().strip()
       self.madmin.notebook_tab_musicplayer.checkbutton_new_update_tooltip(directory=self.settings['directory_new'])
       self.madmin.notebook_tab_musicplayer.image_new_update_tooltip(directory=self.settings['directory_new'])
@@ -308,7 +309,7 @@ class TabSettings:
 
 
    def change_directory_old(self, event):
-      self.log.debug('def change_directory_old - start')
+      self.log.debug('start')
       self.settings['directory_old'] = event.get_text().strip()
       self.madmin.notebook_tab_musicplayer.checkbutton_auto_move_update_tooltip(directory=self.settings['directory_old'])
       self.madmin.notebook_tab_musicplayer.checkbutton_old_update_tooltip(directory=self.settings['directory_old'])
@@ -319,7 +320,7 @@ class TabSettings:
 
 
    def change_directory_streamripper(self, event):
-      self.log.debug('def change_directory_streamripper - start')
+      self.log.debug('start')
       self.settings['directory_str'] = event.get_text().strip()
       self.madmin.notebook_tab_musicplayer.checkbutton_str_update_tooltip(directory=self.settings['directory_str'])
       self.madmin.notebook_tab_musicplayer.image_str_update_tooltip(directory=self.settings['directory_str'])
@@ -327,21 +328,21 @@ class TabSettings:
 
 
    def change_directory_playlist(self, event):
-      self.log.debug('def change_directory_playlist - start')
+      self.log.debug('start')
       self.settings['directory_playlist'] = event.get_text().strip()
       self.madmin.notebook_tab_musicplayer.button_playlist_new_update_tooltip(filename=self.settings['filename_playlist'],directory=self.settings['directory_playlist'])
 
 
 
    def change_filename_playlist(self, event):
-      self.log.debug('def change_filename_playlist - start')
+      self.log.debug('start')
       self.settings['filename_playlist'] = event.get_text().strip()
       self.madmin.notebook_tab_musicplayer.button_playlist_new_update_tooltip(filename=self.settings['filename_playlist'],directory=self.settings['directory_playlist'])
 
 
 
    def change_directory_converter(self, event):
-      self.log.debug('def change_directory_converter - start')
+      self.log.debug('start')
       self.settings['directory_converter'] = event.get_text().strip()
       self.madmin.notebook_tab_converter.button_you2mp3_update_tooltip(directory=self.settings['directory_converter'])
       self.madmin.notebook_tab_converter.button_file2mp3_update_tooltip(directory=self.settings['directory_converter'])
@@ -350,34 +351,34 @@ class TabSettings:
 
 
    def change_filename_pwrecord(self, event):
-      self.log.debug('def change_filename_pwrecord - start')
+      self.log.debug('start')
       self.settings['filename_pwrecord'] = event.get_text().strip()
       self.madmin.notebook_tab_converter.button_pwrecord_update_tooltip(filename=self.settings['filename_pwrecord'], directory=self.settings['directory_pwrecord'])
 
 
 
    def change_directory_pwrecord(self, event):
-      self.log.debug('def change_directory_pwrecord - start')
+      self.log.debug('start')
       self.settings['directory_pwrecord'] = event.get_text().strip()
       self.madmin.notebook_tab_converter.button_pwrecord_update_tooltip(filename=self.settings['filename_pwrecord'], directory=self.settings['directory_pwrecord'])
 
 
 
    def combobox_bitrate_changed(self, event):
-      self.log.debug('def combobox_bitrate_changed - start')
+      self.log.debug('start')
       self.settings['bitrate'] = event.get_active_text()
 
 
 
    def combobox_pwrecord_changed(self, event):
-      self.log.debug('def combobox_pwrecord_changed - start')
+      self.log.debug('start')
       self.settings['device_pwrecord'] = event.get_active_text()
       self.madmin.notebook_tab_converter.button_pwrecord_update_tooltip(filename=self.settings['filename_pwrecord'], directory=self.settings['directory_pwrecord'])
 
 
 
    def button_scan_clicked(self, event):
-      self.log.debug('def button_scan_clicked - start')
+      self.log.debug('start')
 
       audio_devices = []
 
@@ -425,11 +426,11 @@ class TabSettings:
 
 
    def button_reset_clicked(self, event):
-      self.log.debug('def button_reset_clicked - start')
+      self.log.debug('start')
 
       settings_file = self.settings['config_path'] + '/' + self.settings['filename_settings']
 
-      self.log.debug('def button_reset_clicked - settings_file: %s' % settings_file)
+      self.log.debug('settings_file: %s' % settings_file)
 
       if os.path.exists(settings_file):
          os.remove(settings_file)

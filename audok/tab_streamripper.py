@@ -32,7 +32,7 @@ class TabStreamRipper:
                               ['Charts', 'Top 100 Station','http://www.top100station.de/switch/r3472.pls'],
                               ['Charts', 'radio Top 40 Weimar Live', 'http://antenne-th.divicon-stream.net/antth_top40live_SeJx-mp3-192?sABC=58p2q6rq%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
 
-                              ['Pop', 'Gizmo New 102 (The Mixx)', 'http://206.190.135.28:8302/stream'],
+                              ['Mix', 'Gizmo New 102 (The Mixx)', 'http://206.190.135.28:8302/stream'],
                               ['Pop', 'Antenne Bayern Fresh4You', 'http://mp3channels.webradio.antenne.de/fresh'],
 
                               ['Rock', 'PureRock.US', 'http://167.114.64.181:8524/stream']]
@@ -157,7 +157,7 @@ class TabStreamRipper:
 
    def on_cell_toggled(self, widget, row):
 
-      self.log.debug('def on_cell_toggled start row: %s' % row)
+      self.log.debug('start row: %s' % row)
 
       toogle = widget.get_active()
 
@@ -171,7 +171,7 @@ class TabStreamRipper:
          if not row in self.settings['stations_toogle_on']:
             self.settings['stations_toogle_on'].extend([row])
 
-      self.log.debug('def on_cell_toggled stations_toogle_on: %s' % self.settings['stations_toogle_on'])
+      self.log.debug('stations_toogle_on: %s' % self.settings['stations_toogle_on'])
 
 
 
@@ -179,14 +179,14 @@ class TabStreamRipper:
 
    def treeview_press_event(self, treeview, event):
 
-      self.log.debug('def treeview_press_event - start')
+      self.log.debug('start')
 
       model, treeiter = treeview.get_selection().get_selected()
       if treeiter is not None:
          path = model.get_path(treeiter)
          num = int(path.to_string())
 
-         self.log.debug('def treeview_press_event - num: %s' % num)
+         self.log.debug('num: %s' % num)
 
          if num>=len(self.stationlist):
             self.renderer_genre.set_property('editable', False)
@@ -201,7 +201,7 @@ class TabStreamRipper:
 
    def renderer_genre_edited(self, widget, row, text):
 
-      self.log.debug('def renderer_genre_edited start row: %s text: %s len(self.stationlist): %s' % (row, text, len(self.stationlist)))
+      self.log.debug('start row: %s text: %s len(self.stationlist): %s' % (row, text, len(self.stationlist)))
 
       row=int(row)
       self.station_liststore[row][3] = text
@@ -213,7 +213,7 @@ class TabStreamRipper:
 
    def renderer_stations_edited(self, widget, row, text):
 
-      self.log.debug('def renderer_stations_edited start row: %s text: %s len(self.stationlist): %s' % (row, text, len(self.stationlist)))
+      self.log.debug('start row: %s text: %s len(self.stationlist): %s' % (row, text, len(self.stationlist)))
 
       row=int(row)
       self.station_liststore[row][4] = text
@@ -225,7 +225,7 @@ class TabStreamRipper:
 
    def renderer_url_edited(self, widget, row, text):
 
-      self.log.debug('def renderer_url_edited start row: %s text: %s len(self.stationlist): %s' % (row, text, len(self.stationlist)))
+      self.log.debug('start row: %s text: %s len(self.stationlist): %s' % (row, text, len(self.stationlist)))
 
       row=int(row)
       self.station_liststore[row][5] = text
@@ -237,7 +237,7 @@ class TabStreamRipper:
 
    def button_selectall_clicked(self, event):
 
-      self.log.debug('def button_selectall_clicked start')
+      self.log.debug('start')
 
       self.settings['stations_toogle_on']=[]
       for i, item in enumerate(self.station_liststore):
@@ -249,7 +249,7 @@ class TabStreamRipper:
 
    def button_deselectall_clicked(self, event):
 
-      self.log.debug('def button_deselectall_clicked start')
+      self.log.debug('start')
 
       for i, item in enumerate(self.station_liststore):
          self.station_liststore[i][1] = False
@@ -260,7 +260,7 @@ class TabStreamRipper:
 
    def button_reset_clicked(self, event):
 
-      self.log.debug('def button_reset_clicked - start')
+      self.log.debug('start')
 
       if os.path.exists('%s/%s' % (self.settings['config_path'],self.settings['filename_stations'])):
          os.remove('%s/%s' % (self.settings['config_path'],self.settings['filename_stations']))
@@ -271,7 +271,7 @@ class TabStreamRipper:
 
    def button_info_clicked(self, event):
 
-      self.log.debug('def button_info_clicked - start')
+      self.log.debug('start')
 
       url=['https://directory.shoutcast.com','https://radio.alltrack.org']
 
@@ -292,11 +292,11 @@ class TabStreamRipper:
 
       self.count+=1
 
-      self.log.debug('def check_streamripper record_station: %s' % self.record_station)
+      self.log.debug('record_station: %s' % self.record_station)
 
 
       if not self.record_station:
-         self.log.debug('def check_streamripper stop')
+         self.log.debug('stop')
 
          if self.obj_timer_streamripper is not None:
             GLib.source_remove(self.obj_timer_streamripper)
@@ -336,7 +336,6 @@ class TabStreamRipper:
 
       for pnum in remove_pnum:
          del self.madmin.process_database[pnum]
-      #self.log.debug('def check_streamripper process_database: %s' % self.madmin.process_database)
 
       return True
 
@@ -345,7 +344,7 @@ class TabStreamRipper:
 
    def button_record_clicked(self, event):
 
-      self.log.debug('def button_record_clicked start')
+      self.log.debug('start')
 
       toogle_on = []
       for i, item in enumerate(self.station_liststore):
@@ -362,7 +361,7 @@ class TabStreamRipper:
             os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_str'])
 
 
-         self.log.debug('def button_record_clicked record_station: %s' % self.record_station)
+         self.log.debug('record_station: %s' % self.record_station)
 
 
          for i in toogle_on:
@@ -370,7 +369,7 @@ class TabStreamRipper:
 
                self.record_station.extend([i])
 
-               self.log.debug('def button_record_clicked i: %s' % i)
+               self.log.debug('toogle_on i: %s' % i)
 
                # streamripper http://www.top100station.de/switch/r3472.pls -u WinampMPEG/5.0 -d /Music/Streamtuner/
                cmd=[self.config['bin_streamripper'], self.station_liststore[i][5],'-u','WinampMPEG/5.0','-d','%s/%s' % (self.settings['music_path'],self.settings['directory_str'])]
@@ -382,7 +381,7 @@ class TabStreamRipper:
 
 
    def stop_ripper_process(self):
-      self.log.debug('def stop_ripper_process start')
+      self.log.debug('start')
 
       toogle_on = []
       for i, item in enumerate(self.station_liststore):
@@ -397,7 +396,7 @@ class TabStreamRipper:
 
    def button_stop_clicked(self, event):
 
-      self.log.debug('def button_stop_clicked start')
+      self.log.debug('start')
       self.stop_ripper_process()
 
 
@@ -408,7 +407,7 @@ class TabStreamRipper:
       len_stationlist=len(self.stationlist)
       len_pre_stationlist=len(self.pre_stationlist)
 
-      self.log.debug('def button_delete_station_clicked len_stationlist: %s len_pre_stationlist: %s' % (len_stationlist,len_pre_stationlist))
+      self.log.debug('len_stationlist: %s len_pre_stationlist: %s' % (len_stationlist,len_pre_stationlist))
 
 
       self.stop_ripper_process()
@@ -440,7 +439,7 @@ class TabStreamRipper:
       self.settings['stations_toogle_on'] = []
       self.config['stations_changed'] = True
 
-      self.log.debug('def button_delete_station_clicked len(stationlist): %s' % len(self.stationlist))
+      self.log.debug('len(stationlist): %s' % len(self.stationlist))
 
 
 
@@ -448,7 +447,7 @@ class TabStreamRipper:
 
    def button_new_station_clicked(self, event):
       
-      self.log.debug('def button_new_station_clicked start')
+      self.log.debug('start')
 
       self.station_liststore.insert(position=0, row=[0, False, False, '','New Station', ''])
       self.stationlist.extend([['','New Station','']])

@@ -23,7 +23,7 @@ from gi.repository import GLib
 class Music_Admin_Start(Gtk.Window):
 
    def __init__(self, log, config, settings, playlist, stationlist):
-      Gtk.Window.__init__(self, title='Audok')
+      Gtk.Window.__init__(self, title=config['name'].title())
 
       self.set_border_width(3)
 
@@ -34,7 +34,7 @@ class Music_Admin_Start(Gtk.Window):
       self.stationlist = stationlist
 
 
-      self.set_default_size(int(settings['size_x']),int(settings['size_y']))
+      #self.set_default_size(int(settings['size_x']),int(settings['size_y']))
       self.move(int(settings['position_x']), int(settings['position_y']))
       self.set_resizable(True) 
 
@@ -72,7 +72,7 @@ class Music_Admin_Start(Gtk.Window):
          thread.setDaemon(True)
          thread.start()
       except Exception as e:
-         self.log.debug('def init - main ipc_server error: %s' % str(e))
+         self.log.debug('ipc_server error: %s' % str(e))
 
 
 
@@ -87,7 +87,7 @@ class Music_Admin_Start(Gtk.Window):
 
 
    def signal_handler_sigint(self):
-      self.log.debug('def signal_handler_sigint - start (Ctrl+C)')
+      self.log.debug('start (Ctrl+C)')
       self.clean_shutdown()
       Gtk.main_quit()
       sys.exit()
@@ -95,7 +95,7 @@ class Music_Admin_Start(Gtk.Window):
 
 
    def on_destroy(self, data, event):
-      self.log.debug('def on_destroy - start')
+      self.log.debug('start')
       self.save_settings()
       self.clean_shutdown()
       Gtk.main_quit()
@@ -104,7 +104,7 @@ class Music_Admin_Start(Gtk.Window):
 
 
    def on_reset_close(self):
-      self.log.debug('def on_reset_close - start')
+      self.log.debug('start')
       self.clean_shutdown()
       Gtk.main_quit()
       sys.exit()
@@ -114,7 +114,7 @@ class Music_Admin_Start(Gtk.Window):
    def save_settings(self):
 
       # save settings to ~/.config/audok/settings.xml
-      self.log.debug('def clean_shutdown - save settings')
+      self.log.debug('start')
 
       path = self.settings['config_path']
       filename = self.settings['filename_settings']
@@ -160,7 +160,7 @@ class Music_Admin_Start(Gtk.Window):
 
    def clean_shutdown(self):
 
-      self.log.debug('def clean_shutdown - start')
+      self.log.debug('start')
 
       if hasattr(self, 'notebook_tab_converter'):
 
@@ -220,7 +220,7 @@ class Music_Admin_Start(Gtk.Window):
 
    def process_all_killer(self):
    
-      self.log.debug('def process_all_killer - start')
+      self.log.debug('start')
 
       for item in self.process_database:
          if self.process_database[item]['status']=='active':
@@ -230,7 +230,7 @@ class Music_Admin_Start(Gtk.Window):
             except:
                pass
 
-      self.log.debug('def process_all_killer - ends')
+      self.log.debug('ends')
 
 
 
@@ -240,16 +240,16 @@ class Music_Admin_Start(Gtk.Window):
 
       for item in directories:
 
-         self.log.debug('def file_scan - item: %s' % item)
+         self.log.debug('item: %s' % item)
 
          for ext in extensions:
 
-            self.log.debug('def file_scan - ext: %s' % ext)
+            self.log.debug('ext: %s' % ext)
 
             if os.path.isdir(item):
                for filename in os.listdir(item):
 
-                  self.log.debug('def file_scan - filename: %s' % filename)
+                  self.log.debug('filename: %s' % filename)
 
                   if filename.endswith('.' + ext):
                      pitem = item + '/' + filename
@@ -267,17 +267,17 @@ class Music_Admin_Start(Gtk.Window):
 
    def process_job_identifier_killer(self, job, identifier):
 
-      self.log.debug('def process_job_identifier_killer - start job: %s identifier: %s' % (job,identifier))
+      self.log.debug('start job: %s identifier: %s' % (job,identifier))
 
       for pnum in self.process_database:
 
-         self.log.debug('def process_job_identifier_killer - status: %s' % self.process_database[pnum]['status'])
+         self.log.debug('status: %s' % self.process_database[pnum]['status'])
          if self.process_database[pnum]['status']=='active':
 
-            self.log.debug('def process_job_identifier_killer - job: %s' % self.process_database[pnum]['job'])
+            self.log.debug('job: %s' % self.process_database[pnum]['job'])
             if self.process_database[pnum]['job']==job:
 
-               self.log.debug('def process_job_identifier_killer - identifier: %s' % self.process_database[pnum]['identifier'])
+               self.log.debug('identifier: %s' % self.process_database[pnum]['identifier'])
                if self.process_database[pnum]['identifier']==identifier:
 
                   pid=''
@@ -285,23 +285,23 @@ class Music_Admin_Start(Gtk.Window):
                      pid=int(self.process_database[pnum]['pid'])
                      os.kill(pid, signal.SIGINT)
                      self.process_database[pnum]['status']='killed'
-                     self.log.debug('def process_job_identifier_killer - job: %s pid: %s killed' % (self.process_database[pnum]['job'],pid))
+                     self.log.debug('job: %s pid: %s killed' % (self.process_database[pnum]['job'],pid))
                   except:
-                     self.log.debug('def process_job_identifier_killer - job: %s cannot kill pid: %s' % (self.process_database[pnum]['job'],pid))
+                     self.log.debug('job: %s cannot kill pid: %s' % (self.process_database[pnum]['job'],pid))
 
 
 
 
    def process_job_killer(self, job):
 
-      self.log.debug('def process_job_killer - start job: %s' % job)
+      self.log.debug('start job: %s' % job)
 
       for pnum in self.process_database:
 
-         self.log.debug('def process_job_killer - status: %s' % self.process_database[pnum]['status'])
+         self.log.debug('status: %s' % self.process_database[pnum]['status'])
          if self.process_database[pnum]['status']=='active':
 
-            self.log.debug('def process_job_killer - job: %s' % self.process_database[pnum]['job'])
+            self.log.debug('job: %s' % self.process_database[pnum]['job'])
             if self.process_database[pnum]['job']==job:
 
                pid=''
@@ -309,15 +309,17 @@ class Music_Admin_Start(Gtk.Window):
                   pid=int(self.process_database[pnum]['pid'])
                   os.kill(pid, signal.SIGINT)
                   self.process_database[pnum]['status']='killed'
-                  self.log.debug('def process_job_killer - job: %s pid: %s killed' % (self.process_database[pnum]['job'],pid))
+                  self.log.debug('job: %s pid: %s killed' % (self.process_database[pnum]['job'],pid))
                except:
-                  self.log.debug('def process_job_killer - job: %s cannot kill pid: %s' % (self.process_database[pnum]['job'],pid))
+                  self.log.debug('job: %s cannot kill pid: %s' % (self.process_database[pnum]['job'],pid))
 
 
 
 
 
    def process_starter(self, cmd=[], cwd='', job='', identifier='', source=''):
+
+      self.log.debug('start')
 
       self.pnum+=1
       k = {self.pnum: { 'status': 'active',
@@ -329,21 +331,19 @@ class Music_Admin_Start(Gtk.Window):
 
       self.process_database.update(k)
 
-
-      self.log.debug('def process_starter - start')
-
       try:
          thread = Thread(target=self.process, args=(cmd, cwd, self.pnum, self.process_database))
          thread.setDaemon(True)
          thread.start()
       except Exception as e:
-         self.log.debug('def process_starter - error: %s' % str(e))
+         self.log.debug('error: %s' % str(e))
+
 
 
 
    def process(self, cmd=[], cwd='', pnum='', p_database={}):
 
-      self.log.debug('def process - cmd: %s cwd: %s' % (cmd,cwd))
+      self.log.debug('cmd: %s cwd: %s' % (cmd,cwd))
 
       output_list=[]
       output_str=''
@@ -359,7 +359,7 @@ class Music_Admin_Start(Gtk.Window):
          process = subprocess.Popen(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False, close_fds=True)
 
          # add PID
-         self.log.debug('def process - pid %s' % process.pid)
+         self.log.debug('pid %s' % process.pid)
 
          p_database[pnum]['pid']=process.pid
 
@@ -388,7 +388,7 @@ class Music_Admin_Start(Gtk.Window):
                if p_database[pnum]['todo']!='nooutput':
                   p_database[pnum]['todo']='nooutput'
 
-                  self.log.debug('def process - break')
+                  self.log.debug('break')
                   break
 
 
@@ -399,10 +399,10 @@ class Music_Admin_Start(Gtk.Window):
             p_database[pnum]['result']=False
 
       except Exception as e:
-         self.log.debug('def process - error: %s job: %s' % (str(e),p_database[pnum]['job']))
+         self.log.debug('error: %s job: %s' % (str(e),p_database[pnum]['job']))
 
 
-      self.log.debug('def process - job %s done' % p_database[pnum]['job'])
+      self.log.debug('job %s done' % p_database[pnum]['job'])
 
       p_database[pnum]['todo']='result'
 
@@ -410,7 +410,7 @@ class Music_Admin_Start(Gtk.Window):
 
    def ipc_server(self):
 
-      self.log.debug('def ipc_server - thread start')
+      self.log.debug('start')
 
       if not os.path.exists(self.settings['config_path']):
          os.mkdir(self.settings['config_path'], 0o755)
@@ -426,13 +426,13 @@ class Music_Admin_Start(Gtk.Window):
             with open('%s/%s' % (self.settings['config_path'],self.settings['filename_ipcport']),'w') as f:
                f.write(self.settings['ipc_port'])
                f.close()
-               self.log.debug('def ipc_server - write %s/%s' % (self.settings['config_path'],self.settings['filename_ipcport']))
+               self.log.debug('write %s/%s' % (self.settings['config_path'],self.settings['filename_ipcport']))
             break
          except:
-            self.log.debug('def ipc_server - thread port is probably blocked -> try next port')
+            self.log.debug('thread port is probably blocked -> try next port')
 
 
-      self.log.debug('def ipc_server - thread listen on port: %s' % self.settings['ipc_port'])
+      self.log.debug('thread listen on port: %s' % self.settings['ipc_port'])
 
 
       try:
@@ -448,16 +448,16 @@ class Music_Admin_Start(Gtk.Window):
                if data:
                   data = data.decode()
 
-                  self.log.debug('def ipc_server - thread received "%s"' % data)
+                  self.log.debug('thread received "%s"' % data)
 
                   if data=='play_timer_end':
-                     self.log.debug('def ipc_server - play_timer_end')
+                     self.log.debug('play_timer_end')
 
                      self.settings['interrupt']='play_timer_end'
                      self.notebook_tab_musicplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_musicplayer.player,Gst.Structure.new_empty('song-changed')))
 
                   elif data.startswith('play_new_file='):
-                     self.log.debug('def ipc_server - play_new_file -> bus_application_message')
+                     self.log.debug('play_new_file -> bus_application_message')
 
                      state = self.notebook_tab_musicplayer.player.get_state(0).state
 
@@ -473,12 +473,12 @@ class Music_Admin_Start(Gtk.Window):
                      self.notebook_tab_musicplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_musicplayer.player,Gst.Structure.new_empty('song-changed')))
 
                else:
-                  self.log.debug('def ipc_server - received data')
+                  self.log.debug('received data')
                   receive_data=False
 
-            self.log.debug('def ipc_server - thread wait...')
+            self.log.debug('thread wait...')
 
 
       finally:
-         self.log.debug('def ipc_server - close')
+         self.log.debug('close')
          connection.close()

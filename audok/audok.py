@@ -21,12 +21,26 @@ gi.require_version('GLib', '2.0')
 from gi.repository import GLib
 import logging
 import main
+from argparse import ArgumentParser, RawTextHelpFormatter
 
 
 
 def startup_notification_workaround():
    # https://specifications.freedesktop.org/startup-notification-spec/startup-notification-0.1.txt
    Gdk.notify_startup_complete()
+
+
+
+def parse_args(name: str):
+
+    argparser = ArgumentParser(prog=name, formatter_class=RawTextHelpFormatter)
+    argparser.add_argument('-d', action='store_true', dest='debug', help="debug to tty")
+    argparser.add_argument('-l', action='store_true', dest='log', help="redirect debug to journald log")
+    argparser.add_argument('-v', action='store_true', dest='version', help="show version and exit")
+
+    result = argparser.parse_args()
+
+    return result
 
 
 
@@ -39,6 +53,7 @@ if __name__ == '__main__':
 
    config['name'] = 'audok'
    config['version'] = '1.0.11'
+
    config['app_path'] = app_path
 
    config['play_num'] = 0
@@ -55,24 +70,51 @@ if __name__ == '__main__':
    config['supported_audio_files'] = ['mp3','ogg','aac','flac','midi','mp4','mpeg','wma','asx','wav','mpegurl']
 
 
-   settings={}
+   config['debug'] = 0
+   config['log'] = 0
 
-   settings['version'] = config['version']
-   settings['journald_log'] = '0'
-   settings['tty_debug'] = '0'
-   #settings['tty_debug'] = '1'
+
+   result = parse_args(name=config['name'])
+   if result.debug:
+      config['debug'] = 1
+
+   if result.log:
+      config['log'] = 1
+
+   if result.version:
+      config['debug'] = 1
+
 
 
    log = logging.getLogger(config['name'])
-   if settings['tty_debug'] == '1':
-      if sys.stdin.isatty():
-         log.addHandler(logging.StreamHandler())
-         log.setLevel(logging.DEBUG)
+   log.setLevel(logging.DEBUG)
 
-   if settings['journald_log'] == '1':
+   fm='%(module)s - %(funcName)s - %(message)s'
+
+   if config['debug'] == 1:
+      sh = logging.StreamHandler()
+      formatter = logging.Formatter(fm)
+      sh.setFormatter(formatter)
+      log.addHandler(sh)
+
+
+   if config['log'] == 1:
       from systemd.journal import JournalHandler
-      log.addHandler(JournalHandler())
-      log.setLevel(logging.DEBUG)
+      jh = log.addHandler(JournalHandler())
+      formatter = logging.Formatter(fm)
+      jh.setFormatter(formatter)
+      log.addHandler(jh)
+
+
+   if result.version:
+      log.debug('Version: %s' % config['version'])
+      sys.exit()
+
+
+
+   settings={}
+
+   settings['version'] = config['version']
 
 
    # setup default settings
@@ -98,8 +140,13 @@ if __name__ == '__main__':
    settings['checkbutton_auto_move'] = '0'
    settings['checkbutton_auto_play'] = '0'
 
-   settings['size_x'] = '1000'
+
+   # 1280×720
+   # 1280×960
+   # 1024×768
+   settings['size_x'] = '1220'
    settings['size_y'] = '500'
+
    settings['position_x'] = '0'
    settings['position_y'] = '0'
 
@@ -126,7 +173,7 @@ if __name__ == '__main__':
 
    settings['ipc_port'] = '10001'
 
-   settings['stations_toogle_on'] = []
+   settings['stations_toogle_on'] = ['']
 
 
 
@@ -136,7 +183,7 @@ if __name__ == '__main__':
    filename = settings['filename_settings']
 
    if os.path.exists(path + '/' + filename):
-      log.debug('def main - try to read file: %s' % settings['filename_settings'])
+      log.debug('try to read file: %s' % settings['filename_settings'])
 
       try:
          tree = xml.etree.ElementTree.parse(path + '/' + filename)
@@ -163,7 +210,7 @@ if __name__ == '__main__':
 
 
       except Exception as e:
-         log.debug('def main - cannot read file: %s error: %s -> mv to .bak' % (settings['filename_settings'],e))
+         log.debug('cannot read file: %s error: %s -> mv to .bak' % (settings['filename_settings'],e))
 
          path = settings['config_path']
          filename = settings['filename_settings']
@@ -174,12 +221,12 @@ if __name__ == '__main__':
                break
 
 
-   log.debug('def main - app_path: %s' % config['app_path'])
-   log.debug('def main - cwd: %s' % os.getcwd())
-   log.debug('def main - music path: %s' % settings['music_path'])
-   log.debug('def main - config path: %s' % settings['config_path'])
-   log.debug('def main - directories new: %s old: %s streamripper: %s' % (settings['directory_new'],settings['directory_old'],settings['directory_str']))
-   log.debug('def main - playlist: %s' % playlist)
+   log.debug('app_path: %s' % config['app_path'])
+   log.debug('cwd: %s' % os.getcwd())
+   log.debug('music path: %s' % settings['music_path'])
+   log.debug('config path: %s' % settings['config_path'])
+   log.debug('directories new: %s old: %s streamripper: %s' % (settings['directory_new'],settings['directory_old'],settings['directory_str']))
+   log.debug('playlist: %s' % playlist)
 
 
    if len(sys.argv)>=2:
@@ -220,7 +267,7 @@ if __name__ == '__main__':
          send_file='play_new_file=%s' % playlist[config['play_num']]
 
 
-      log.debug('def main - name: %s is already running - try send file: %s via socket port: %s' % (config['name'],send_file,ipc_port))
+      log.debug('name: %s is already running - try send file: %s via socket port: %s' % (config['name'],send_file,ipc_port))
 
 
       if not send_file:
@@ -240,7 +287,7 @@ if __name__ == '__main__':
             sock.close()
 
 
-   log.debug('def main - name: %s try to start -> Music_Admin_Start' % config['name'])
+   log.debug('name: %s try to start -> Music_Admin_Start' % config['name'])
 
 
    if os.path.exists('%s/%s' % (settings['config_path'],settings['filename_stations'])):
@@ -261,7 +308,7 @@ if __name__ == '__main__':
             stationlist.extend([[col0,col1,col2]])
 
       except Exception as e:
-         log.debug('def main - wrong format stations.xml -> backup error: %s' % e)
+         log.debug('wrong format stations.xml -> backup error: %s' % e)
          for i in range(1,100):
             if not os.path.exists('%s/%s.%s.bak' % (settings['config_path'],settings['filename_stations'],i)):
                os.rename('%s/%s' % (settings['config_path'],settings['filename_stations']), '%s/%s.%s.bak' % (settings['config_path'],settings['filename_stations'],i))

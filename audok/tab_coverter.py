@@ -252,7 +252,7 @@ class TabConverter:
 
 
    def button_you2mp3_chlicked(self, event):
-      self.log.debug('def button_you2mp3_chlicked - start')
+      self.log.debug('start')
 
       self.button_you2mp3.set_sensitive(False)
       self.button_pwrecord.set_sensitive(False)
@@ -294,7 +294,7 @@ class TabConverter:
 
 
    def button_pwrecord_chlicked(self, event):
-      self.log.debug('def button_pwrecord_chlicked - start')
+      self.log.debug('start')
 
       self.textbuffer_output.set_text('')
 
@@ -382,7 +382,7 @@ class TabConverter:
 
 
    def button_file2mp3_chlicked(self, event):
-      self.log.debug('def button_file2mp3_chlicked - start')
+      self.log.debug('start')
 
       self.button_you2mp3.set_sensitive(False)
       self.button_pwrecord.set_sensitive(False)
@@ -409,7 +409,7 @@ class TabConverter:
 
       if len(files_to_change)==0:
 
-         self.log.debug('def button_file2mp3_chlicked - no files to change')
+         self.log.debug('no files to change')
 
          self.button_you2mp3.set_sensitive(True)
          self.button_pwrecord.set_sensitive(True)
@@ -420,7 +420,7 @@ class TabConverter:
 
       else:
 
-         self.log.debug('def button_file2mp3_chlicked - try start_popen_thread')
+         self.log.debug('try start_popen_thread')
 
          self.obj_timer_file2mp3 = GLib.timeout_add(1000, self.refresh_output_textctrl_timer)
 
@@ -450,7 +450,7 @@ class TabConverter:
 
    def button_file2flac_chlicked(self, event):
 
-      self.log.debug('def button_file2flac_chlicked - start')
+      self.log.debug('start')
 
       self.button_you2mp3.set_sensitive(False)
       self.button_pwrecord.set_sensitive(False)
@@ -477,7 +477,7 @@ class TabConverter:
 
       if len(files_to_change)==0:
 
-         self.log.debug('def button_file2flac_chlicked - no files to change')
+         self.log.debug('no files to change')
 
          self.button_you2mp3.set_sensitive(True)
          self.button_pwrecord.set_sensitive(True)
@@ -487,7 +487,7 @@ class TabConverter:
 
       else:
 
-         self.log.debug('def button_file2flac_chlicked - try start_popen_thread')
+         self.log.debug('try start_popen_thread')
 
          self.obj_timer_file2flac = GLib.timeout_add(1000, self.refresh_output_textctrl_timer)
 
@@ -520,7 +520,7 @@ class TabConverter:
 
    def button_stop_chlicked(self, event):
 
-      self.log.debug('def button_stop_chlicked - start')
+      self.log.debug('start')
 
       if self.obj_timer_file2flac is not None:
          GLib.source_remove(self.obj_timer_file2flac)

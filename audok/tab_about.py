@@ -17,12 +17,12 @@ class TabAbout:
       self.box = Gtk.Box()
       self.box.set_border_width(10)
 
-      self.log.debug('def about - start')
+      self.log.debug('start')
 
 
       box_outer = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
 
-      label1 = Gtk.Label(label='Name: %s\nVersion: %s\nLicence: GNU GENERAL PUBLIC LICENSE Version 3\nCopyright: Copyright (c) 2020 - 2021, kalibari\nWebSite: https://github.com/kalibari/audok' % (self.config['name'].upper(),self.config['version']), xalign=0)
+      label1 = Gtk.Label(label='Name: %s\nVersion: %s\nLicence: GNU GENERAL PUBLIC LICENSE Version 3\nCopyright: Copyright (c) 2020 - 2021, kalibari\nWebSite: https://github.com/kalibari/audok' % (self.config['name'].title(),self.config['version']), xalign=0)
 
       image3 = Gtk.Image()
       image3.set_from_file('%s/audok_large.png' % self.config['app_path'])
