@@ -63,7 +63,7 @@ class Music_Admin_Start(Gtk.Window):
       self.notebook.append_page(self.notebook_tab_musicplayer.box, Gtk.Label(label='Music Player'))
       self.notebook.append_page(self.notebook_tab_converter.box, Gtk.Label(label='Converter'))
       self.notebook.append_page(self.notebook_tab_streamripper.hbox, Gtk.Label(label='Streamripper'))
-      self.notebook.append_page(self.notebook_tab_settings.hbox, Gtk.Label(label='Settings'))
+      self.notebook.append_page(self.notebook_tab_settings.vbox, Gtk.Label(label='Settings'))
       self.notebook.append_page(self.notebook_tab_about.box, Gtk.Image.new_from_icon_name('help-about',Gtk.IconSize.MENU))
 
 

@@ -144,8 +144,8 @@ if __name__ == '__main__':
    # 1280×720
    # 1280×960
    # 1024×768
-   settings['size_x'] = '1220'
-   settings['size_y'] = '500'
+   settings['size_x'] = '1020'
+   settings['size_y'] = '480'
 
    settings['position_x'] = '0'
    settings['position_y'] = '0'

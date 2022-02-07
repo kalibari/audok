@@ -23,7 +23,7 @@ class TabSettings:
 
       grid = Gtk.Grid()
       grid.set_column_homogeneous(True)
-      grid.set_row_homogeneous(True)
+      #grid.set_row_homogeneous(True)
       grid.set_row_spacing(spacing=5)
 
 
@@ -33,13 +33,13 @@ class TabSettings:
       image1 = Gtk.Image()
       image1.set_from_file('%s/newdir_small.png' % self.config['app_path'])
       label1 = Gtk.Label(label='Music Directory New:', xalign=0)
-      label1.set_size_request(220, -1)
+      label1.set_size_request(210, -1)
 
       label2 = Gtk.Label(label='%s/' % self.settings['music_path'], xalign=0)
       label2.set_size_request(140, -1)
 
       entry1 = Gtk.Entry()
-      entry1.set_size_request(300, 10)
+      entry1.set_size_request(300, -1)
       entry1.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       entry1.set_text(self.settings['directory_new'])
       entry1.connect('changed', self.change_directory_new)
@@ -59,14 +59,14 @@ class TabSettings:
       image1 = Gtk.Image()
       image1.set_from_file('%s/olddir_small.png' % self.config['app_path'])
       label1 = Gtk.Label(label='Music Directory Old:', xalign=0)
-      label1.set_size_request(220, -1)
+      label1.set_size_request(210, -1)
 
       label2 = Gtk.Label(label='%s/' % self.settings['music_path'], xalign=0)
       label2.set_size_request(140, -1)
 
 
       entry1 = Gtk.Entry()
-      entry1.set_size_request(300, 10)
+      entry1.set_size_request(300, -1)
       entry1.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       entry1.set_text(self.settings['directory_old'])
       entry1.connect('changed', self.change_directory_old)
@@ -86,13 +86,13 @@ class TabSettings:
       image1 = Gtk.Image()
       image1.set_from_file('%s/streamripperdir_small.png' % self.config['app_path'])
       label1 = Gtk.Label(label='Streamripper Directory:', xalign=0)
-      label1.set_size_request(220, -1)
+      label1.set_size_request(210, -1)
 
       label2 = Gtk.Label(label='%s/' % self.settings['music_path'], xalign=0)
       label2.set_size_request(140, -1)
 
       entry1 = Gtk.Entry()
-      entry1.set_size_request(300, 10)
+      entry1.set_size_request(300, -1)
       entry1.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       entry1.set_text(self.settings['directory_str'])
       entry1.connect('changed', self.change_directory_streamripper)
@@ -111,22 +111,21 @@ class TabSettings:
       image1.set_from_file('%s/playlist_small.png' % self.config['app_path'])
 
       label1 = Gtk.Label(label='Playlist Directory:', xalign=0)
-      label1.set_size_request(220, -1)
+      label1.set_size_request(210, -1)
 
       label2 = Gtk.Label(label='%s/' % self.settings['music_path'], xalign=0)
       label2.set_size_request(140, -1)
 
       entry1 = Gtk.Entry()
-      entry1.set_size_request(300, 10)
+      entry1.set_size_request(300, -1)
       entry1.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       entry1.set_text(self.settings['directory_playlist'])
       entry1.connect('changed', self.change_directory_playlist)
 
       label3 = Gtk.Label(label='Filename:', xalign=0.5)
-      label3.set_size_request(110, 10)
+      label3.set_size_request(100, -1)
 
       entry2 = Gtk.Entry()
-      entry2.set_size_request(200, 10)
       entry2.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       entry2.set_text(self.settings['filename_playlist'])
       entry2.connect('changed', self.change_filename_playlist)
@@ -136,7 +135,7 @@ class TabSettings:
       hbox_playlist.pack_start(label2, False, False, 0)
       hbox_playlist.pack_start(entry1, False, False, 0)
       hbox_playlist.pack_start(label3, False, False, 0)
-      hbox_playlist.pack_start(entry2, False, False, 0)
+      hbox_playlist.pack_start(entry2, True, True, 0)
 
       grid.attach_next_to(hbox_playlist, hbox_streamripper, Gtk.PositionType.BOTTOM, 1, 1)
 
@@ -148,13 +147,13 @@ class TabSettings:
       image1.set_from_file('%s/empty_small.png' % self.config['app_path'])
 
       label1 = Gtk.Label(label='Converter Directory:', xalign=0)
-      label1.set_size_request(220, -1)
+      label1.set_size_request(210, -1)
 
       label2 = Gtk.Label(label='%s/' % self.settings['music_path'], xalign=0)
       label2.set_size_request(140, -1)
 
       entry1 = Gtk.Entry()
-      entry1.set_size_request(300, 10)
+      entry1.set_size_request(300, -1)
       entry1.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       entry1.set_text(self.settings['directory_converter'])
       entry1.connect('changed', self.change_directory_converter)
@@ -174,24 +173,23 @@ class TabSettings:
       image1.set_from_file('%s/empty_small.png' % self.config['app_path'])
 
       label1 = Gtk.Label(label='PWrecord Directory:', xalign=0)
-      label1.set_size_request(220, -1)
+      label1.set_size_request(210, -1)
 
       label2 = Gtk.Label(label='%s/' % self.settings['music_path'], xalign=0)
       label2.set_size_request(140, -1)
 
       entry1 = Gtk.Entry()
-      entry1.set_size_request(300, 10)
+      entry1.set_size_request(300, -1)
       entry1.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       entry1.set_text(self.settings['directory_pwrecord'])
       entry1.connect('changed', self.change_directory_pwrecord)
 
 
       label3 = Gtk.Label('Filename:', xalign=0.5)
-      label3.set_size_request(110, 10)
+      label3.set_size_request(100, -1)
 
 
       entry2 = Gtk.Entry()
-      entry2.set_size_request(200, 10)
       entry2.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       entry2.set_text(self.settings['filename_pwrecord'])
       entry2.connect('changed', self.change_filename_pwrecord)
@@ -202,7 +200,7 @@ class TabSettings:
       hbox_filename_pwrecord.pack_start(label2, False, False, 0)
       hbox_filename_pwrecord.pack_start(entry1, False, False, 0)
       hbox_filename_pwrecord.pack_start(label3, False, False, 0)
-      hbox_filename_pwrecord.pack_start(entry2, False, False, 0)
+      hbox_filename_pwrecord.pack_start(entry2, True, True, 0)
 
 
       grid.attach_next_to(hbox_filename_pwrecord, hbox_converter_dir, Gtk.PositionType.BOTTOM, 1, 1)
@@ -216,7 +214,7 @@ class TabSettings:
 
 
       label1 = Gtk.Label(label='PWrecord Bitrate:', xalign=0)
-      label1.set_size_request(220, -1)
+      label1.set_size_request(210, -1)
 
 
       combo1 = Gtk.ComboBoxText()
@@ -246,7 +244,7 @@ class TabSettings:
 
 
       label1 = Gtk.Label(label='PWrecord Device:', xalign=0)
-      label1.set_size_request(220, -1)
+      label1.set_size_request(210, -1)
 
 
       self.combo_pwrecord = Gtk.ComboBoxText()
@@ -258,7 +256,7 @@ class TabSettings:
          self.combo_pwrecord.insert(i, str(i), item)
       self.combo_pwrecord.set_active(choice_active)
       self.combo_pwrecord.connect('changed', self.combobox_pwrecord_changed)
-      self.combo_pwrecord.set_size_request(700, 10)
+      #self.combo_pwrecord.set_size_request(700, 10)
 
 
       self.button_device_pwrecord_scan = Gtk.Button(label='Scan')
@@ -275,7 +273,7 @@ class TabSettings:
 
       hbox_device_pwrecord.pack_start(image1, False, False, 0)
       hbox_device_pwrecord.pack_start(label1, False, False, 0)
-      hbox_device_pwrecord.pack_start(self.combo_pwrecord, False, False, 0)
+      hbox_device_pwrecord.pack_start(self.combo_pwrecord, True, True, 0)
       hbox_device_pwrecord.pack_start(self.button_device_pwrecord_scan, False, False, 0)
 
 
@@ -286,14 +284,14 @@ class TabSettings:
       button_reset.set_size_request(100, -1)
 
 
-      hbox1 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
-      hbox1.pack_start(button_reset, False, False, 0)
-
-      grid.attach_next_to(hbox1, hbox_device_pwrecord, Gtk.PositionType.BOTTOM, 1, 1)
+      hbox_reset = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=40)
+      hbox_reset.pack_start(button_reset, False, False, 0)
 
 
-      self.hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
-      self.hbox.pack_start(grid, False, True, 0)
+
+      self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
+      self.vbox.pack_start(grid, False, False, 5)
+      self.vbox.pack_start(hbox_reset, False, False, 20)
 
 
 
