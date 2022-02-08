@@ -7,12 +7,12 @@ Audok is a simple linux music player with streamripper and converter support. Au
 
 Version
 ======
-Current Version is 1.0.11
+Current Version is 1.0.12
 
 
 Requirements
 ======
-- pipewire
+- pipewire or pulseaudio
 - ffmpeg
 - youtube-dl
 - streamripper
@@ -21,18 +21,18 @@ Requirements
 Installation
 ======
 Dependencies Debian:<br/>
-sudo apt install --no-install-recommends python3-gst-1.0 python3-cairo ffmpeg flac lame youtube-dl wget unzip<br/>
-sudo apt install --no-install-recommends pipewire libgstreamer-plugins-base1.0-0 libgstreamer-plugins-bad1.0-0<br/>
+sudo apt install --no-install-recommends python3-gst-1.0 python3-cairo ffmpeg youtube-dl wget unzip<br/>
+sudo apt install --no-install-recommends libgstreamer-plugins-base1.0-0 libgstreamer-plugins-bad1.0-0<br/>
 sudo apt install --no-install-recommends streamripper<br/>
 
 Dependencies Fedora:<br/>
-sudo dnf install python3-gstreamer1 python3-cairo ffmpeg flac lame youtube-dl wget unzip<br/>
-sudo dnf install pipewire gstreamer1-plugins-base gstreamer1-plugins-bad-free<br/>
+sudo dnf install python3-gstreamer1 python3-cairo ffmpeg youtube-dl wget unzip<br/>
+sudo dnf install gstreamer1-plugins-base gstreamer1-plugins-bad-free<br/>
 sudo dnf install streamripper<br/>
 
 Dependencies Manjaro:<br/>
-sudo pamac install python-cairo gst-python ffmpeg flac lame youtube-dl wget unzip<br/>
-sudo pamac install pipewire-alsa gst-plugins-base-libs gst-plugins-bad-libs<br/>
+sudo pamac install python-cairo gst-python ffmpeg youtube-dl wget unzip<br/>
+sudo pamac install gst-plugins-base-libs gst-plugins-bad-libs<br/>
 sudo pamac build streamripper<br/>
 
 wget https://github.com/kalibari/audok/archive/refs/heads/master.zip<br/>
