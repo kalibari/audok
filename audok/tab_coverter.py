@@ -159,7 +159,7 @@ class TabConverter:
 
 
                if self.madmin.process_database[item]['job']=='record':
-                  if self.madmin.process_database[item]['identifier']=='pw-record':
+                  if self.madmin.process_database[item]['identifier']=='record':
                      if self.madmin.process_database[item]['output']:
                         self.textbuffer_output.set_text('%s\n' % self.madmin.process_database[item]['output'])
                         self.madmin.process_database[item]['output']=[]
@@ -202,7 +202,7 @@ class TabConverter:
 
 
                if self.madmin.process_database[item]['job']=='record':
-                  if self.madmin.process_database[item]['identifier']=='pw-record':
+                  if self.madmin.process_database[item]['identifier']=='record':
                      self.madmin.process_database[item]['status']='inactive'
 
 
@@ -305,16 +305,45 @@ class TabConverter:
          os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_record'])
 
 
-      target=-1
+
+      source_cmd=[]
       device=''
 
       if self.settings['device_record'] and ':' in self.settings['device_record']:
          get_target = self.settings['device_record'].split(':')
-         device = ', '.join(get_target[:-1])
-         target=int(get_target[-1])
+         if len(get_target)>=1:
+
+            soundsystem=get_target[0]
+            get_target.pop(0)
+
+            if len(get_target)>=3:
+
+               if soundsystem=='pw':
+
+                  # pw  alsa_output.pci-0000_00_1f.3.analog-stereo   Audio/Sink   44
+                  device = ', '.join(get_target[:-1])
+                  target=int(get_target[-1])
+
+                  if target:
+                     source_cmd=[self.config['bin_pwrecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99', '--target=%s' % target]
 
 
-      if target<0:
+               elif soundsystem=='pa':
+
+                  # pa   alsa_input.pci-0000_00_1b.0.analog-stereo   Quelle   1
+                  device = ' '.join(get_target[-2:])
+                  get_target.pop()
+                  get_target.pop()
+                  target=''.join(get_target)
+
+                  if target:
+                     source_cmd=[self.config['bin_parecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99', '--file-format=wav', '--device=%s' % target]
+
+
+
+
+
+      if len(source_cmd)==0:
          self.textbuffer_output.set_text('cannot find a record device, please rescan devices (see Settings)')
       else:
 
@@ -373,11 +402,16 @@ class TabConverter:
             self.button_file2flac.set_sensitive(False)
             self.button_stop.set_sensitive(True)
    
-            # pw-record --verbose --record --channels=2 --format=s32 --rate=48000 --volume=0.99 --target=41  /MyDisc/Audio/Neu/test.wav
-            cmd=[self.config['bin_record'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99',\
-            '--target=%s' % target, '%s/%s/%s' % (self.settings['music_path'],self.settings['directory_record'],new_filename)]
+            # pw-record --verbose --record --channels=2 --format=s32 --rate=48000 --volume=0.99 --target=41  /tmp/test.wav
+            # parecord  --verbose --record --channels=2 --format=s32 --rate=48000 --volume=0.99 --file-format=wav --device=alsa_input.pci-0000_00_1b.0.analog-stereo /tmp/test.wav
+            cmd=[]
+            cmd.extend(source_cmd)
+            cmd.extend(['%s/%s/%s' % (self.settings['music_path'],self.settings['directory_record'],new_filename)])
             cwd=self.settings['music_path'] + '/' + self.settings['directory_record']
             self.madmin.process_starter(cmd=cmd, cwd=cwd, job='record', identifier='', source='')
+
+
+
 
 
 

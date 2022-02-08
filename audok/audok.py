@@ -24,7 +24,6 @@ import main
 from argparse import ArgumentParser, RawTextHelpFormatter
 
 
-
 def startup_notification_workaround():
    # https://specifications.freedesktop.org/startup-notification-spec/startup-notification-0.1.txt
    Gdk.notify_startup_complete()
@@ -64,8 +63,13 @@ if __name__ == '__main__':
    config['bin_youtubedl'] = 'youtube-dl'
    config['bin_streamripper'] = 'streamripper'
    config['bin_ffmpeg'] = 'ffmpeg'
+
    config['bin_pwcli'] = 'pw-cli'
-   config['bin_record'] = 'pw-record'
+   config['bin_pwrecord'] = 'pw-record'
+
+   config['bin_pactl'] = 'pactl'
+   config['bin_parecord'] = 'parecord'
+
    config['bin_nice'] = 'nice'
 
    config['supported_audio_files'] = ['mp3','ogg','aac','flac','midi','mp4','mpeg','wma','asx','wav','mpegurl']

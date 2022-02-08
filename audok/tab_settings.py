@@ -6,6 +6,7 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 gi.require_version('Gdk', '3.0')
 from gi.repository import Gdk
+from shutil import which
 
 
 class TabSettings:
@@ -376,37 +377,78 @@ class TabSettings:
 
 
    def button_scan_clicked(self, event):
+
       self.log.debug('start')
 
       audio_devices = []
 
-      out = subprocess.check_output([self.config['bin_pwcli'],'list-objects'])
-      if out:
-         output=out.decode('utf-8').split('\n')
+      if which(self.config['bin_pwcli']):
 
-         idnum=0
-         node_name=''
-         media_class=''
+         out = subprocess.check_output([self.config['bin_pwcli'], 'list-objects'])
+         if out:
+            output=out.decode('utf-8').split('\n')
 
-         for item in output:
+            idnum=0
+            node_name=''
+            media_class=''
 
-            x = re.search('^\s+id (\d+),', item)
-            if x and x.group(1):
-               idnum=x.group(1)
-               node_name=''
-               media_class=''
+            for item in output:
 
-            x = re.search('node\.name\ \=\ "(.*)"\s*$', item)
-            if x and x.group(1):
-               node_name=x.group(1)
+               x = re.search('^\s+id (\d+),', item)
+               if x and x.group(1):
+                  idnum=x.group(1)
+                  node_name=''
+                  media_class=''
 
-            x = re.search('media\.class\ \=\ "(.*)"\s*$', item)
-            if x and x.group(1):
-               if 'audio' in x.group(1).lower():
+               x = re.search('node\.name\ \=\ "(.*)"\s*$', item)
+               if x and x.group(1):
+                  node_name=x.group(1)
+
+               x = re.search('media\.class\ \=\ "(.*)"\s*$', item)
+               if x and x.group(1):
+                  if 'audio' in x.group(1).lower():
+                     media_class=x.group(1)
+
+               if node_name and idnum and media_class:
+                  # pw  alsa_output.pci-0000_00_1f.3.analog-stereo   Audio/Sink   44
+                  audio_devices.extend(['pw' + ':' + node_name + ':' + media_class + ':' + idnum])
+                  node_name=''
+                  idnum=0
+                  media_class=''
+
+
+
+      if which(self.config['bin_pactl']) and len(audio_devices)==0:
+
+         out = subprocess.check_output([self.config['bin_pactl'],'list'])
+         if out:
+            output=out.decode('utf-8').split('\n')
+
+            idnum=0
+            node_name=''
+            media_class=''
+
+            for item in output:
+
+               x = re.search('^([a-zA-Z0-9]*)\s+#(\d+)\s*$', item)
+               if x and x.group(1) and x.group(2):
+                  idnum=x.group(2)
+                  node_name=''
+
+               x = re.search('^\s+Name:\s*(.*)\s*$', item)
+               if x and x.group(1):
+                  node_name=x.group(1)
+
+               x = re.search('^\s+device\.class\ =\ "(.*)"\s*$', item)
+               if x and x.group(1):
                   media_class=x.group(1)
 
-            if idnum and node_name and media_class:
-               audio_devices.extend([node_name + ':' + media_class + ':' + idnum ])
+               if node_name and idnum and media_class:
+                  # pa   alsa_input.pci-0000_00_1b.0.analog-stereo   Quelle   1
+                  audio_devices.extend(['pa' + ':' + node_name + ':' + media_class + ':' + idnum])
+                  node_name=''
+                  idnum=0
+                  media_class=''
 
 
 
