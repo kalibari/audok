@@ -19,7 +19,7 @@ class TabConverter:
       self.settings = settings
 
       self.obj_timer_file2flac=None
-      self.obj_timer_pwrecord=None
+      self.obj_timer_record=None
       self.obj_timer_file2mp3=None
       self.obj_timer_you2mp3=None
 
@@ -43,9 +43,9 @@ class TabConverter:
       self.button_you2mp3_update_tooltip(directory=self.settings['directory_new'])
 
 
-      self.button_pwrecord = Gtk.Button(label='pwrecord')
-      self.button_pwrecord.connect('clicked', self.button_pwrecord_chlicked)
-      self.button_pwrecord_update_tooltip(filename=self.settings['filename_pwrecord'], directory=self.settings['directory_pwrecord'])
+      self.button_record = Gtk.Button(label='record')
+      self.button_record.connect('clicked', self.button_record_chlicked)
+      self.button_record_update_tooltip(filename=self.settings['filename_record'], directory=self.settings['directory_record'])
 
 
       self.button_file2mp3 = Gtk.Button(label='file2mp3')
@@ -66,7 +66,7 @@ class TabConverter:
 
       hbox1.pack_start(label1, False, True, 10)
       hbox1.pack_start(self.button_you2mp3, True, True, 0)
-      hbox1.pack_start(self.button_pwrecord, True, True, 0)
+      hbox1.pack_start(self.button_record, True, True, 0)
       hbox1.pack_start(self.button_file2mp3, True, True, 0)
       hbox1.pack_start(self.button_file2flac, True, True, 0)
       hbox1.pack_start(self.button_stop, True, True, 0)
@@ -158,7 +158,7 @@ class TabConverter:
 
 
 
-               if self.madmin.process_database[item]['job']=='pwrecord':
+               if self.madmin.process_database[item]['job']=='record':
                   if self.madmin.process_database[item]['identifier']=='pw-record':
                      if self.madmin.process_database[item]['output']:
                         self.textbuffer_output.set_text('%s\n' % self.madmin.process_database[item]['output'])
@@ -185,7 +185,7 @@ class TabConverter:
 
                # enable buttons, stop refreh timer
                self.button_you2mp3.set_sensitive(True)
-               self.button_pwrecord.set_sensitive(True)
+               self.button_record.set_sensitive(True)
                self.button_file2mp3.set_sensitive(True)
                self.button_file2flac.set_sensitive(True)
                self.button_stop.set_sensitive(False)
@@ -201,7 +201,7 @@ class TabConverter:
                      self.textbuffer_output.set_text('-- job: %s error\n' % self.madmin.process_database[item]['job'])
 
 
-               if self.madmin.process_database[item]['job']=='pwrecord':
+               if self.madmin.process_database[item]['job']=='record':
                   if self.madmin.process_database[item]['identifier']=='pw-record':
                      self.madmin.process_database[item]['status']='inactive'
 
@@ -255,7 +255,7 @@ class TabConverter:
       self.log.debug('start')
 
       self.button_you2mp3.set_sensitive(False)
-      self.button_pwrecord.set_sensitive(False)
+      self.button_record.set_sensitive(False)
       self.button_file2mp3.set_sensitive(False)
       self.button_file2flac.set_sensitive(False)
       self.button_stop.set_sensitive(True)
@@ -270,7 +270,7 @@ class TabConverter:
          self.textbuffer_output.set_text('please insert a input URL')
 
          self.button_you2mp3.set_sensitive(True)
-         self.button_pwrecord.set_sensitive(True)
+         self.button_record.set_sensitive(True)
          self.button_file2mp3.set_sensitive(True)
          self.button_file2flac.set_sensitive(True)
          self.button_stop.set_sensitive(False)
@@ -293,38 +293,38 @@ class TabConverter:
 
 
 
-   def button_pwrecord_chlicked(self, event):
+   def button_record_chlicked(self, event):
       self.log.debug('start')
 
       self.textbuffer_output.set_text('')
 
-      self.obj_timer_pwrecord = GLib.timeout_add(1000, self.refresh_output_textctrl_timer)
+      self.obj_timer_record = GLib.timeout_add(1000, self.refresh_output_textctrl_timer)
 
 
-      if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_pwrecord']):
-         os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_pwrecord'])
+      if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_record']):
+         os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_record'])
 
 
       target=-1
       device=''
 
-      if self.settings['device_pwrecord'] and ':' in self.settings['device_pwrecord']:
-         get_target = self.settings['device_pwrecord'].split(':')
+      if self.settings['device_record'] and ':' in self.settings['device_record']:
+         get_target = self.settings['device_record'].split(':')
          device = ', '.join(get_target[:-1])
          target=int(get_target[-1])
 
 
       if target<0:
-         self.textbuffer_output.set_text('cannot find a pwrecord device, please rescan devices (see Settings)')
+         self.textbuffer_output.set_text('cannot find a record device, please rescan devices (see Settings)')
       else:
 
          self.button_you2mp3.set_sensitive(False)
-         self.button_pwrecord.set_sensitive(False)
+         self.button_record.set_sensitive(False)
          self.button_file2mp3.set_sensitive(False)
          self.button_file2flac.set_sensitive(False)
          self.button_stop.set_sensitive(True)
 
-         filename = self.settings['filename_pwrecord']
+         filename = self.settings['filename_record']
 
          if '/' in filename:
             self.textbuffer_output.set_text('"/" in filename is not allowed')
@@ -335,10 +335,10 @@ class TabConverter:
             if '.' in filename:
                pre_filename = filename.rsplit('.',1)[0]
 
-            if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_pwrecord']):
-               os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_pwrecord'])
+            if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_record']):
+               os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_record'])
 
-            directories = [self.settings['music_path'] + '/' + self.settings['directory_pwrecord']]
+            directories = [self.settings['music_path'] + '/' + self.settings['directory_record']]
 
             extensions = self.config['supported_audio_files']
 
@@ -365,19 +365,19 @@ class TabConverter:
 
 
 
-            self.textbuffer_output.set_text('pwrecord device: %s target: %s filename: %s\n' % (device,target,new_filename))
+            self.textbuffer_output.set_text('record device: %s target: %s filename: %s\n' % (device,target,new_filename))
 
             self.button_you2mp3.set_sensitive(False)
-            self.button_pwrecord.set_sensitive(False)
+            self.button_record.set_sensitive(False)
             self.button_file2mp3.set_sensitive(False)
             self.button_file2flac.set_sensitive(False)
             self.button_stop.set_sensitive(True)
    
             # pw-record --verbose --record --channels=2 --format=s32 --rate=48000 --volume=0.99 --target=41  /MyDisc/Audio/Neu/test.wav
-            cmd=[self.config['bin_pwrecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99',\
-            '--target=%s' % target, '%s/%s/%s' % (self.settings['music_path'],self.settings['directory_pwrecord'],new_filename)]
-            cwd=self.settings['music_path'] + '/' + self.settings['directory_pwrecord']
-            self.madmin.process_starter(cmd=cmd, cwd=cwd, job='pwrecord', identifier='', source='')
+            cmd=[self.config['bin_record'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99',\
+            '--target=%s' % target, '%s/%s/%s' % (self.settings['music_path'],self.settings['directory_record'],new_filename)]
+            cwd=self.settings['music_path'] + '/' + self.settings['directory_record']
+            self.madmin.process_starter(cmd=cmd, cwd=cwd, job='record', identifier='', source='')
 
 
 
@@ -385,7 +385,7 @@ class TabConverter:
       self.log.debug('start')
 
       self.button_you2mp3.set_sensitive(False)
-      self.button_pwrecord.set_sensitive(False)
+      self.button_record.set_sensitive(False)
       self.button_file2mp3.set_sensitive(False)
       self.button_file2flac.set_sensitive(False)
       self.button_stop.set_sensitive(True)
@@ -412,7 +412,7 @@ class TabConverter:
          self.log.debug('no files to change')
 
          self.button_you2mp3.set_sensitive(True)
-         self.button_pwrecord.set_sensitive(True)
+         self.button_record.set_sensitive(True)
          self.button_file2mp3.set_sensitive(True)
          self.button_file2flac.set_sensitive(True)
          self.button_stop.set_sensitive(False)
@@ -453,7 +453,7 @@ class TabConverter:
       self.log.debug('start')
 
       self.button_you2mp3.set_sensitive(False)
-      self.button_pwrecord.set_sensitive(False)
+      self.button_record.set_sensitive(False)
       self.button_file2mp3.set_sensitive(False)
       self.button_file2flac.set_sensitive(False)
       self.button_stop.set_sensitive(True)
@@ -480,7 +480,7 @@ class TabConverter:
          self.log.debug('no files to change')
 
          self.button_you2mp3.set_sensitive(True)
-         self.button_pwrecord.set_sensitive(True)
+         self.button_record.set_sensitive(True)
          self.button_file2mp3.set_sensitive(True)
          self.button_file2flac.set_sensitive(True)
          self.button_stop.set_sensitive(False)
@@ -511,7 +511,7 @@ class TabConverter:
                      break
 
 
-               # ffmpeg -y -i /MyDisc/Audio/Neu/New/pwrecord-1.wav -af aformat=s32:48000 /MyDisc/Audio/Neu/test.flac
+               # ffmpeg -y -i /MyDisc/Audio/Neu/New/record-1.wav -af aformat=s32:48000 /MyDisc/Audio/Neu/test.flac
                cwd=self.settings['music_path'] + '/' + self.settings['directory_new']
                cmd=['nice','-n','19',self.config['bin_ffmpeg'], '-y', '-i',  item, '-af', 'aformat=s32:48000', newfilename]
                self.madmin.process_starter(cmd=cmd, cwd=cwd, job='file2flac', identifier='', source=item)
@@ -526,9 +526,9 @@ class TabConverter:
          GLib.source_remove(self.obj_timer_file2flac)
          self.obj_timer_file2flac=None
 
-      if self.obj_timer_pwrecord is not None:
-         GLib.source_remove(self.obj_timer_pwrecord)
-         self.obj_timer_pwrecord=None
+      if self.obj_timer_record is not None:
+         GLib.source_remove(self.obj_timer_record)
+         self.obj_timer_record=None
 
       if self.obj_timer_file2mp3 is not None:
          GLib.source_remove(self.obj_timer_file2mp3)
@@ -540,12 +540,12 @@ class TabConverter:
 
 
       self.madmin.process_job_killer(job='you2mp3')
-      self.madmin.process_job_killer(job='pwrecord')
+      self.madmin.process_job_killer(job='record')
       self.madmin.process_job_killer(job='file2mp3')
       self.madmin.process_job_killer(job='file2flac')
 
       self.button_you2mp3.set_sensitive(True)
-      self.button_pwrecord.set_sensitive(True)
+      self.button_record.set_sensitive(True)
       self.button_file2mp3.set_sensitive(True)
       self.button_file2flac.set_sensitive(True)
       self.button_stop.set_sensitive(False)
@@ -557,8 +557,8 @@ class TabConverter:
 
 
 
-   def button_pwrecord_update_tooltip(self, filename, directory):
-      self.button_pwrecord.set_tooltip_text('Record via Pipewire - Destination Filename: %s Directory: %s' % (filename,directory))
+   def button_record_update_tooltip(self, filename, directory):
+      self.button_record.set_tooltip_text('Record via Pipewire - Destination Filename: %s Directory: %s' % (filename,directory))
 
 
 

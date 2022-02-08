@@ -65,7 +65,7 @@ if __name__ == '__main__':
    config['bin_streamripper'] = 'streamripper'
    config['bin_ffmpeg'] = 'ffmpeg'
    config['bin_pwcli'] = 'pw-cli'
-   config['bin_pwrecord'] = 'pw-record'
+   config['bin_record'] = 'pw-record'
    config['bin_nice'] = 'nice'
 
    config['supported_audio_files'] = ['mp3','ogg','aac','flac','midi','mp4','mpeg','wma','asx','wav','mpegurl']
@@ -153,11 +153,11 @@ if __name__ == '__main__':
 
    settings['directory_converter'] = 'New'
 
-   settings['directory_pwrecord'] = 'New'
-   settings['filename_pwrecord'] = 'pwrecord.wav'
-   settings['device_pwrecord'] = ''
+   settings['directory_record'] = 'New'
+   settings['filename_record'] = 'record.wav'
+   settings['device_record'] = ''
 
-   settings['choice_device_pwrecord'] = ['']
+   settings['choice_device_record'] = ['']
 
    settings['play_time'] = '0'
    settings['choice_play_time'] = ['0','10','20','35','50','65']

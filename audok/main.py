@@ -167,8 +167,8 @@ class Music_Admin_Start(Gtk.Window):
          if self.notebook_tab_converter.obj_timer_file2flac is not None:
             GLib.source_remove(self.notebook_tab_converter.obj_timer_file2flac)
 
-         if self.notebook_tab_converter.obj_timer_pwrecord is not None:
-            GLib.source_remove(self.notebook_tab_converter.obj_timer_pwrecord)
+         if self.notebook_tab_converter.obj_timer_record is not None:
+            GLib.source_remove(self.notebook_tab_converter.obj_timer_record)
 
          if self.notebook_tab_converter.obj_timer_file2mp3 is not None:
             GLib.source_remove(self.notebook_tab_converter.obj_timer_file2mp3)

@@ -167,12 +167,12 @@ class TabSettings:
 
 
 
-      hbox_filename_pwrecord = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+      hbox_filename_record = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
 
       image1 = Gtk.Image()
       image1.set_from_file('%s/empty_small.png' % self.config['app_path'])
 
-      label1 = Gtk.Label(label='PWrecord Directory:', xalign=0)
+      label1 = Gtk.Label(label='Record Directory:', xalign=0)
       label1.set_size_request(210, -1)
 
       label2 = Gtk.Label(label='%s/' % self.settings['music_path'], xalign=0)
@@ -181,8 +181,8 @@ class TabSettings:
       entry1 = Gtk.Entry()
       entry1.set_size_request(300, -1)
       entry1.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
-      entry1.set_text(self.settings['directory_pwrecord'])
-      entry1.connect('changed', self.change_directory_pwrecord)
+      entry1.set_text(self.settings['directory_record'])
+      entry1.connect('changed', self.change_directory_record)
 
 
       label3 = Gtk.Label('Filename:', xalign=0.5)
@@ -191,29 +191,29 @@ class TabSettings:
 
       entry2 = Gtk.Entry()
       entry2.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
-      entry2.set_text(self.settings['filename_pwrecord'])
-      entry2.connect('changed', self.change_filename_pwrecord)
+      entry2.set_text(self.settings['filename_record'])
+      entry2.connect('changed', self.change_filename_record)
 
 
-      hbox_filename_pwrecord.pack_start(image1, False, False, 0)
-      hbox_filename_pwrecord.pack_start(label1, False, False, 0)
-      hbox_filename_pwrecord.pack_start(label2, False, False, 0)
-      hbox_filename_pwrecord.pack_start(entry1, False, False, 0)
-      hbox_filename_pwrecord.pack_start(label3, False, False, 0)
-      hbox_filename_pwrecord.pack_start(entry2, True, True, 0)
+      hbox_filename_record.pack_start(image1, False, False, 0)
+      hbox_filename_record.pack_start(label1, False, False, 0)
+      hbox_filename_record.pack_start(label2, False, False, 0)
+      hbox_filename_record.pack_start(entry1, False, False, 0)
+      hbox_filename_record.pack_start(label3, False, False, 0)
+      hbox_filename_record.pack_start(entry2, True, True, 0)
 
 
-      grid.attach_next_to(hbox_filename_pwrecord, hbox_converter_dir, Gtk.PositionType.BOTTOM, 1, 1)
+      grid.attach_next_to(hbox_filename_record, hbox_converter_dir, Gtk.PositionType.BOTTOM, 1, 1)
 
 
 
-      hbox_pwrecord_bitrate = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+      hbox_record_bitrate = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
 
       image1 = Gtk.Image()
       image1.set_from_file('%s/empty_small.png' % self.config['app_path'])
 
 
-      label1 = Gtk.Label(label='PWrecord Bitrate:', xalign=0)
+      label1 = Gtk.Label(label='Record Bitrate:', xalign=0)
       label1.set_size_request(210, -1)
 
 
@@ -228,39 +228,39 @@ class TabSettings:
       combo1.connect('changed', self.combobox_bitrate_changed)
  
 
-      hbox_pwrecord_bitrate.pack_start(image1, False, False, 0)
-      hbox_pwrecord_bitrate.pack_start(label1, False, False, 0)
-      hbox_pwrecord_bitrate.pack_start(combo1, False, False, 0)
+      hbox_record_bitrate.pack_start(image1, False, False, 0)
+      hbox_record_bitrate.pack_start(label1, False, False, 0)
+      hbox_record_bitrate.pack_start(combo1, False, False, 0)
 
-      grid.attach_next_to(hbox_pwrecord_bitrate, hbox_filename_pwrecord, Gtk.PositionType.BOTTOM, 1, 1)
+      grid.attach_next_to(hbox_record_bitrate, hbox_filename_record, Gtk.PositionType.BOTTOM, 1, 1)
 
 
 
-      hbox_device_pwrecord = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+      hbox_device_record = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
 
 
       image1 = Gtk.Image()
       image1.set_from_file('%s/empty_small.png' % self.config['app_path'])
 
 
-      label1 = Gtk.Label(label='PWrecord Device:', xalign=0)
+      label1 = Gtk.Label(label='Record Device:', xalign=0)
       label1.set_size_request(210, -1)
 
 
-      self.combo_pwrecord = Gtk.ComboBoxText()
-      choice_device_pwrecord=self.settings['choice_device_pwrecord']
+      self.combo_record = Gtk.ComboBoxText()
+      choice_device_record=self.settings['choice_device_record']
       choice_active=0
-      for i,item in enumerate(choice_device_pwrecord):
-         if item==self.settings['device_pwrecord']:
+      for i,item in enumerate(choice_device_record):
+         if item==self.settings['device_record']:
             choice_active=i
-         self.combo_pwrecord.insert(i, str(i), item)
-      self.combo_pwrecord.set_active(choice_active)
-      self.combo_pwrecord.connect('changed', self.combobox_pwrecord_changed)
-      #self.combo_pwrecord.set_size_request(700, 10)
+         self.combo_record.insert(i, str(i), item)
+      self.combo_record.set_active(choice_active)
+      self.combo_record.connect('changed', self.combobox_record_changed)
+      #self.combo_record.set_size_request(700, 10)
 
 
-      self.button_device_pwrecord_scan = Gtk.Button(label='Scan')
-      self.button_device_pwrecord_scan.connect('clicked', self.button_scan_clicked)
+      self.button_device_record_scan = Gtk.Button(label='Scan')
+      self.button_device_record_scan.connect('clicked', self.button_scan_clicked)
 
 
       entry1 = Gtk.Entry()
@@ -271,13 +271,13 @@ class TabSettings:
 
 
 
-      hbox_device_pwrecord.pack_start(image1, False, False, 0)
-      hbox_device_pwrecord.pack_start(label1, False, False, 0)
-      hbox_device_pwrecord.pack_start(self.combo_pwrecord, True, True, 0)
-      hbox_device_pwrecord.pack_start(self.button_device_pwrecord_scan, False, False, 0)
+      hbox_device_record.pack_start(image1, False, False, 0)
+      hbox_device_record.pack_start(label1, False, False, 0)
+      hbox_device_record.pack_start(self.combo_record, True, True, 0)
+      hbox_device_record.pack_start(self.button_device_record_scan, False, False, 0)
 
 
-      grid.attach_next_to(hbox_device_pwrecord, hbox_pwrecord_bitrate, Gtk.PositionType.BOTTOM, 1, 1)
+      grid.attach_next_to(hbox_device_record, hbox_record_bitrate, Gtk.PositionType.BOTTOM, 1, 1)
 
       button_reset = Gtk.Button(label='Reset')
       button_reset.connect('clicked', self.button_reset_clicked)
@@ -290,9 +290,9 @@ class TabSettings:
 
 
       self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
-      self.vbox.pack_start(grid, False, False, 5)
+      self.vbox.pack_start(grid, False, False, 0)
       self.vbox.pack_start(hbox_reset, False, False, 20)
-
+      self.vbox.set_border_width(10)
 
 
 
@@ -348,17 +348,17 @@ class TabSettings:
 
 
 
-   def change_filename_pwrecord(self, event):
+   def change_filename_record(self, event):
       self.log.debug('start')
-      self.settings['filename_pwrecord'] = event.get_text().strip()
-      self.madmin.notebook_tab_converter.button_pwrecord_update_tooltip(filename=self.settings['filename_pwrecord'], directory=self.settings['directory_pwrecord'])
+      self.settings['filename_record'] = event.get_text().strip()
+      self.madmin.notebook_tab_converter.button_record_update_tooltip(filename=self.settings['filename_record'], directory=self.settings['directory_record'])
 
 
 
-   def change_directory_pwrecord(self, event):
+   def change_directory_record(self, event):
       self.log.debug('start')
-      self.settings['directory_pwrecord'] = event.get_text().strip()
-      self.madmin.notebook_tab_converter.button_pwrecord_update_tooltip(filename=self.settings['filename_pwrecord'], directory=self.settings['directory_pwrecord'])
+      self.settings['directory_record'] = event.get_text().strip()
+      self.madmin.notebook_tab_converter.button_record_update_tooltip(filename=self.settings['filename_record'], directory=self.settings['directory_record'])
 
 
 
@@ -368,10 +368,10 @@ class TabSettings:
 
 
 
-   def combobox_pwrecord_changed(self, event):
+   def combobox_record_changed(self, event):
       self.log.debug('start')
-      self.settings['device_pwrecord'] = event.get_active_text()
-      self.madmin.notebook_tab_converter.button_pwrecord_update_tooltip(filename=self.settings['filename_pwrecord'], directory=self.settings['directory_pwrecord'])
+      self.settings['device_record'] = event.get_active_text()
+      self.madmin.notebook_tab_converter.button_record_update_tooltip(filename=self.settings['filename_record'], directory=self.settings['directory_record'])
 
 
 
@@ -410,16 +410,16 @@ class TabSettings:
 
 
 
-      self.settings['choice_device_pwrecord'] = []
-      self.combo_pwrecord.remove_all()
+      self.settings['choice_device_record'] = []
+      self.combo_record.remove_all()
 
       choice_active=0
       for i,dev in enumerate(audio_devices):
-         if dev==self.settings['device_pwrecord']:
+         if dev==self.settings['device_record']:
             choice_active=i
-         self.settings['choice_device_pwrecord'].extend([dev])
-         self.combo_pwrecord.insert(i, str(i), dev)
-      self.combo_pwrecord.set_active(choice_active)
+         self.settings['choice_device_record'].extend([dev])
+         self.combo_record.insert(i, str(i), dev)
+      self.combo_record.set_active(choice_active)
 
 
 
