@@ -75,14 +75,8 @@ class Music_Admin_Start(Gtk.Window):
          self.log.debug('ipc_server error: %s' % str(e))
 
 
-
-
-
       GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, self.signal_handler_sigint)
 
-      if self.playlist:
-         self.notebook_tab_musicplayer.choose_song(num=self.config['play_num'])
-         self.notebook_tab_musicplayer.play_file()
 
 
 
@@ -450,20 +444,26 @@ class Music_Admin_Start(Gtk.Window):
 
                   self.log.debug('thread received "%s"' % data)
 
+
                   if data=='play_timer_end':
                      self.log.debug('play_timer_end')
 
                      self.settings['interrupt']='play_timer_end'
                      self.notebook_tab_musicplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_musicplayer.player,Gst.Structure.new_empty('song-changed')))
 
+
                   elif data.startswith('play_new_file='):
                      self.log.debug('play_new_file -> bus_application_message')
 
-                     state = self.notebook_tab_musicplayer.player.get_state(0).state
-
                      self.settings['interrupt']='play_new_file'
                      data=data.replace('play_new_file=','',1)
-                     self.notebook_tab_musicplayer.playlist.insert(0, data)
+
+
+                     # update playlist
+                     self.notebook_tab_musicplayer.update_playlist(play_new_file=data)
+
+
+                     state = self.notebook_tab_musicplayer.player.get_state(0).state
 
                      if state==Gst.State.PAUSED or state==Gst.State.NULL:
                         self.notebook_tab_musicplayer.button_play.set_sensitive(False)
@@ -471,6 +471,7 @@ class Music_Admin_Start(Gtk.Window):
 
 
                      self.notebook_tab_musicplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_musicplayer.player,Gst.Structure.new_empty('song-changed')))
+
 
                else:
                   self.log.debug('received data')

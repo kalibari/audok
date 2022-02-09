@@ -231,28 +231,12 @@ if __name__ == '__main__':
    log.debug('music path: %s' % settings['music_path'])
    log.debug('config path: %s' % settings['config_path'])
    log.debug('directories new: %s old: %s streamripper: %s' % (settings['directory_new'],settings['directory_old'],settings['directory_str']))
-   log.debug('playlist: %s' % playlist)
 
 
-   if result.filename:
 
-      log.debug('filename: %s' % result.filename)
-
-      if result.filename.endswith('.m3u'):
-         m3ufiles = []
-         with open(result.filename,'r') as f:
-            m3ufiles = f.readlines()
-         for item in m3ufiles:
-            item=item.strip()
-            if os.path.isfile(item):
-               playlist.extend([item])
-
-      else:
-         for item in config['supported_audio_files']:
-            if result.filename.endswith(item):
-               playlist = [result.filename]
-               break
-
+   config['filename']=''
+   if result.filename and os.path.exists(result.filename ):
+      config['filename']=result.filename 
 
 
 
@@ -265,24 +249,19 @@ if __name__ == '__main__':
          port = f.read()
          if port:
             ipc_port = port
-      
-
-      send_file=''
-      if config['play_num'] < len(playlist):
-         send_file='play_new_file=%s' % playlist[config['play_num']]
 
 
-      log.debug('name: %s is already running - try send file: %s via socket port: %s' % (config['name'],send_file,ipc_port))
+      log.debug('name: %s is already running - try send filename: %s via socket port: %s' % (config['name'],config['filename'],ipc_port))
 
 
-      if not send_file:
+      if not config['filename']:
          os.remove('%s/%s' % (settings['config_path'],settings['filename_ipcport']))
          sys.exit(0)
       else:
          try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect(('localhost', int(ipc_port)))
-            sock.sendall(send_file.encode())
+            sock.sendall(('play_new_file=' + config['filename']).encode())
          except:
             os.remove('%s/%s' % (settings['config_path'],settings['filename_ipcport']))
          else:

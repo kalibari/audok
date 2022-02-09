@@ -356,8 +356,11 @@ class TabMusicPlayer:
       box_outer.pack_start(row5, True, True, 2)
       self.box.add(box_outer)
 
+      self.update_playlist(play_new_file=config['filename'])
 
       if len(self.playlist)>=1:
+         self.choose_song(num=self.config['play_num'])
+         self.play_file()
          self.update_listmodel(clear=False)
 
       else:
@@ -444,6 +447,30 @@ class TabMusicPlayer:
             self.choose_song(num=self.config['play_num'])
          else:
             self.choose_song(num=self.config['play_num']+1)
+
+
+
+   def update_playlist(self, play_new_file=''):
+
+      new_playlist=[]
+
+      if play_new_file.endswith('.m3u'):
+         m3ufiles = []
+         with open(play_new_file,'r') as f:
+            m3ufiles = f.readlines()
+         for item in m3ufiles:
+            item=item.strip()
+            if os.path.isfile(item):
+               new_playlist.extend([item])
+
+      else:
+         for item in self.config['supported_audio_files']:
+            if play_new_file.endswith(item):
+               new_playlist = [play_new_file]
+               break
+
+      new_playlist.extend(self.playlist)
+      self.playlist = new_playlist
 
 
 
