@@ -7,12 +7,12 @@ Audok is a simple linux music player with streamripper and converter support. Au
 
 Version
 ======
-Current Version is 1.0.12
+Current Version is 1.0.13
 
 
 Requirements
 ======
-- pipewire or pulseaudio
+- pulseaudio or pipewire
 - ffmpeg
 - youtube-dl
 - streamripper
@@ -63,6 +63,6 @@ Audok provides the following features:
 - play mp3,wav,flac files
 - youtube-dl support (mp3 downloader)
 - streamripper support
-- record wav files via pipewire
+- record wav files via pulseaudio or pipewire
 - covert wav,aac,flac,flv,webm to mp3
 - covert wav,aac,mp3,flv,webm to flac

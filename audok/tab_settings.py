@@ -34,10 +34,10 @@ class TabSettings:
       image1 = Gtk.Image()
       image1.set_from_file('%s/newdir_small.png' % self.config['app_path'])
       label1 = Gtk.Label(label='Music Directory New:', xalign=0)
-      label1.set_size_request(210, -1)
+      label1.set_size_request(205, -1)
 
       label2 = Gtk.Label(label='%s/' % self.settings['music_path'], xalign=0)
-      label2.set_size_request(140, -1)
+      label2.set_size_request(130, -1)
 
       entry1 = Gtk.Entry()
       entry1.set_size_request(300, -1)
@@ -60,10 +60,10 @@ class TabSettings:
       image1 = Gtk.Image()
       image1.set_from_file('%s/olddir_small.png' % self.config['app_path'])
       label1 = Gtk.Label(label='Music Directory Old:', xalign=0)
-      label1.set_size_request(210, -1)
+      label1.set_size_request(205, -1)
 
       label2 = Gtk.Label(label='%s/' % self.settings['music_path'], xalign=0)
-      label2.set_size_request(140, -1)
+      label2.set_size_request(130, -1)
 
 
       entry1 = Gtk.Entry()
@@ -87,10 +87,10 @@ class TabSettings:
       image1 = Gtk.Image()
       image1.set_from_file('%s/streamripperdir_small.png' % self.config['app_path'])
       label1 = Gtk.Label(label='Streamripper Directory:', xalign=0)
-      label1.set_size_request(210, -1)
+      label1.set_size_request(205, -1)
 
       label2 = Gtk.Label(label='%s/' % self.settings['music_path'], xalign=0)
-      label2.set_size_request(140, -1)
+      label2.set_size_request(130, -1)
 
       entry1 = Gtk.Entry()
       entry1.set_size_request(300, -1)
@@ -112,10 +112,10 @@ class TabSettings:
       image1.set_from_file('%s/playlist_small.png' % self.config['app_path'])
 
       label1 = Gtk.Label(label='Playlist Directory:', xalign=0)
-      label1.set_size_request(210, -1)
+      label1.set_size_request(205, -1)
 
       label2 = Gtk.Label(label='%s/' % self.settings['music_path'], xalign=0)
-      label2.set_size_request(140, -1)
+      label2.set_size_request(130, -1)
 
       entry1 = Gtk.Entry()
       entry1.set_size_request(300, -1)
@@ -148,10 +148,10 @@ class TabSettings:
       image1.set_from_file('%s/empty_small.png' % self.config['app_path'])
 
       label1 = Gtk.Label(label='Converter Directory:', xalign=0)
-      label1.set_size_request(210, -1)
+      label1.set_size_request(205, -1)
 
       label2 = Gtk.Label(label='%s/' % self.settings['music_path'], xalign=0)
-      label2.set_size_request(140, -1)
+      label2.set_size_request(130, -1)
 
       entry1 = Gtk.Entry()
       entry1.set_size_request(300, -1)
@@ -174,10 +174,10 @@ class TabSettings:
       image1.set_from_file('%s/empty_small.png' % self.config['app_path'])
 
       label1 = Gtk.Label(label='Record Directory:', xalign=0)
-      label1.set_size_request(210, -1)
+      label1.set_size_request(205, -1)
 
       label2 = Gtk.Label(label='%s/' % self.settings['music_path'], xalign=0)
-      label2.set_size_request(140, -1)
+      label2.set_size_request(130, -1)
 
       entry1 = Gtk.Entry()
       entry1.set_size_request(300, -1)
@@ -215,7 +215,7 @@ class TabSettings:
 
 
       label1 = Gtk.Label(label='Record Bitrate:', xalign=0)
-      label1.set_size_request(210, -1)
+      label1.set_size_request(205, -1)
 
 
       combo1 = Gtk.ComboBoxText()
@@ -245,19 +245,20 @@ class TabSettings:
 
 
       label1 = Gtk.Label(label='Record Device:', xalign=0)
-      label1.set_size_request(210, -1)
+      label1.set_size_request(205, -1)
 
 
       self.combo_record = Gtk.ComboBoxText()
+      self.combo_record.set_wrap_width(True)
       choice_device_record=self.settings['choice_device_record']
       choice_active=0
-      for i,item in enumerate(choice_device_record):
-         if item==self.settings['device_record']:
+      for i,dev in enumerate(choice_device_record):
+         if dev==self.settings['device_record']:
             choice_active=i
-         self.combo_record.insert(i, str(i), item)
+
+         self.combo_record.insert(i, str(i), dev)
       self.combo_record.set_active(choice_active)
       self.combo_record.connect('changed', self.combobox_record_changed)
-      #self.combo_record.set_size_request(700, 10)
 
 
       self.button_device_record_scan = Gtk.Button(label='Scan')
@@ -389,66 +390,66 @@ class TabSettings:
             output=out.decode('utf-8').split('\n')
 
             idnum=0
-            node_name=''
-            media_class=''
+            node=''
+            media=''
 
             for item in output:
 
                x = re.search('^\s+id (\d+),', item)
                if x and x.group(1):
                   idnum=x.group(1)
-                  node_name=''
-                  media_class=''
+                  node=''
+                  media=''
 
                x = re.search('node\.name\ \=\ "(.*)"\s*$', item)
                if x and x.group(1):
-                  node_name=x.group(1)
+                  node=x.group(1)
 
                x = re.search('media\.class\ \=\ "(.*)"\s*$', item)
                if x and x.group(1):
                   if 'audio' in x.group(1).lower():
-                     media_class=x.group(1)
+                     media=x.group(1)
 
-               if node_name and idnum and media_class:
+               if node and idnum and media:
                   # pw  alsa_output.pci-0000_00_1f.3.analog-stereo   Audio/Sink   44
-                  audio_devices.extend(['pw' + ':' + node_name + ':' + media_class + ':' + idnum])
-                  node_name=''
+                  audio_devices.extend([['pw', idnum, media, node]])
+                  node=''
                   idnum=0
-                  media_class=''
+                  media=''
 
 
 
-      if which(self.config['bin_pactl']) and len(audio_devices)==0:
+      if which(self.config['bin_pactl']):
 
          out = subprocess.check_output([self.config['bin_pactl'],'list'])
          if out:
             output=out.decode('utf-8').split('\n')
 
             idnum=0
-            node_name=''
-            media_class=''
+            node=''
+            media=''
 
             for item in output:
 
                x = re.search('^([a-zA-Z0-9]*)\s+#(\d+)\s*$', item)
                if x and x.group(1) and x.group(2):
                   idnum=x.group(2)
-                  node_name=''
+                  node=''
 
                x = re.search('^\s+Name:\s*(.*)\s*$', item)
                if x and x.group(1):
-                  node_name=x.group(1)
+                  node=x.group(1)
 
                x = re.search('^\s+device\.class\ =\ "(.*)"\s*$', item)
                if x and x.group(1):
-                  media_class=x.group(1)
+                  media=x.group(1)
 
-               if node_name and idnum and media_class:
+               if node and idnum and media:
                   # pa   alsa_input.pci-0000_00_1b.0.analog-stereo   Quelle   1
-                  audio_devices.extend(['pa' + ':' + node_name + ':' + media_class + ':' + idnum])
-                  node_name=''
+                  audio_devices.extend([['pa', idnum, media, node]])
+                  node=''
                   idnum=0
-                  media_class=''
+                  media=''
 
 
 
@@ -456,11 +457,16 @@ class TabSettings:
       self.combo_record.remove_all()
 
       choice_active=0
-      for i,dev in enumerate(audio_devices):
+      i=0
+      for audio, idnum, media, node, in audio_devices:
+         dev = audio + ':' + idnum + ':' + media + ':' + node
+
          if dev==self.settings['device_record']:
             choice_active=i
          self.settings['choice_device_record'].extend([dev])
+
          self.combo_record.insert(i, str(i), dev)
+         i+=1
       self.combo_record.set_active(choice_active)
 
 

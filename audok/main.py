@@ -25,21 +25,18 @@ class Music_Admin_Start(Gtk.Window):
    def __init__(self, log, config, settings, playlist, stationlist):
       Gtk.Window.__init__(self, title=config['name'].title())
 
-      self.set_border_width(3)
-
       self.log = log
       self.config = config
       self.settings = settings
       self.playlist = playlist
       self.stationlist = stationlist
 
-
-      #self.set_default_size(int(settings['size_x']),int(settings['size_y']))
-      self.move(int(settings['position_x']), int(settings['position_y']))
+      self.set_default_size(int(settings['size_x']),int(settings['size_y']))
       self.set_resizable(True) 
-
-
+      self.set_border_width(3)
       self.set_icon_from_file('%s/audok_large.png' % config['app_path'])
+      self.move(int(settings['position_x']), int(settings['position_y']))
+
 
       self.pnum = 0
 
@@ -59,13 +56,16 @@ class Music_Admin_Start(Gtk.Window):
       self.notebook_tab_settings = tab_settings.TabSettings(self, log, config, settings)
       self.notebook_tab_about = tab_about.TabAbout(self, log, config, settings)
 
-
+      # size 994 (row1)
       self.notebook.append_page(self.notebook_tab_musicplayer.box, Gtk.Label(label='Music Player'))
+      # size 594
       self.notebook.append_page(self.notebook_tab_converter.box, Gtk.Label(label='Converter'))
+      # size 901
       self.notebook.append_page(self.notebook_tab_streamripper.hbox, Gtk.Label(label='Streamripper'))
+      # size 996
       self.notebook.append_page(self.notebook_tab_settings.vbox, Gtk.Label(label='Settings'))
+      # size 743
       self.notebook.append_page(self.notebook_tab_about.box, Gtk.Image.new_from_icon_name('help-about',Gtk.IconSize.MENU))
-
 
       try:
          thread = Thread(target=self.ipc_server)
@@ -109,6 +109,7 @@ class Music_Admin_Start(Gtk.Window):
 
       # save settings to ~/.config/audok/settings.xml
       self.log.debug('start')
+
 
       path = self.settings['config_path']
       filename = self.settings['filename_settings']
@@ -200,15 +201,18 @@ class Music_Admin_Start(Gtk.Window):
 
 
 
-   def ReSize(self, widget, data):
+   def resize(self, widget, data):
 
-      (width,height) = self.get_size()
-      (position_x, position_y) = self.get_position()
+      (width, height) = self.get_size()
 
       self.settings['size_x'] = str(width)
       self.settings['size_y'] = str(height)
+
+      (position_x, position_y) = self.get_position()
+
       self.settings['position_x'] = str(position_x)
       self.settings['position_y'] = str(position_y)
+
 
 
 
@@ -344,7 +348,7 @@ class Music_Admin_Start(Gtk.Window):
       process_pid=''
       i=0
 
-      # cmd: ['streamripper', 'http://stream.freefm.de:8100/listen.pls', '-u', 'WinampMPEG/5.0', '-d', '/Music/Streamripper']
+      # cmd: ['streamripper', 'url', '-u', 'WinampMPEG/5.0', '-d', '/Music/Streamripper']
       # cwd: /Music/Streamripper
 
 

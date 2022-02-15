@@ -30,9 +30,9 @@ class TabConverter:
       box_outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
 
       row1 = Gtk.ListBoxRow()
-      hbox1 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
-      hbox1.set_hexpand(True)
-      row1.add(hbox1)
+      hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+      hbox.set_hexpand(True)
+      row1.add(hbox)
 
       label1 = Gtk.Label(label='Audio', xalign=0)
       label1.set_size_request(50, -1)
@@ -64,19 +64,19 @@ class TabConverter:
       self.button_stop.set_tooltip_text('Stop')
 
 
-      hbox1.pack_start(label1, False, True, 10)
-      hbox1.pack_start(self.button_you2mp3, True, True, 0)
-      hbox1.pack_start(self.button_record, True, True, 0)
-      hbox1.pack_start(self.button_file2mp3, True, True, 0)
-      hbox1.pack_start(self.button_file2flac, True, True, 0)
-      hbox1.pack_start(self.button_stop, True, True, 0)
+      hbox.pack_start(label1, False, True, 10)
+      hbox.pack_start(self.button_you2mp3, True, True, 0)
+      hbox.pack_start(self.button_record, True, True, 0)
+      hbox.pack_start(self.button_file2mp3, True, True, 0)
+      hbox.pack_start(self.button_file2flac, True, True, 0)
+      hbox.pack_start(self.button_stop, True, True, 0)
 
 
 
       row2 = Gtk.ListBoxRow()
-      hbox2= Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
-      hbox2.set_hexpand(True)
-      row2.add(hbox2)
+      hbox= Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+      hbox.set_hexpand(True)
+      row2.add(hbox)
 
 
       label2 = Gtk.Label(label='Url', xalign=0)
@@ -87,15 +87,15 @@ class TabConverter:
       self.textbuffer_input.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       
 
-      hbox2.pack_start(label2, False, True, 10)
-      hbox2.pack_start(self.textbuffer_input, True, True, 0)
+      hbox.pack_start(label2, False, True, 10)
+      hbox.pack_start(self.textbuffer_input, True, True, 0)
 
 
 
       row3 = Gtk.ListBoxRow()
-      hbox3 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
-      hbox3.set_hexpand(True)
-      row3.add(hbox3)
+      hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+      hbox.set_hexpand(True)
+      row3.add(hbox)
 
       label3 = Gtk.Label(label='Out', xalign=0)
       label3.set_size_request(50, -1)
@@ -110,8 +110,8 @@ class TabConverter:
 
 
 
-      hbox3.pack_start(label3, False, True, 10)
-      hbox3.pack_start(self.scrolledwindow3, True, True, 0)
+      hbox.pack_start(label3, False, True, 10)
+      hbox.pack_start(self.scrolledwindow3, True, True, 0)
 
 
       box_outer.pack_start(row1, False, False, 2)
@@ -285,7 +285,7 @@ class TabConverter:
 
          self.obj_timer_you2mp3 = GLib.timeout_add(1000, self.refresh_output_textctrl_timer)
 
-         # youtube-dl --no-warnings --no-call-home --audio-quality=4 --extract-audio --audio-format=mp3 --title https://www.youtube.com/watch?v=w7BE3inS-NM
+         # youtube-dl --no-warnings --no-call-home --audio-quality=4 --extract-audio --audio-format=mp3 --title [url]
          cmd=[self.config['bin_youtubedl'],'--audio-quality=4','--no-warnings','--no-call-home','--extract-audio','--audio-format=mp3','--title',source]
          cwd=self.settings['music_path'] + '/' + self.settings['directory_new']
          self.madmin.process_starter(cmd=cmd, cwd=cwd, job='you2mp3', identifier='', source='')
@@ -311,35 +311,34 @@ class TabConverter:
 
       if self.settings['device_record'] and ':' in self.settings['device_record']:
          get_target = self.settings['device_record'].split(':')
-         if len(get_target)>=1:
+         if len(get_target)>=4:
 
-            soundsystem=get_target[0]
+            audio=get_target[0]
             get_target.pop(0)
 
-            if len(get_target)>=3:
+            idnum=get_target[0]
+            get_target.pop(0)
 
-               if soundsystem=='pw':
+            media=get_target[0]
+            get_target.pop(0)
 
-                  # pw  alsa_output.pci-0000_00_1f.3.analog-stereo   Audio/Sink   44
-                  device = ', '.join(get_target[:-1])
-                  target=int(get_target[-1])
-
-                  if target:
-                     source_cmd=[self.config['bin_pwrecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99', '--target=%s' % target]
+            node=''.join(get_target)
 
 
-               elif soundsystem=='pa':
+            if audio=='pw':
 
-                  # pa   alsa_input.pci-0000_00_1b.0.analog-stereo   Quelle   1
-                  device = ' '.join(get_target[-2:])
-                  get_target.pop()
-                  get_target.pop()
-                  target=''.join(get_target)
-
-                  if target:
-                     source_cmd=[self.config['bin_parecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99', '--file-format=wav', '--device=%s' % target]
+               # pw  alsa_output.pci-0000_00_1f.3.analog-stereo   Audio/Sink   44
+               target=int(idnum)
+               if target:
+                  source_cmd=[self.config['bin_pwrecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99', '--target=%s' % target]
 
 
+            elif audio=='pa':
+
+               # pa   alsa_input.pci-0000_00_1b.0.analog-stereo   Quelle   1
+               device = node
+               if device:
+                  source_cmd=[self.config['bin_parecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99', '--file-format=wav', '--device=%s' % device]
 
 
 
@@ -545,9 +544,11 @@ class TabConverter:
                      break
 
 
+               aformat='aformat=s32:48000'
+
                # ffmpeg -y -i /MyDisc/Audio/Neu/New/record-1.wav -af aformat=s32:48000 /MyDisc/Audio/Neu/test.flac
                cwd=self.settings['music_path'] + '/' + self.settings['directory_new']
-               cmd=['nice','-n','19',self.config['bin_ffmpeg'], '-y', '-i',  item, '-af', 'aformat=s32:48000', newfilename]
+               cmd=['nice','-n','19',self.config['bin_ffmpeg'], '-y', '-i',  item, '-af', aformat, newfilename]
                self.madmin.process_starter(cmd=cmd, cwd=cwd, job='file2flac', identifier='', source=item)
 
 

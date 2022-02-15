@@ -52,7 +52,7 @@ if __name__ == '__main__':
    config={}
 
    config['name'] = 'audok'
-   config['version'] = '1.0.12'
+   config['version'] = '1.0.13'
 
    config['app_path'] = app_path
 
@@ -139,18 +139,16 @@ if __name__ == '__main__':
    settings['directory_old'] = 'Old'
    settings['directory_str'] = 'Streamripper'
 
-   settings['checkbutton_new'] = '0'
+   settings['checkbutton_new'] = '1'
    settings['checkbutton_old'] = '0'
    settings['checkbutton_str'] = '0'
    settings['checkbutton_auto_move'] = '0'
    settings['checkbutton_auto_play'] = '0'
 
 
-   # 1280×720
-   # 1280×960
-   # 1024×768
-   settings['size_x'] = '1020'
-   settings['size_y'] = '480'
+   # 1280×720, 1280×960, 1024×768
+   settings['size_x'] = '1000'
+   settings['size_y'] = '500'
 
    settings['position_x'] = '0'
    settings['position_y'] = '0'
@@ -180,6 +178,7 @@ if __name__ == '__main__':
 
    settings['stations_toogle_on'] = ['']
 
+   settings['label_play_file_tag'] = '0'
 
 
 
@@ -195,10 +194,14 @@ if __name__ == '__main__':
          root = tree.getroot()
 
          for child in root:
-            if child.text is not None and child.tag is not None:
+            if child.tag is not None:
 
                element = child.tag.strip()
-               value = child.text
+
+               if child.text is None:
+                   value = ''
+               else:
+                  value = child.text
 
                if value.startswith('[') and value.endswith(']'):
                   value=value.replace('[','',1)
@@ -235,8 +238,8 @@ if __name__ == '__main__':
 
 
    config['filename']=''
-   if result.filename and os.path.exists(result.filename ):
-      config['filename']=result.filename 
+   if result.filename and os.path.exists(result.filename):
+      config['filename']=result.filename
 
 
 
@@ -305,8 +308,7 @@ if __name__ == '__main__':
    win = main.Music_Admin_Start(log, config, settings, playlist, stationlist)
    win.connect('destroy', Gtk.main_quit)
    win.connect('delete-event', win.on_destroy)
-   win.connect('configure-event', win.ReSize)
-
+   win.connect('configure-event', win.resize)
    win.show_all()
-   Gtk.main()
 
+   Gtk.main()
