@@ -214,7 +214,7 @@ class TabConverter:
 
                      source_path_filename = self.madmin.process_database[item]['source']
                      filename = os.path.basename(source_path_filename)
-                     dest_path = self.settings['music_path'] + '/' + self.settings['directory_old']
+                     dest_path = self.config['music_path'] + '/' + self.settings['directory_old']
                      if not os.path.exists(dest_path):
                         os.mkdir(dest_path)
 
@@ -232,7 +232,7 @@ class TabConverter:
 
                      source_path_filename = self.madmin.process_database[item]['source']
                      filename = os.path.basename(source_path_filename)
-                     dest_path = self.settings['music_path'] + '/' + self.settings['directory_old']
+                     dest_path = self.config['music_path'] + '/' + self.settings['directory_old']
                      if not os.path.exists(dest_path):
                         os.mkdir(dest_path)
 
@@ -280,14 +280,14 @@ class TabConverter:
 
          self.textbuffer_output.set_text('-- job you2mp3 source: %s\n' % source)
 
-         if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_new']):
-            os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_new'])
+         if not os.path.exists(self.config['music_path'] + '/' + self.settings['directory_new']):
+            os.mkdir(self.config['music_path'] + '/' + self.settings['directory_new'])
 
          self.obj_timer_you2mp3 = GLib.timeout_add(1000, self.refresh_output_textctrl_timer)
 
          # youtube-dl --no-warnings --no-call-home --audio-quality=4 --extract-audio --audio-format=mp3 --title [url]
          cmd=[self.config['bin_youtubedl'],'--audio-quality=4','--no-warnings','--no-call-home','--extract-audio','--audio-format=mp3','--title',source]
-         cwd=self.settings['music_path'] + '/' + self.settings['directory_new']
+         cwd=self.config['music_path'] + '/' + self.settings['directory_new']
          self.madmin.process_starter(cmd=cmd, cwd=cwd, job='you2mp3', identifier='', source='')
 
 
@@ -301,44 +301,49 @@ class TabConverter:
       self.obj_timer_record = GLib.timeout_add(1000, self.refresh_output_textctrl_timer)
 
 
-      if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_record']):
-         os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_record'])
+      if not os.path.exists(self.config['music_path'] + '/' + self.settings['directory_record']):
+         os.mkdir(self.config['music_path'] + '/' + self.settings['directory_record'])
 
 
 
       source_cmd=[]
       device=''
 
-      if self.settings['device_record'] and ':' in self.settings['device_record']:
-         get_target = self.settings['device_record'].split(':')
-         if len(get_target)>=4:
 
-            audio=get_target[0]
-            get_target.pop(0)
+      if self.settings['device_record'] and self.settings['device_record_list']:
 
-            idnum=get_target[0]
-            get_target.pop(0)
+         num = int(self.settings['device_record'])
+         if len(self.settings['device_record_list'])>=num:
+            get_target = self.settings['device_record_list'][num].split(':')
 
-            media=get_target[0]
-            get_target.pop(0)
+            if len(get_target)>=4:
 
-            node=''.join(get_target)
+               audio=get_target[0]
+               get_target.pop(0)
 
+               idnum=get_target[0]
+               get_target.pop(0)
 
-            if audio=='pw':
+               media=get_target[0]
+               get_target.pop(0)
 
-               # pw  alsa_output.pci-0000_00_1f.3.analog-stereo   Audio/Sink   44
-               target=int(idnum)
-               if target:
-                  source_cmd=[self.config['bin_pwrecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99', '--target=%s' % target]
+               node=''.join(get_target)
 
 
-            elif audio=='pa':
+               if audio=='pw':
 
-               # pa   alsa_input.pci-0000_00_1b.0.analog-stereo   Quelle   1
-               device = node
-               if device:
-                  source_cmd=[self.config['bin_parecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99', '--file-format=wav', '--device=%s' % device]
+                  # pw  alsa_output.pci-0000_00_1f.3.analog-stereo   Audio/Sink   44
+                  target=int(idnum)
+                  if target:
+                     source_cmd=[self.config['bin_pwrecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99', '--target=%s' % target]
+
+
+               elif audio=='pa':
+
+                  # pa   alsa_input.pci-0000_00_1b.0.analog-stereo   Quelle   1
+                  device = node
+                  if device:
+                     source_cmd=[self.config['bin_parecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99', '--file-format=wav', '--device=%s' % device]
 
 
 
@@ -363,10 +368,10 @@ class TabConverter:
             if '.' in filename:
                pre_filename = filename.rsplit('.',1)[0]
 
-            if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_record']):
-               os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_record'])
+            if not os.path.exists(self.config['music_path'] + '/' + self.settings['directory_record']):
+               os.mkdir(self.config['music_path'] + '/' + self.settings['directory_record'])
 
-            directories = [self.settings['music_path'] + '/' + self.settings['directory_record']]
+            directories = [self.config['music_path'] + '/' + self.settings['directory_record']]
 
             extensions = self.config['supported_audio_files']
 
@@ -405,8 +410,8 @@ class TabConverter:
             # parecord  --verbose --record --channels=2 --format=s32 --rate=48000 --volume=0.99 --file-format=wav --device=alsa_input.pci-0000_00_1b.0.analog-stereo /tmp/test.wav
             cmd=[]
             cmd.extend(source_cmd)
-            cmd.extend(['%s/%s/%s' % (self.settings['music_path'],self.settings['directory_record'],new_filename)])
-            cwd=self.settings['music_path'] + '/' + self.settings['directory_record']
+            cmd.extend(['%s/%s/%s' % (self.config['music_path'],self.settings['directory_record'],new_filename)])
+            cwd=self.config['music_path'] + '/' + self.settings['directory_record']
             self.madmin.process_starter(cmd=cmd, cwd=cwd, job='record', identifier='', source='')
 
 
@@ -425,10 +430,10 @@ class TabConverter:
 
       self.textbuffer_output.set_text('')
 
-      directories = [self.settings['music_path'] + '/' + self.settings['directory_new']]
+      directories = [self.config['music_path'] + '/' + self.settings['directory_new']]
 
-      if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_new']):
-         os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_new'])
+      if not os.path.exists(self.config['music_path'] + '/' + self.settings['directory_new']):
+         os.mkdir(self.config['music_path'] + '/' + self.settings['directory_new'])
 
       extensions = list(self.config['supported_audio_files'])
       if 'mp3' in extensions:
@@ -475,7 +480,7 @@ class TabConverter:
                   else:
                      break
 
-               cwd=self.settings['music_path'] + '/' + self.settings['directory_new']
+               cwd=self.config['music_path'] + '/' + self.settings['directory_new']
                cmd=[self.config['bin_nice'],'-n','19',self.config['bin_ffmpeg'],'-v','error','-i',item,'-ab', '%s' % str(self.settings['bitrate']),'-n',newfilename]
                self.madmin.process_starter(cmd=cmd, cwd=cwd, job='file2mp3', identifier='', source=item)
 
@@ -493,10 +498,10 @@ class TabConverter:
 
       self.textbuffer_output.set_text('')
 
-      directories = [self.settings['music_path'] + '/' + self.settings['directory_new']]
+      directories = [self.config['music_path'] + '/' + self.settings['directory_new']]
 
-      if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_new']):
-         os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_new'])
+      if not os.path.exists(self.config['music_path'] + '/' + self.settings['directory_new']):
+         os.mkdir(self.config['music_path'] + '/' + self.settings['directory_new'])
 
       extensions = list(self.config['supported_audio_files'])
       if 'flac' in extensions:
@@ -547,7 +552,7 @@ class TabConverter:
                aformat='aformat=s32:48000'
 
                # ffmpeg -y -i /MyDisc/Audio/Neu/New/record-1.wav -af aformat=s32:48000 /MyDisc/Audio/Neu/test.flac
-               cwd=self.settings['music_path'] + '/' + self.settings['directory_new']
+               cwd=self.config['music_path'] + '/' + self.settings['directory_new']
                cmd=['nice','-n','19',self.config['bin_ffmpeg'], '-y', '-i',  item, '-af', aformat, newfilename]
                self.madmin.process_starter(cmd=cmd, cwd=cwd, job='file2flac', identifier='', source=item)
 

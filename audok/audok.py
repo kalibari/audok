@@ -52,7 +52,7 @@ if __name__ == '__main__':
    config={}
 
    config['name'] = 'audok'
-   config['version'] = '1.0.13'
+   config['version'] = '1.0.14'
 
    config['app_path'] = app_path
 
@@ -74,6 +74,9 @@ if __name__ == '__main__':
 
    config['supported_audio_files'] = ['mp3','ogg','aac','flac','midi','mp4','mpeg','wma','asx','wav','mpegurl']
 
+   config['music_path'] = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_MUSIC)
+   if not config['music_path']:
+      config['music_path']=os.getenv('HOME')
 
    config['debug'] = 0
    config['log'] = 0
@@ -127,10 +130,6 @@ if __name__ == '__main__':
    if not settings['config_path']:
       settings['config_path']=os.getenv('HOME')
 
-   settings['music_path'] = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_MUSIC)
-   if not settings['music_path']:
-      settings['music_path']=os.getenv('HOME')
-
    settings['filename_settings'] = 'settings.xml'
    settings['filename_stations'] = 'stations.xml'
    settings['filename_ipcport'] = 'ipc_port'
@@ -157,9 +156,9 @@ if __name__ == '__main__':
 
    settings['directory_record'] = 'New'
    settings['filename_record'] = 'record.wav'
-   settings['device_record'] = ''
 
-   settings['choice_device_record'] = ['']
+   settings['device_record'] = ''
+   settings['device_record_list'] = ['']
 
    settings['play_time'] = '0'
    settings['choice_play_time'] = ['0','10','20','35','50','65']
@@ -231,7 +230,6 @@ if __name__ == '__main__':
 
    log.debug('app_path: %s' % config['app_path'])
    log.debug('cwd: %s' % os.getcwd())
-   log.debug('music path: %s' % settings['music_path'])
    log.debug('config path: %s' % settings['config_path'])
    log.debug('directories new: %s old: %s streamripper: %s' % (settings['directory_new'],settings['directory_old'],settings['directory_str']))
 

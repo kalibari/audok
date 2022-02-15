@@ -653,19 +653,19 @@ class TabMusicPlayer:
 
       # New
       if self.checkbutton_new.get_active()==True:
-         d = self.settings['music_path'] + '/' + self.settings['directory_new']
+         d = self.config['music_path'] + '/' + self.settings['directory_new']
          if os.path.isdir(d):
             directories.extend([d])
 
       # Old
       if self.checkbutton_old.get_active()==True:
-         d = self.settings['music_path'] + '/' + self.settings['directory_old']
+         d = self.config['music_path'] + '/' + self.settings['directory_old']
          if os.path.isdir(d):
             directories.extend([d])
 
       # Streamripper
       if self.checkbutton_str.get_active()==True:
-         d = self.settings['music_path'] + '/' + self.settings['directory_str']
+         d = self.config['music_path'] + '/' + self.settings['directory_str']
          if os.path.isdir(d):
             directories.extend([d])
             for o in os.listdir(d):
@@ -971,9 +971,9 @@ class TabMusicPlayer:
 
       self.log.debug('dir: %s len(self.playlist): %s play_num: %s' % (dir,len(self.playlist),num))
 
-      path=self.settings['music_path'] + '/' + self.settings['directory_new']
+      path=self.config['music_path'] + '/' + self.settings['directory_new']
       if dir=='old':
-         path=self.settings['music_path'] + '/' + self.settings['directory_old']
+         path=self.config['music_path'] + '/' + self.settings['directory_old']
 
 
       mv_path_filename=''
@@ -1300,7 +1300,7 @@ class TabMusicPlayer:
    def button_playlist_clicked(self, event):
       self.log.debug('start')
 
-      path=self.settings['music_path'] + '/' + self.settings['directory_new']
+      path=self.config['music_path'] + '/' + self.settings['directory_new']
 
       f = open(path + '/' + self.settings['filename_playlist'], 'w')
       for item in self.playlist:

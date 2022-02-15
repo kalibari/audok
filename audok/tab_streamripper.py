@@ -396,8 +396,8 @@ class TabStreamRipper:
          if self.obj_timer_streamripper is None:
             self.obj_timer_streamripper = GLib.timeout_add(1000, self.check_streamripper)
 
-         if not os.path.exists(self.settings['music_path'] + '/' + self.settings['directory_str']):
-            os.mkdir(self.settings['music_path'] + '/' + self.settings['directory_str'])
+         if not os.path.exists(self.config['music_path'] + '/' + self.settings['directory_str']):
+            os.mkdir(self.config['music_path'] + '/' + self.settings['directory_str'])
 
 
          self.update_listmodel()
@@ -416,8 +416,8 @@ class TabStreamRipper:
                useragent='WinampMPEG/5.0'
 
                # streamripper [URL] -u WinampMPEG/5.0 -d /Music/Streamripper/
-               cmd=[self.config['bin_streamripper'], self.liststore[i][5],'-u',useragent,'-d','%s/%s' % (self.settings['music_path'],self.settings['directory_str'])]
-               cwd=self.settings['music_path'] + '/' + self.settings['directory_str']
+               cmd=[self.config['bin_streamripper'], self.liststore[i][5],'-u',useragent,'-d','%s/%s' % (self.config['music_path'],self.settings['directory_str'])]
+               cwd=self.config['music_path'] + '/' + self.settings['directory_str']
                self.madmin.process_starter(cmd=cmd, cwd=cwd, job='streamripper', identifier=str(i), source=self.liststore[i][5])
 
          self.update_listmodel()
