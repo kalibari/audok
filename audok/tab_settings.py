@@ -262,7 +262,11 @@ class TabSettings:
       self.combo_record = Gtk.ComboBox.new_with_model_and_entry(self.combo_liststore)
       self.combo_record.set_entry_text_column(1)
       if self.settings['device_record']:
-         self.combo_record.set_active(int(self.settings['device_record']))
+         try:
+            num=int(self.settings['device_record'])
+            self.combo_record.set_active(num)
+         except:
+            pass
       self.combo_record.connect('changed', self.combobox_record_changed)
 
 

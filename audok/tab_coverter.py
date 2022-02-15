@@ -307,6 +307,7 @@ class TabConverter:
 
 
       source_cmd=[]
+      target=0
       device=''
 
 

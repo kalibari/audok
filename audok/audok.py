@@ -52,7 +52,7 @@ if __name__ == '__main__':
    config={}
 
    config['name'] = 'audok'
-   config['version'] = '1.0.14'
+   config['version'] = '1.0.15'
 
    config['app_path'] = app_path
 
@@ -134,7 +134,7 @@ if __name__ == '__main__':
    settings['filename_stations'] = 'stations.xml'
    settings['filename_ipcport'] = 'ipc_port'
 
-   settings['directory_new'] = 'New'
+   settings['directory_new'] = ''
    settings['directory_old'] = 'Old'
    settings['directory_str'] = 'Streamripper'
 
@@ -152,9 +152,9 @@ if __name__ == '__main__':
    settings['position_x'] = '0'
    settings['position_y'] = '0'
 
-   settings['directory_converter'] = 'New'
+   settings['directory_converter'] = ''
 
-   settings['directory_record'] = 'New'
+   settings['directory_record'] = ''
    settings['filename_record'] = 'record.wav'
 
    settings['device_record'] = ''
@@ -170,7 +170,7 @@ if __name__ == '__main__':
    settings['bitrate'] = '192k'
    settings['choice_bitrate'] = ['128k','192k','224k','320k']
 
-   settings['directory_playlist'] = 'New'
+   settings['directory_playlist'] = ''
    settings['filename_playlist'] = 'playlist.m3u'
 
    settings['ipc_port'] = '10001'
