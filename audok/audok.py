@@ -52,7 +52,7 @@ if __name__ == '__main__':
    config={}
 
    config['name'] = 'audok'
-   config['version'] = '1.0.15'
+   config['version'] = '1.0.16'
 
    config['app_path'] = app_path
 

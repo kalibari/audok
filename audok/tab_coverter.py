@@ -3,8 +3,6 @@ import re
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
-gi.require_version('Gdk', '3.0')
-from gi.repository import Gdk
 gi.require_version('GLib', '2.0')
 from gi.repository import GLib
 
@@ -83,10 +81,6 @@ class TabConverter:
       label2.set_size_request(50, -1)
 
       self.textbuffer_input = Gtk.Entry()
-
-      self.textbuffer_input.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
-      
-
       hbox.pack_start(label2, False, True, 10)
       hbox.pack_start(self.textbuffer_input, True, True, 0)
 
@@ -103,7 +97,6 @@ class TabConverter:
 
       self.scrolledwindow3 = Gtk.ScrolledWindow()
       textview = Gtk.TextView()
-      textview.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       textview.set_editable(False)
       self.textbuffer_output = textview.get_buffer()
       self.scrolledwindow3.add(textview)
@@ -267,7 +260,7 @@ class TabConverter:
 
       if not source:
 
-         self.textbuffer_output.set_text('please insert a input URL')
+         self.textbuffer_output.set_text('please enter an URL')
 
          self.button_you2mp3.set_sensitive(True)
          self.button_record.set_sensitive(True)

@@ -4,8 +4,6 @@ import gi
 import subprocess
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
-gi.require_version('Gdk', '3.0')
-from gi.repository import Gdk
 from shutil import which
 
 
@@ -40,7 +38,6 @@ class TabSettings:
       label2.set_size_request(130, -1)
 
       entry1 = Gtk.Entry()
-      entry1.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       entry1.set_text(self.settings['directory_new'])
       entry1.connect('changed', self.change_directory_new)
 
@@ -68,7 +65,6 @@ class TabSettings:
 
 
       entry1 = Gtk.Entry()
-      entry1.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       entry1.set_text(self.settings['directory_old'])
       entry1.connect('changed', self.change_directory_old)
 
@@ -95,7 +91,6 @@ class TabSettings:
       label2.set_size_request(130, -1)
 
       entry1 = Gtk.Entry()
-      entry1.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       entry1.set_text(self.settings['directory_str'])
       entry1.connect('changed', self.change_directory_streamripper)
 
@@ -124,7 +119,6 @@ class TabSettings:
 
       entry1 = Gtk.Entry()
       entry1.set_size_request(300, -1)
-      entry1.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       entry1.set_text(self.settings['directory_playlist'])
       entry1.connect('changed', self.change_directory_playlist)
 
@@ -132,7 +126,6 @@ class TabSettings:
       label3.set_size_request(100, -1)
 
       entry2 = Gtk.Entry()
-      entry2.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       entry2.set_text(self.settings['filename_playlist'])
       entry2.connect('changed', self.change_filename_playlist)
 
@@ -159,7 +152,6 @@ class TabSettings:
       label2.set_size_request(130, -1)
 
       entry1 = Gtk.Entry()
-      entry1.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       entry1.set_text(self.settings['directory_converter'])
       entry1.connect('changed', self.change_directory_converter)
 
@@ -189,7 +181,6 @@ class TabSettings:
 
       entry1 = Gtk.Entry()
       entry1.set_size_request(300, -1)
-      entry1.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       entry1.set_text(self.settings['directory_record'])
       entry1.connect('changed', self.change_directory_record)
 
@@ -199,7 +190,6 @@ class TabSettings:
 
 
       entry2 = Gtk.Entry()
-      entry2.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       entry2.set_text(self.settings['filename_record'])
       entry2.connect('changed', self.change_filename_record)
 
@@ -276,7 +266,6 @@ class TabSettings:
 
       entry1 = Gtk.Entry()
       entry1.set_size_request(-1, 10)
-      entry1.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 1, 1, 46590))
       entry1.set_text(self.settings['directory_converter'])
       entry1.connect('changed', self.change_directory_converter)
 

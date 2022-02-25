@@ -1310,32 +1310,32 @@ class TabMusicPlayer:
 
 
    def checkbutton_auto_move_update_tooltip(self, directory):
-      self.checkbutton_auto_move.set_tooltip_text('If file is finished, move to Directory Old: %s' % directory)
+      self.checkbutton_auto_move.set_tooltip_text('If file is finished, move to Directory: %s/%s' % (self.config['music_path'],directory))
 
 
 
    def image_auto_move_update_tooltip(self, directory):
-      self.image_auto_move.set_tooltip_text('If file is finished, move to Directory Old: %s' % directory)
+      self.image_auto_move.set_tooltip_text('If file is finished, move to Directory: %s/%s' % (self.config['music_path'],directory))
 
 
 
    def checkbutton_old_update_tooltip(self, directory):
-      self.checkbutton_old.set_tooltip_text('Scan Directory Old: %s' % directory)
+      self.checkbutton_old.set_tooltip_text('Scan Directory: %s/%s' % (self.config['music_path'],directory))
 
 
 
    def checkbutton_str_update_tooltip(self, directory):
-      self.checkbutton_str.set_tooltip_text('Scan Directory Streamripper: %s' % directory)
+      self.checkbutton_str.set_tooltip_text('Scan Directory: %s/%s' % (self.config['music_path'],directory))
 
 
 
    def image_str_update_tooltip(self, directory):
-      self.image_str.set_tooltip_text('Scan Directory Streamripper: %s' % directory)
+      self.image_str.set_tooltip_text('Scan Directory: %s/%s' % (self.config['music_path'],directory))
 
 
 
    def checkbutton_new_update_tooltip(self, directory):
-      self.checkbutton_new.set_tooltip_text('Scan Directory New: %s' % directory)
+      self.checkbutton_new.set_tooltip_text('Scan Directory: %s/%s' % (self.config['music_path'],directory))
 
 
 
@@ -1350,24 +1350,24 @@ class TabMusicPlayer:
 
 
    def image_new_update_tooltip(self, directory):
-      self.image_new.set_tooltip_text('Scan Directory New: %s' % directory)
+      self.image_new.set_tooltip_text('Scan Directory: %s/%s' % (self.config['music_path'],directory))
 
 
 
    def image_old_update_tooltip(self, directory):
-      self.image_old.set_tooltip_text('Scan Directory Old: %s' % directory)
+      self.image_old.set_tooltip_text('Scan Directory: %s/%s' % (self.config['music_path'],directory))
 
 
 
    def button_move_old_update_tooltip(self, directory):
-      self.button_move_old.set_tooltip_text('Move Current Music File to Directory Old: %s' % directory)
+      self.button_move_old.set_tooltip_text('Move Current Music File to Directory: %s/%s' % (self.config['music_path'],directory))
 
 
 
    def button_move_new_update_tooltip(self, directory):
-      self.button_move_new.set_tooltip_text('Move Current Music File to Directory New: %s' % directory)
+      self.button_move_new.set_tooltip_text('Move Current Music File to Directory: %s/%s' % (self.config['music_path'],directory))
 
 
 
    def button_playlist_new_update_tooltip(self, filename, directory):
-      self.button_playlist.set_tooltip_text('Create a Playlist: %s (Destination Directory: %s)' % (filename,directory))
+      self.button_playlist.set_tooltip_text('Create a Playlist: %s in Directory: %s/%s' % (filename,self.config['music_path'],directory))
