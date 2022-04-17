@@ -9,8 +9,14 @@ import gi
 from time import sleep
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
-gi.require_version('Gtk', '3.0')
+
+
+#gi.require_version('Gtk', '4.0')
+#from gi.repository import Gtk
+
+gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
+
 gi.require_version('GLib', '2.0')
 from gi.repository import GLib
 gi.require_version('Gdk', '3.0')
@@ -295,9 +301,29 @@ class TabMusicPlayer:
       hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
       row3.add(hbox)
 
+
+      #slider_position = 0
+      #slider_start = 0
+      #default_size = 300
+      #move_seconds = 0
+      #adjustment = Gtk.Adjustment(slider_position, slider_start, default_size, 0, move_seconds)
+      """
       self.h_scale1 = Gtk.HScale()
       self.h_scale1.set_digits(0)
       self.h_scale1.set_hexpand(True)
+      self.h_scale1.set_has_origin(True)
+      self.h_scale1.set_update_policy(gtk.UPDATE_CONTINUOUS)
+      """
+
+
+      #self.h_scale1 = Gtk.HScale(adjustment=adjustment)
+      self.h_scale1 = Gtk.HScale(adjustment=None)
+      #self.h_scale1.set_show_fill_level(True)
+      #self.h_scale1.set_restrict_to_fill_level(False)
+      self.h_scale1.set_digits(0)
+      self.h_scale1.set_hexpand(True)
+      #self.h_scale1.set_draw_value(True)
+      #self.h_scale1.set_sensitive(True)
       self.h_scale1_update = self.h_scale1.connect('change-value', self.slider_change)
 
       hbox.pack_start(self.h_scale1, True, True, 0)
@@ -821,7 +847,7 @@ class TabMusicPlayer:
       #flags = Gst.SeekFlags.FLUSH 
       #flags = Gst.SeekFlags.KEY_UNIT | Gst.SeekFlags.TRICKMODE
       #flags = Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT
-      #flags = Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT | Gst.SeekFlags.SEGMENT
+      #flags = Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT | Gst.SeekFlags.SEGMENTz
       flags = Gst.SeekFlags.TRICKMODE_KEY_UNITS
       self.player.seek_simple(Gst.Format.TIME, flags, slider_value * Gst.SECOND)
 
