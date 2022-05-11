@@ -12,18 +12,32 @@ import tab_about
 import gi
 from time import sleep
 from threading import Thread
-gi.require_version('Gtk', '3.0')
+gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
 gi.require_version('GLib', '2.0')
 from gi.repository import GLib
 
+gi.require_version('Adw', '1')
+from gi.repository import Adw
 
-class Music_Admin_Start(Gtk.Window):
+class Music_Admin_Start():
 
-   def __init__(self, log, config, settings, playlist, stationlist):
-      Gtk.Window.__init__(self, title=config['name'].title())
+   def __init__(self, app, log, config, settings, playlist, stationlist):
+
+      app.connect('window_removed', self.on_destroy)
+
+      self.win = Gtk.ApplicationWindow(application=app)
+      self.win.set_title(config['name'].capitalize())
+      self.win.set_default_size(width=int(settings['size_x']), height=int(settings['size_y']))
+      #self.win.set_size_request(width=int(settings['size_x']), height=int(settings['size_y']))
+      self.win.set_resizable(True)
+
+
+      self.win.get_root().connect_after('notify', self.on_notify)
+      #self.win.move(int(settings['position_x']), int(settings['position_y']))
+
 
       self.log = log
       self.config = config
@@ -31,11 +45,12 @@ class Music_Admin_Start(Gtk.Window):
       self.playlist = playlist
       self.stationlist = stationlist
 
-      self.set_default_size(int(settings['size_x']),int(settings['size_y']))
-      self.set_resizable(True) 
-      self.set_border_width(3)
-      self.set_icon_from_file('%s/audok_large.png' % config['app_path'])
-      self.move(int(settings['position_x']), int(settings['position_y']))
+      gtk_settings = Gtk.Settings.get_default()
+      gtk_theme_name = gtk_settings.get_property('gtk-theme-name')
+      self.log.debug('gtk_theme_name: %s' % gtk_theme_name)
+      #gtk_settings.set_property('gtk-theme-name', 'Adwaita-dark')
+      #gtk_settings.set_property('gtk-theme-name', 'Adwaita')
+
 
 
       self.pnum = 0
@@ -47,8 +62,7 @@ class Music_Admin_Start(Gtk.Window):
 
 
       self.notebook = Gtk.Notebook()
-      self.add(self.notebook)
-
+      self.win.set_child(self.notebook)
 
       self.notebook_tab_musicplayer = tab_musicplayer.TabMusicPlayer(self, log, config, settings, playlist)
       self.notebook_tab_converter = tab_coverter.TabConverter(self, log, config, settings)
@@ -56,16 +70,20 @@ class Music_Admin_Start(Gtk.Window):
       self.notebook_tab_settings = tab_settings.TabSettings(self, log, config, settings)
       self.notebook_tab_about = tab_about.TabAbout(self, log, config, settings)
 
-      # size 994 (row1)
+
+
+      # size 994 (hbox1)
       self.notebook.append_page(self.notebook_tab_musicplayer.box, Gtk.Label(label='Music Player'))
       # size 594
-      self.notebook.append_page(self.notebook_tab_converter.box, Gtk.Label(label='Converter'))
+      self.notebook.append_page(self.notebook_tab_converter.vbox, Gtk.Label(label='Converter'))
       # size 901
       self.notebook.append_page(self.notebook_tab_streamripper.hbox, Gtk.Label(label='Streamripper'))
       # size 996
       self.notebook.append_page(self.notebook_tab_settings.vbox, Gtk.Label(label='Settings'))
       # size 743
-      self.notebook.append_page(self.notebook_tab_about.box, Gtk.Image.new_from_icon_name('help-about',Gtk.IconSize.MENU))
+      self.notebook.append_page(self.notebook_tab_about.box, Gtk.Image.new_from_icon_name('help-about'))
+
+
 
       try:
          thread = Thread(target=self.ipc_server)
@@ -77,22 +95,29 @@ class Music_Admin_Start(Gtk.Window):
 
       GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, self.signal_handler_sigint)
 
+      self.win.present()
 
 
 
    def signal_handler_sigint(self):
       self.log.debug('start (Ctrl+C)')
       self.clean_shutdown()
-      Gtk.main_quit()
       sys.exit()
 
 
 
-   def on_destroy(self, data, event):
+   def on_notify(self, widget, param):
+      if 'default-width' in param.name or 'default-height'  in param.name:
+         self.settings['size_x'] = str(self.win.get_width())
+         self.settings['size_y'] = str(self.win.get_height())
+         #(self.settings['position_x'], self.settings['position_y']) = self.win.get_position()
+
+
+
+   def on_destroy(self, app, win):
       self.log.debug('start')
       self.save_settings()
       self.clean_shutdown()
-      Gtk.main_quit()
       sys.exit()
 
 
@@ -100,7 +125,6 @@ class Music_Admin_Start(Gtk.Window):
    def on_reset_close(self):
       self.log.debug('start')
       self.clean_shutdown()
-      Gtk.main_quit()
       sys.exit()
 
 
@@ -201,21 +225,6 @@ class Music_Admin_Start(Gtk.Window):
 
 
 
-   def resize(self, widget, data):
-
-      (width, height) = self.get_size()
-
-      self.settings['size_x'] = str(width)
-      self.settings['size_y'] = str(height)
-
-      (position_x, position_y) = self.get_position()
-
-      self.settings['position_x'] = str(position_x)
-      self.settings['position_y'] = str(position_y)
-
-
-
-
    def process_all_killer(self):
    
       self.log.debug('start')
@@ -232,31 +241,27 @@ class Music_Admin_Start(Gtk.Window):
 
 
 
+
    def file_scan(self, directories, extensions):
+      self.log.debug('start directories: %s extensions: %s' % (directories,extensions))
 
       allfiles = []
 
       for item in directories:
-
-         self.log.debug('item: %s' % item)
-
-         for ext in extensions:
-
-            self.log.debug('ext: %s' % ext)
-
-            if os.path.isdir(item):
-               for filename in os.listdir(item):
-
-                  self.log.debug('filename: %s' % filename)
-
+         if os.path.isdir(item):
+            for filename in os.listdir(item):
+               for ext in extensions:
                   if filename.endswith('.' + ext):
                      pitem = item + '/' + filename
                      if os.path.isfile(pitem):
                         allfiles.extend([pitem])
 
+
       # reverse
       if len(allfiles)>=1:
          allfiles=allfiles[::-1]
+
+      self.log.debug('number of allfiles: %s' % len(allfiles))
 
       return allfiles
 

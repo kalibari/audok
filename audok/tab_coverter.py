@@ -1,7 +1,7 @@
 import os
 import re
 import gi
-gi.require_version('Gtk', '3.0')
+gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
 gi.require_version('GLib', '2.0')
 from gi.repository import GLib
@@ -21,19 +21,15 @@ class TabConverter:
       self.obj_timer_file2mp3=None
       self.obj_timer_you2mp3=None
 
-      self.box = Gtk.Box()
-      self.box.set_border_width(10)
+
+      self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
+      self.vbox.set_margin_top(5)
 
 
-      box_outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
-
-      row1 = Gtk.ListBoxRow()
-      hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
-      hbox.set_hexpand(True)
-      row1.add(hbox)
-
-      label1 = Gtk.Label(label='Audio', xalign=0)
-      label1.set_size_request(50, -1)
+      label1 = Gtk.Label(label='Audio:')
+      label1.set_xalign(0)
+      label1.set_size_request(80, -1)
+      label1.set_margin_start(5)
 
 
       self.button_you2mp3 = Gtk.Button(label='you2mp3')
@@ -62,55 +58,60 @@ class TabConverter:
       self.button_stop.set_tooltip_text('Stop')
 
 
-      hbox.pack_start(label1, False, True, 10)
-      hbox.pack_start(self.button_you2mp3, True, True, 0)
-      hbox.pack_start(self.button_record, True, True, 0)
-      hbox.pack_start(self.button_file2mp3, True, True, 0)
-      hbox.pack_start(self.button_file2flac, True, True, 0)
-      hbox.pack_start(self.button_stop, True, True, 0)
+      hbox1 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+      hbox1.set_hexpand(True)
+      hbox1.append(label1)
+      hbox1.append(self.button_you2mp3)
+      hbox1.append(self.button_record)
+      hbox1.append(self.button_file2mp3)
+      hbox1.append(self.button_file2flac)
+      hbox1.append(self.button_stop)
 
 
+      label2 = Gtk.Label(label='Url:')
+      label2.set_xalign(0)
+      label2.set_size_request(80, -1)
+      label2.set_margin_start(5)
 
-      row2 = Gtk.ListBoxRow()
-      hbox= Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
-      hbox.set_hexpand(True)
-      row2.add(hbox)
-
-
-      label2 = Gtk.Label(label='Url', xalign=0)
-      label2.set_size_request(50, -1)
 
       self.textbuffer_input = Gtk.Entry()
-      hbox.pack_start(label2, False, True, 10)
-      hbox.pack_start(self.textbuffer_input, True, True, 0)
+      self.textbuffer_input.set_hexpand(True)
+
+      hbox2 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+      hbox2.set_hexpand(True)
+      hbox2.append(label2)
+      hbox2.append(self.textbuffer_input)
 
 
+      label3 = Gtk.Label(label='Output:')
+      label3.set_xalign(0)
+      label3.set_size_request(80, -1)
+      label3.set_margin_start(5)
+      label3.set_margin_top(5)
+      label3.set_margin_bottom(59)
 
-      row3 = Gtk.ListBoxRow()
-      hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
-      hbox.set_hexpand(True)
-      row3.add(hbox)
-
-      label3 = Gtk.Label(label='Out', xalign=0)
-      label3.set_size_request(50, -1)
-
-
-      self.scrolledwindow3 = Gtk.ScrolledWindow()
+      self.scrolledwindow = Gtk.ScrolledWindow()
       textview = Gtk.TextView()
-      textview.set_editable(False)
+      textview.set_wrap_mode(True)
+      #textview.set_editable(False)
       self.textbuffer_output = textview.get_buffer()
-      self.scrolledwindow3.add(textview)
+      self.scrolledwindow.set_vexpand(True)
+      self.scrolledwindow.set_hexpand(True)
+      self.scrolledwindow.set_child(textview)
 
 
+      hbox3 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+      hbox3.set_margin_start(5)
+      hbox3.set_hexpand(True)
+      hbox3.set_vexpand(True)
+      hbox3.append(label3)
+      hbox3.append(self.scrolledwindow)
 
-      hbox.pack_start(label3, False, True, 10)
-      hbox.pack_start(self.scrolledwindow3, True, True, 0)
+      self.vbox.append(hbox1)
+      self.vbox.append(hbox2)
+      self.vbox.append(hbox3)
 
 
-      box_outer.pack_start(row1, False, False, 2)
-      box_outer.pack_start(row2, False, False, 2)
-      box_outer.pack_start(row3, True, True, 2)
-      self.box.add(box_outer)
 
 
 
@@ -301,43 +302,39 @@ class TabConverter:
 
       source_cmd=[]
       target=0
-      device=''
+      node=''
+
+      if self.settings['device_record'] in self.settings['device_record_list']:
+
+         get_target = self.settings['device_record'].split(':')
+
+         if len(get_target)>=4:
+
+            audio=get_target[0]
+            get_target.pop(0)
+
+            idnum=get_target[0]
+            get_target.pop(0)
+
+            media=get_target[0]
+            get_target.pop(0)
+
+            node=''.join(get_target)
 
 
-      if self.settings['device_record'] and self.settings['device_record_list']:
+            if audio=='pw':
 
-         num = int(self.settings['device_record'])
-         if len(self.settings['device_record_list'])>=num:
-            get_target = self.settings['device_record_list'][num].split(':')
-
-            if len(get_target)>=4:
-
-               audio=get_target[0]
-               get_target.pop(0)
-
-               idnum=get_target[0]
-               get_target.pop(0)
-
-               media=get_target[0]
-               get_target.pop(0)
-
-               node=''.join(get_target)
+               # pw  alsa_output.pci-0000_00_1f.3.analog-stereo   Audio/Sink   44
+               target=int(idnum)
+               if target:
+                  source_cmd=[self.config['bin_pwrecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99', '--target=%s' % target]
 
 
-               if audio=='pw':
+            elif audio=='pa':
 
-                  # pw  alsa_output.pci-0000_00_1f.3.analog-stereo   Audio/Sink   44
-                  target=int(idnum)
-                  if target:
-                     source_cmd=[self.config['bin_pwrecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99', '--target=%s' % target]
-
-
-               elif audio=='pa':
-
-                  # pa   alsa_input.pci-0000_00_1b.0.analog-stereo   Quelle   1
-                  device = node
-                  if device:
-                     source_cmd=[self.config['bin_parecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99', '--file-format=wav', '--device=%s' % device]
+               # pa   alsa_input.pci-0000_00_1b.0.analog-stereo   Quelle   1
+               if node:
+                  source_cmd=[self.config['bin_parecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99', '--file-format=wav', '--device=%s' % node]
 
 
 
@@ -392,7 +389,7 @@ class TabConverter:
 
 
 
-            self.textbuffer_output.set_text('record device: %s target: %s filename: %s\n' % (device,target,new_filename))
+            self.textbuffer_output.set_text('record node: %s target: %s filename: %s\n' % (node,target,new_filename))
 
             self.button_you2mp3.set_sensitive(False)
             self.button_record.set_sensitive(False)

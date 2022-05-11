@@ -1,6 +1,6 @@
 import os
 import gi
-gi.require_version('Gtk', '3.0')
+gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
 gi.require_version('GLib', '2.0')
 from gi.repository import GLib
@@ -25,7 +25,7 @@ class TabStreamRipper:
                               ['Alternative', 'Radio FM 4 at', 'https://orf-live.ors-shoutcast.at/fm4-q2a'],
                               ['Alternative', 'Zeilsteen Radio', 'http://live.zeilsteen.com:80'],
 
-                              ['Mix', 'Gorilla FM', 'http://185.33.21.112:80/gorillafm_128'],
+                              ['Mix / Alternative', 'Gorilla FM', 'http://185.33.21.112:80/gorillafm_128'],
 
                               ['Electro', 'radio Top 40 Electro', 'http://antenne-th.divicon-stream.net/antth_top40electro_JlSz-mp3-192?sABC=58p2q700%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
                               ['Electro', 'Sunshine Live','http://sunshinelive.hoerradar.de/sunshinelive-live-mp3-hq'],
@@ -34,7 +34,7 @@ class TabStreamRipper:
                               ['Charts', 'Top 100 Station','http://www.top100station.de/switch/r3472.pls'],
                               ['Charts', 'radio Top 40 Weimar Live', 'http://antenne-th.divicon-stream.net/antth_top40live_SeJx-mp3-192?sABC=58p2q6rq%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
 
-                              ['Mix', 'Gizmo New 102', 'http://206.190.135.28:8302/stream'],
+                              ['Mix / Rap', 'Gizmo New 102', 'http://206.190.135.28:8302/stream'],
                               ['Pop', 'Antenne Bayern Fresh4You', 'http://mp3channels.webradio.antenne.de/fresh'],
 
                               ['Rock', 'PureRock.US', 'http://167.114.64.181:8524/stream']]
@@ -42,7 +42,6 @@ class TabStreamRipper:
 
 
 
-      #############################
       self.grid = Gtk.Grid()
       self.grid.set_column_homogeneous(True)
       #self.grid.set_row_homogeneous(True)
@@ -99,7 +98,7 @@ class TabStreamRipper:
 
       self.renderer_url = Gtk.CellRendererText()
       self.renderer_url.set_property('editable', True)
-      self.renderer_url.set_fixed_size(300, 30)
+      #s#elf.renderer_url.set_fixed_size(800, 30)
       self.renderer_url.connect('edited', self.renderer_url_edited)
       column_url = Gtk.TreeViewColumn('Url', self.renderer_url, text=5)
       column_url.set_expand(True)
@@ -107,11 +106,15 @@ class TabStreamRipper:
 
 
 
-      scrolledwindow = Gtk.ScrolledWindow()
-      scrolledwindow.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-      scrolledwindow.set_vexpand(True)
-      scrolledwindow.add(self.treeview)
-      self.grid.attach(scrolledwindow, 1, 1, 1, 1)
+      self.scrolledwindow = Gtk.ScrolledWindow()
+      self.scrolledwindow.set_vexpand(True)
+      self.scrolledwindow.set_hexpand(True)
+      self.scrolledwindow.set_child(self.treeview)
+      self.scrolledwindow.set_child(self.treeview)
+      self.scrolledwindow.set_margin_bottom(5)
+
+
+      self.grid.attach(self.scrolledwindow, 1, 1, 1, 1)
 
 
       hbox_buttons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
@@ -138,19 +141,20 @@ class TabStreamRipper:
       button_info = Gtk.Button(label='Info')
       button_info.connect('clicked', self.button_info_clicked)
 
+      hbox_buttons.append(button_selectall)
+      hbox_buttons.append(button_deselectall)
+      hbox_buttons.append(button_record_start)
+      hbox_buttons.append(button_record_stop)
+      hbox_buttons.append(button_new_station)
+      hbox_buttons.append(button_reset)
+      hbox_buttons.append(button_info)
 
-      hbox_buttons.pack_start(button_selectall, True, True, 0)
-      hbox_buttons.pack_start(button_deselectall, True, True, 0)
-      hbox_buttons.pack_start(button_record_start, True, True, 0)
-      hbox_buttons.pack_start(button_record_stop, True, True, 0)
-      hbox_buttons.pack_start(button_new_station, True, True, 0)
-      hbox_buttons.pack_start(button_reset, True, True, 0)
-      hbox_buttons.pack_start(button_info, True, True, 0)
-      self.grid.attach_next_to(hbox_buttons, scrolledwindow, Gtk.PositionType.BOTTOM, 1, 1)
+      self.grid.attach_next_to(hbox_buttons, self.scrolledwindow, Gtk.PositionType.BOTTOM, 1, 1)
 
 
       self.hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
-      self.hbox.pack_start(self.grid, True, True, 0)
+      self.hbox.append(self.grid)
+      self.hbox.set_margin_bottom(5)
 
 
 
@@ -234,7 +238,8 @@ class TabStreamRipper:
          toogle_on=False
          if str(i) in self.settings['stations_toogle_on']:
             toogle_on=True
-         self.liststore.append([0, toogle_on, '', stlist[0], stlist[1], stlist[2]])
+         self.liststore.insert_with_values(i, (0, 1, 2, 3, 4, 5), (0, toogle_on, '', stlist[0], stlist[1], stlist[2]))
+
 
 
 
@@ -313,16 +318,21 @@ class TabStreamRipper:
 
       url=['https://directory.shoutcast.com']
 
-      dialog = Gtk.MessageDialog(parent=None,
-                                 message_type=Gtk.MessageType.INFO,
-                                 flags=Gtk.DialogFlags.MODAL,
-                                 buttons=('Ok',Gtk.ButtonsType.OK),
+      dialog = Gtk.MessageDialog(message_type=Gtk.MessageType.INFO,
+                                 buttons=Gtk.ButtonsType.CLOSE,
                                  text='Get new stations from: %s' % ', '.join(url))
 
+      dialog.set_modal(True)
+      dialog.set_transient_for(self.madmin.win)
       dialog.set_title('Info')
+      dialog.connect('response', self.on_dialog_response)
       dialog.show()
-      dialog.run()
-      dialog.destroy()
+
+
+
+   def on_dialog_response(self, widget, response_id):
+      if response_id == Gtk.ResponseType.CLOSE:
+         widget.destroy()
 
 
 

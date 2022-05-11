@@ -2,7 +2,7 @@ import os
 import re
 import gi
 import subprocess
-gi.require_version('Gtk', '3.0')
+gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
 from shutil import which
 
@@ -16,168 +16,203 @@ class TabSettings:
       self.config = config
       self.settings = settings
 
-      self.box = Gtk.Box()
-      self.box.set_border_width(10)
-
 
       grid = Gtk.Grid()
       grid.set_column_homogeneous(True)
       #grid.set_row_homogeneous(True)
       grid.set_row_spacing(spacing=5)
+      grid.set_margin_top(5)
 
 
       hbox_music_new = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
       hbox_music_new.set_hexpand(True)
 
+
       image1 = Gtk.Image()
       image1.set_from_file('%s/newdir_small.png' % self.config['app_path'])
-      label1 = Gtk.Label(label='Music Directory New:', xalign=0)
-      label1.set_size_request(205, -1)
+      image1.set_margin_start(5)
+      image1.set_pixel_size(30)
 
-      label2 = Gtk.Label(label='%s/' % self.config['music_path'], xalign=0)
+      label1 = Gtk.Label(label='Music Directory New:')
+      label1.set_margin_start(5)
+      label1.set_size_request(205, -1)
+      label1.set_xalign(0)
+
+
+
+      label2 = Gtk.Label(label='%s/' % self.config['music_path'])
+      label2.set_margin_start(5)
       label2.set_size_request(130, -1)
+      label2.set_xalign(0)
 
       entry1 = Gtk.Entry()
       entry1.set_text(self.settings['directory_new'])
       entry1.connect('changed', self.change_directory_new)
 
-      space_label1 = Gtk.Label(label='', xalign=0)
 
-      hbox_music_new.pack_start(image1, False, False, 0)
-      hbox_music_new.pack_start(label1, False, False, 0)
-      hbox_music_new.pack_start(label2, False, False, 0)
-      hbox_music_new.pack_start(entry1, True, True, 0)
-      hbox_music_new.pack_start(space_label1, True, True, 70)
+      hbox_music_new.append(image1)
+      hbox_music_new.append(label1)
+      hbox_music_new.append(label2)
+      hbox_music_new.append(entry1)
 
-      grid.add(hbox_music_new)
+      grid.attach(hbox_music_new, 1, 1, 1, 1)
 
 
-      hbox_music_old= Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+      hbox_music_old = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
       hbox_music_old.set_hexpand(True)
 
       image1 = Gtk.Image()
       image1.set_from_file('%s/olddir_small.png' % self.config['app_path'])
-      label1 = Gtk.Label(label='Music Directory Old:', xalign=0)
-      label1.set_size_request(205, -1)
+      image1.set_margin_start(5)
+      image1.set_pixel_size(30)
 
-      label2 = Gtk.Label(label='%s/' % self.config['music_path'], xalign=0)
+      label1 = Gtk.Label(label='Music Directory Old:')
+      label1.set_size_request(205, -1)
+      label1.set_margin_start(5)
+      label1.set_xalign(0)
+
+      label2 = Gtk.Label(label='%s/' % self.config['music_path'])
       label2.set_size_request(130, -1)
+      label2.set_margin_start(5)
+      label2.set_xalign(0)
 
 
       entry1 = Gtk.Entry()
       entry1.set_text(self.settings['directory_old'])
       entry1.connect('changed', self.change_directory_old)
 
-      space_label1 = Gtk.Label(label='', xalign=0)
 
-      hbox_music_old.pack_start(image1, False, False, 0)
-      hbox_music_old.pack_start(label1, False, False, 0)
-      hbox_music_old.pack_start(label2, False, False, 0)
-      hbox_music_old.pack_start(entry1, True, True, 0)
-      hbox_music_old.pack_start(space_label1, True, True, 70)
+      hbox_music_old.append(image1)
+      hbox_music_old.append(label1)
+      hbox_music_old.append(label2)
+      hbox_music_old.append(entry1)
+
 
       grid.attach_next_to(hbox_music_old, hbox_music_new, Gtk.PositionType.BOTTOM, 1, 1)
 
 
-
-      hbox_streamripper= Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+      hbox_streamripper = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
 
       image1 = Gtk.Image()
       image1.set_from_file('%s/streamripperdir_small.png' % self.config['app_path'])
-      label1 = Gtk.Label(label='Streamripper Directory:', xalign=0)
-      label1.set_size_request(205, -1)
+      image1.set_margin_start(5)
+      image1.set_pixel_size(30)
 
-      label2 = Gtk.Label(label='%s/' % self.config['music_path'], xalign=0)
+      label1 = Gtk.Label(label='Streamripper Directory:')
+      label1.set_size_request(205, -1)
+      label1.set_margin_start(5)
+      label1.set_xalign(0)
+
+      label2 = Gtk.Label(label='%s/' % self.config['music_path'])
       label2.set_size_request(130, -1)
+      label2.set_margin_start(5)
+      label2.set_xalign(0)
+
 
       entry1 = Gtk.Entry()
       entry1.set_text(self.settings['directory_str'])
       entry1.connect('changed', self.change_directory_streamripper)
 
-      space_label1 = Gtk.Label(label='', xalign=0)
 
-      hbox_streamripper.pack_start(image1, False, False, 0)
-      hbox_streamripper.pack_start(label1, False, False, 0)
-      hbox_streamripper.pack_start(label2, False, False, 0)
-      hbox_streamripper.pack_start(entry1, True, True, 0)
-      hbox_streamripper.pack_start(space_label1, True, True, 70)
+
+      hbox_streamripper.append(image1)
+      hbox_streamripper.append(label1)
+      hbox_streamripper.append(label2)
+      hbox_streamripper.append(entry1)
+
 
 
       grid.attach_next_to(hbox_streamripper, hbox_music_old, Gtk.PositionType.BOTTOM, 1, 1)
 
 
-      hbox_playlist= Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+      hbox_playlist = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
 
       image1 = Gtk.Image()
       image1.set_from_file('%s/playlist_small.png' % self.config['app_path'])
+      image1.set_margin_start(5)
+      image1.set_pixel_size(30)
 
-      label1 = Gtk.Label(label='Playlist Directory:', xalign=0)
+      label1 = Gtk.Label(label='Playlist Directory:')
       label1.set_size_request(205, -1)
+      label1.set_margin_start(5)
+      label1.set_xalign(0)
 
-      label2 = Gtk.Label(label='%s/' % self.config['music_path'], xalign=0)
+      label2 = Gtk.Label(label='%s/' % self.config['music_path'])
       label2.set_size_request(130, -1)
+      label2.set_margin_start(5)
+      label2.set_xalign(0)
+
 
       entry1 = Gtk.Entry()
       entry1.set_size_request(300, -1)
       entry1.set_text(self.settings['directory_playlist'])
       entry1.connect('changed', self.change_directory_playlist)
 
-      label3 = Gtk.Label(label='Filename:', xalign=0.5)
+      label3 = Gtk.Label(label='Filename:')
       label3.set_size_request(100, -1)
+      label3.set_xalign(0.5)
 
       entry2 = Gtk.Entry()
       entry2.set_text(self.settings['filename_playlist'])
       entry2.connect('changed', self.change_filename_playlist)
 
-      hbox_playlist.pack_start(image1, False, False, 0)
-      hbox_playlist.pack_start(label1, False, False, 0)
-      hbox_playlist.pack_start(label2, False, False, 0)
-      hbox_playlist.pack_start(entry1, True, True, 0)
-      hbox_playlist.pack_start(label3, False, False, 0)
-      hbox_playlist.pack_start(entry2, True, True, 0)
+      hbox_playlist.append(image1)
+      hbox_playlist.append(label1)
+      hbox_playlist.append(label2)
+      hbox_playlist.append(entry1)
+      hbox_playlist.append(label3)
+      hbox_playlist.append(entry2)
 
       grid.attach_next_to(hbox_playlist, hbox_streamripper, Gtk.PositionType.BOTTOM, 1, 1)
-
 
 
       hbox_converter_dir = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
 
       image1 = Gtk.Image()
       image1.set_from_file('%s/empty_small.png' % self.config['app_path'])
+      image1.set_margin_start(5)
+      image1.set_pixel_size(30)
 
-      label1 = Gtk.Label(label='Converter Directory:', xalign=0)
+      label1 = Gtk.Label(label='Converter Directory:')
       label1.set_size_request(205, -1)
+      label1.set_margin_start(5)
+      label1.set_xalign(0)
 
-      label2 = Gtk.Label(label='%s/' % self.config['music_path'], xalign=0)
+      label2 = Gtk.Label(label='%s/' % self.config['music_path'])
       label2.set_size_request(130, -1)
+      label2.set_margin_start(5)
+      label2.set_xalign(0)
 
       entry1 = Gtk.Entry()
       entry1.set_text(self.settings['directory_converter'])
       entry1.connect('changed', self.change_directory_converter)
 
-      space_label1 = Gtk.Label(label='', xalign=0)
 
-      hbox_converter_dir.pack_start(image1, False, False, 0)
-      hbox_converter_dir.pack_start(label1, False, False, 0)
-      hbox_converter_dir.pack_start(label2, False, False, 0)
-      hbox_converter_dir.pack_start(entry1, True, True, 0)
-      hbox_converter_dir.pack_start(space_label1, True, True, 70)
+      hbox_converter_dir.append(image1)
+      hbox_converter_dir.append(label1)
+      hbox_converter_dir.append(label2)
+      hbox_converter_dir.append(entry1)
 
 
       grid.attach_next_to(hbox_converter_dir, hbox_playlist, Gtk.PositionType.BOTTOM, 1, 1)
-
 
 
       hbox_filename_record = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
 
       image1 = Gtk.Image()
       image1.set_from_file('%s/empty_small.png' % self.config['app_path'])
+      image1.set_margin_start(5)
+      image1.set_pixel_size(30)
 
-      label1 = Gtk.Label(label='Record Directory:', xalign=0)
+      label1 = Gtk.Label(label='Record Directory:')
       label1.set_size_request(205, -1)
+      label1.set_margin_start(5)
+      label1.set_xalign(0)
 
-      label2 = Gtk.Label(label='%s/' % self.config['music_path'], xalign=0)
+      label2 = Gtk.Label(label='%s/' % self.config['music_path'])
       label2.set_size_request(130, -1)
+      label2.set_margin_start(5)
+      label2.set_xalign(0)
 
       entry1 = Gtk.Entry()
       entry1.set_size_request(300, -1)
@@ -185,21 +220,21 @@ class TabSettings:
       entry1.connect('changed', self.change_directory_record)
 
 
-      label3 = Gtk.Label('Filename:', xalign=0.5)
+      label3 = Gtk.Label(label='Filename:')
       label3.set_size_request(100, -1)
-
+      label3.set_xalign(0.5)
 
       entry2 = Gtk.Entry()
       entry2.set_text(self.settings['filename_record'])
       entry2.connect('changed', self.change_filename_record)
 
 
-      hbox_filename_record.pack_start(image1, False, False, 0)
-      hbox_filename_record.pack_start(label1, False, False, 0)
-      hbox_filename_record.pack_start(label2, False, False, 0)
-      hbox_filename_record.pack_start(entry1, True, True, 0)
-      hbox_filename_record.pack_start(label3, False, False, 0)
-      hbox_filename_record.pack_start(entry2, True, True, 0)
+      hbox_filename_record.append(image1)
+      hbox_filename_record.append(label1)
+      hbox_filename_record.append(label2)
+      hbox_filename_record.append(entry1)
+      hbox_filename_record.append(label3)
+      hbox_filename_record.append(entry2)
 
 
       grid.attach_next_to(hbox_filename_record, hbox_converter_dir, Gtk.PositionType.BOTTOM, 1, 1)
@@ -210,11 +245,14 @@ class TabSettings:
 
       image1 = Gtk.Image()
       image1.set_from_file('%s/empty_small.png' % self.config['app_path'])
+      image1.set_margin_start(5)
+      image1.set_pixel_size(30)
 
 
-      label1 = Gtk.Label(label='Record Bitrate:', xalign=0)
+      label1 = Gtk.Label(label='Record Bitrate:')
       label1.set_size_request(205, -1)
-
+      label1.set_margin_start(5)
+      label1.set_xalign(0)
 
       combo1 = Gtk.ComboBoxText()
       choice_bitrate=self.settings['choice_bitrate']
@@ -223,13 +261,15 @@ class TabSettings:
          if item==self.settings['bitrate']:
             choice_active=i
          combo1.insert(i, str(i), ' ' + item + ' ')
+
       combo1.set_active(choice_active)
       combo1.connect('changed', self.combobox_bitrate_changed)
  
 
-      hbox_record_bitrate.pack_start(image1, False, False, 0)
-      hbox_record_bitrate.pack_start(label1, False, False, 0)
-      hbox_record_bitrate.pack_start(combo1, False, False, 0)
+      hbox_record_bitrate.append(image1)
+      hbox_record_bitrate.append(label1)
+      hbox_record_bitrate.append(combo1)
+
 
       grid.attach_next_to(hbox_record_bitrate, hbox_filename_record, Gtk.PositionType.BOTTOM, 1, 1)
 
@@ -238,25 +278,25 @@ class TabSettings:
 
       image1 = Gtk.Image()
       image1.set_from_file('%s/empty_small.png' % self.config['app_path'])
+      image1.set_margin_start(5)
+      image1.set_pixel_size(30)
 
-
-      label1 = Gtk.Label(label='Record Device:', xalign=0)
+      label1 = Gtk.Label(label='Record Device:')
       label1.set_size_request(205, -1)
+      label1.set_margin_start(5)
+      label1.set_xalign(0)
 
-
+      active_dev=0
       self.combo_liststore = Gtk.ListStore(int, str)
       for i,dev in enumerate(self.settings['device_record_list']):
-         self.combo_liststore.append([i, dev])
+         self.combo_liststore.insert_with_values(i, (0, 1), (i+1, dev))
+         if dev==self.settings['device_record']:
+            active_dev=i
 
 
       self.combo_record = Gtk.ComboBox.new_with_model_and_entry(self.combo_liststore)
       self.combo_record.set_entry_text_column(1)
-      if self.settings['device_record']:
-         try:
-            num=int(self.settings['device_record'])
-            self.combo_record.set_active(num)
-         except:
-            pass
+      self.combo_record.set_active(active_dev)
       self.combo_record.connect('changed', self.combobox_record_changed)
 
 
@@ -270,10 +310,10 @@ class TabSettings:
       entry1.connect('changed', self.change_directory_converter)
 
 
-      hbox_device_record.pack_start(image1, False, False, 0)
-      hbox_device_record.pack_start(label1, False, False, 0)
-      hbox_device_record.pack_start(self.combo_record, True, True, 0)
-      hbox_device_record.pack_start(self.button_device_record_scan, False, False, 0)
+      hbox_device_record.append(image1)
+      hbox_device_record.append(label1)
+      hbox_device_record.append(self.combo_record)
+      hbox_device_record.append(self.button_device_record_scan)
 
 
       grid.attach_next_to(hbox_device_record, hbox_record_bitrate, Gtk.PositionType.BOTTOM, 1, 1)
@@ -284,14 +324,13 @@ class TabSettings:
 
 
       hbox_reset = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=40)
-      hbox_reset.pack_start(button_reset, False, False, 0)
+      hbox_reset.append(button_reset)
 
 
 
       self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
-      self.vbox.pack_start(grid, False, False, 0)
-      self.vbox.pack_start(hbox_reset, False, False, 20)
-      self.vbox.set_border_width(10)
+      self.vbox.append(grid)
+      self.vbox.append(hbox_reset)
 
 
 
@@ -369,14 +408,14 @@ class TabSettings:
 
    def combobox_record_changed(self, event):
       self.log.debug('start')
+
       self.madmin.notebook_tab_converter.button_record_update_tooltip(filename=self.settings['filename_record'], directory=self.settings['directory_record'])
 
       tree_iter = event.get_active_iter()
       if tree_iter is not None:
          model = event.get_model()
          row, name = model[tree_iter]
-         self.settings['device_record']=str(row)
-         self.combo_record.set_active(row)
+         self.settings['device_record']=name
 
 
 
@@ -462,7 +501,7 @@ class TabSettings:
       for audio, idnum, media, node in audio_devices:
          dev = audio + ':' + idnum + ':' + media + ':' + node
          self.settings['device_record_list'].extend([dev])
-         self.combo_liststore.append([i, dev])
+         self.combo_liststore.insert_with_values(i, (0, 1), (i+1, dev))
          i+=1
 
       if len(self.settings['device_record_list'])>0:

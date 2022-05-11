@@ -12,6 +12,7 @@ Current Version is 1.0.16
 
 Requirements
 ======
+- gtk4
 - pulseaudio or pipewire
 - ffmpeg
 - youtube-dl
@@ -34,6 +35,12 @@ Dependencies Manjaro:<br/>
 sudo pamac install python-cairo gst-python ffmpeg youtube-dl wget unzip<br/>
 sudo pamac install gst-plugins-base-libs gst-plugins-bad-libs<br/>
 sudo pamac build streamripper<br/>
+
+Dependencies Archlinux:
+sudo pacman -S --needed python-cairo gst-python ffmpeg youtube-dl wget unzip
+sudo pacman -S --needed gst-plugins-base-libs gst-plugins-bad-libs
+yay -S streamripper
+
 
 wget https://github.com/kalibari/audok/archive/refs/heads/master.zip<br/>
 unzip master.zip<br/>

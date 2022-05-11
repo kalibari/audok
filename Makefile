@@ -32,25 +32,25 @@ install:
 	cp audok/*.png                                    ${APPDIR}
 	cp audok/*.py                                     ${APPDIR}
 
-	cp share/applications/audok.desktop               ${SHAREAPPDIR}/audok.desktop
-	cp share/icons/hicolor/256x256/apps/audok.png     ${SHAREICODIR}/audok.png
+	cp share/applications/com.github.kalibari.audok.desktop               ${SHAREAPPDIR}/com.github.kalibari.audok.desktop
+	cp share/icons/hicolor/256x256/apps/com.github.kalibari.audok.png     ${SHAREICODIR}/com.github.kalibari.audok.png
 
 	ln -s ${APPDIR}/audok.py $(BINDIR)/audok
 
 	chmod 755 ${APPDIR}
 	chmod 644 ${APPDIR}/*
 	chmod 755 ${APPDIR}/audok.py
-	chmod 644 ${SHAREICODIR}/audok.png
+	chmod 644 ${SHAREICODIR}/com.github.kalibari.audok.png
 
 
 desktop:
 	gtk-update-icon-cache -f $(PREFIX)/share/icons/hicolor
-	desktop-file-install ${SHAREAPPDIR}/audok.desktop
+	desktop-file-install ${SHAREAPPDIR}/com.github.kalibari.audok.desktop
 
 
 uninstall:
-	-rm -f ${SHAREAPPDIR}/audok.desktop
-	-rm -f ${SHAREICODIR}/audok.png
+	-rm -f ${SHAREAPPDIR}/com.github.kalibari.audok.desktop
+	-rm -f ${SHAREICODIR}/com.github.kalibari.audok.png
 	-rm -f ${BINDIR}/audok
 	-rm -f ${APPDIR}/*
 	-rmdir ${APPDIR}

@@ -1,10 +1,10 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=audok
+Name=Audok
 GenericName=Music Player
 Comment=Listen to music
-Icon=audok
+Icon=com.github.kalibari.audok
 Categories=AudioVideo;Audio;Player;
 Exec=audok %U
 TryExec=audok

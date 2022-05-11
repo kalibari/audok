@@ -13,20 +13,13 @@ sys.path.insert(0, app_path)
 import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
-gi.require_version('Gdk', '3.0')
-from gi.repository import Gdk
-gi.require_version('Gtk', '3.0')
+gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
 gi.require_version('GLib', '2.0')
 from gi.repository import GLib
 import logging
 import main
 from argparse import ArgumentParser, RawTextHelpFormatter
-
-
-def startup_notification_workaround():
-   # https://specifications.freedesktop.org/startup-notification-spec/startup-notification-0.1.txt
-   Gdk.notify_startup_complete()
 
 
 
@@ -266,7 +259,6 @@ if __name__ == '__main__':
          except:
             os.remove('%s/%s' % (settings['config_path'],settings['filename_ipcport']))
          else:
-            startup_notification_workaround()
             sys.exit(0)
          finally:
             sock.close()
@@ -301,12 +293,10 @@ if __name__ == '__main__':
          stationlist = []
 
 
-   Gtk.init()
-   
-   win = main.Music_Admin_Start(log, config, settings, playlist, stationlist)
-   win.connect('destroy', Gtk.main_quit)
-   win.connect('delete-event', win.on_destroy)
-   win.connect('configure-event', win.resize)
-   win.show_all()
+   def on_activate(app):
+      main.Music_Admin_Start(app, log, config, settings, playlist, stationlist)
 
-   Gtk.main()
+
+   app = Gtk.Application(application_id='com.github.kalibari.audok')
+   app.connect('activate', on_activate)
+   app.run(None)
