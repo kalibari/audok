@@ -16,6 +16,7 @@ class TabAbout:
       self.log.debug('start')
 
       self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+      self.box.set_valign(Gtk.Align.CENTER)
 
       label1 = Gtk.Label(label='Name: %s' % self.config['name'].title())
       label1.set_valign(Gtk.Align.CENTER)
