@@ -45,6 +45,8 @@ if __name__ == '__main__':
    config={}
 
    config['name'] = 'audok'
+   config['application_id'] = 'com.github.kalibari.audok'
+
    config['version'] = '1.0.17'
 
    config['app_path'] = app_path
@@ -297,6 +299,6 @@ if __name__ == '__main__':
       main.Music_Admin_Start(app, log, config, settings, playlist, stationlist)
 
 
-   app = Gtk.Application(application_id='com.github.kalibari.audok')
+   app = Gtk.Application(application_id=config['application_id'])
    app.connect('activate', on_activate)
    app.run(None)

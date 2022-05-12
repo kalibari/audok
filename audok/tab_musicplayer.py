@@ -52,7 +52,7 @@ class TabMusicPlayer:
       self.stop_pause_clicked=False
 
 
-      self.player = Gst.ElementFactory.make('playbin3', self.config['name'])
+      self.player = Gst.ElementFactory.make('playbin3', self.config['application_id'])
       if not self.player:
          self.log.debug('ERROR: Could not create a gst player')
          self.madmin.clean_shutdown()
