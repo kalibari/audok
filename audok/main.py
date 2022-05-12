@@ -19,9 +19,6 @@ from gi.repository import Gst
 gi.require_version('GLib', '2.0')
 from gi.repository import GLib
 
-gi.require_version('Adw', '1')
-from gi.repository import Adw
-
 class Music_Admin_Start():
 
    def __init__(self, app, log, config, settings, playlist, stationlist):
