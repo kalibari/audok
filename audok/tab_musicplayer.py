@@ -447,9 +447,8 @@ class TabMusicPlayer:
       self.update_playlist(play_new_file=config['filename'])
 
       if len(self.playlist)>=1:
-         self.choose_song(num=self.selected_play_num)
-         self.play_file()
          self.update_listmodel(clear=False)
+         self.choose_song(num=self.selected_play_num, force_play=True)
 
       else:
          self.button_next.set_sensitive(False)
