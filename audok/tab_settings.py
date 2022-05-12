@@ -48,6 +48,7 @@ class TabSettings:
       entry1 = Gtk.Entry()
       entry1.set_text(self.settings['directory_new'])
       entry1.connect('changed', self.change_directory_new)
+      entry1.set_size_request(300, -1)
 
 
       hbox_music_new.append(image1)
@@ -80,6 +81,7 @@ class TabSettings:
       entry1 = Gtk.Entry()
       entry1.set_text(self.settings['directory_old'])
       entry1.connect('changed', self.change_directory_old)
+      entry1.set_size_request(300, -1)
 
 
       hbox_music_old.append(image1)
@@ -112,6 +114,7 @@ class TabSettings:
       entry1 = Gtk.Entry()
       entry1.set_text(self.settings['directory_str'])
       entry1.connect('changed', self.change_directory_streamripper)
+      entry1.set_size_request(300, -1)
 
 
 
@@ -144,9 +147,9 @@ class TabSettings:
 
 
       entry1 = Gtk.Entry()
-      entry1.set_size_request(300, -1)
       entry1.set_text(self.settings['directory_playlist'])
       entry1.connect('changed', self.change_directory_playlist)
+      entry1.set_size_request(300, -1)
 
       label3 = Gtk.Label(label='Filename:')
       label3.set_size_request(100, -1)
@@ -186,6 +189,7 @@ class TabSettings:
       entry1 = Gtk.Entry()
       entry1.set_text(self.settings['directory_converter'])
       entry1.connect('changed', self.change_directory_converter)
+      entry1.set_size_request(300, -1)
 
 
       hbox_converter_dir.append(image1)
