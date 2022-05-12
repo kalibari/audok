@@ -40,7 +40,8 @@ class TabMusicPlayer:
 
       self.obj_timer_slider=None
       self.obj_timer_play_time=None
-      self.obj_timer_auto_play=None
+      self.obj_timer_auto_play_scan=None
+
 
 
       self.slider_position = 0
@@ -48,6 +49,7 @@ class TabMusicPlayer:
       self.unmute = 0
 
       self.disable_treeview_cursor_changed=False
+      self.stop_pause_clicked=False
 
 
       self.player = Gst.ElementFactory.make('playbin3', self.config['name'])
@@ -87,18 +89,18 @@ class TabMusicPlayer:
 
       hbox1 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
 
-      # init auto_play before function combobox_playtime_changed starts   
+      # init auto_play_scan before function combobox_playtime_changed starts
       interval = self.get_auto_timer_interval()
 
-      self.image_auto_play = Gtk.Image()
-      self.image_auto_play.set_from_file('%s/auto_play_small.png' % self.config['app_path'])
-      self.image_auto_play.set_pixel_size(30)
-      self.image_auto_play_update_tooltip(interval=interval)
+      self.image_auto_play_scan = Gtk.Image()
+      self.image_auto_play_scan.set_from_file('%s/auto_play_small.png' % self.config['app_path'])
+      self.image_auto_play_scan.set_pixel_size(30)
+      self.image_auto_play_scan_update_tooltip(interval=interval)
 
-      self.checkbutton_auto_play = Gtk.CheckButton()
-      self.checkbutton_auto_play.set_active(int(self.settings['checkbutton_auto_play']))
-      self.checkbutton_auto_play.connect('toggled', self.checkbutton_auto_play_toggled)
-      self.checkbutton_auto_play_update_tooltip(interval=interval)
+      self.checkbutton_auto_play_scan = Gtk.CheckButton()
+      self.checkbutton_auto_play_scan.set_active(False)
+      self.checkbutton_auto_play_scan.connect('toggled', self.checkbutton_auto_play_scan_toggled)
+      self.checkbutton_auto_play_scan_update_tooltip(interval=interval)
 
 
 
@@ -141,7 +143,7 @@ class TabMusicPlayer:
 
 
       self.checkbutton_auto_move = Gtk.CheckButton()
-      self.checkbutton_auto_move.set_active(int(self.settings['checkbutton_auto_move']))
+      self.checkbutton_auto_move.set_active(False)
       self.checkbutton_auto_move.connect('toggled', self.checkbutton_auto_move_toggled)
       self.checkbutton_auto_move_update_tooltip(directory=self.settings['directory_old'])
       self.checkbutton_auto_move.set_margin_start(5)
@@ -212,8 +214,8 @@ class TabMusicPlayer:
       hbox1.append(self.combo_random)
       hbox1.append(self.image_auto_move)
       hbox1.append(self.checkbutton_auto_move)
-      hbox1.append(self.image_auto_play)
-      hbox1.append(self.checkbutton_auto_play)
+      hbox1.append(self.image_auto_play_scan)
+      hbox1.append(self.checkbutton_auto_play_scan)
       hbox1.append(button_scan)
       hbox1.append(self.image_str)
       hbox1.append(self.checkbutton_str)
@@ -445,7 +447,7 @@ class TabMusicPlayer:
       self.update_playlist(play_new_file=config['filename'])
 
       if len(self.playlist)>=1:
-         self.choose_song(num=self.config['play_num'])
+         self.choose_song(num=self.selected_play_num)
          self.play_file()
          self.update_listmodel(clear=False)
 
@@ -513,8 +515,12 @@ class TabMusicPlayer:
 
       self.log.debug('start')
 
-      if self.checkbutton_auto_move.get_active():
+      if self.checkbutton_auto_move.get_active()==True:
          self.move(num=self.config['play_num'], dir='old')
+         self.selected_play_num=self.config['play_num']
+      else:
+         self.selected_play_num=self.config['play_num']+1
+
 
       self.log.debug('state ready')
 
@@ -524,11 +530,10 @@ class TabMusicPlayer:
       self.log.debug('state ready')
 
 
-      if len(self.playlist)>=2:
-         self.choose_song(num=self.config['play_num']+1)
-
-      elif len(self.playlist)>=1:
+      if len(self.playlist)>=1:
          self.button_play.set_sensitive(True)
+         self.choose_song(num=self.selected_play_num)
+
 
 
 
@@ -543,15 +548,37 @@ class TabMusicPlayer:
 
       if self.settings['interrupt']=='play_new_file':
          if self.playlist:
-            self.choose_song(num=0, force_play=True)
+            self.selected_play_num=0
+            self.choose_song(num=self.selected_play_num, force_play=True)
             self.update_listmodel(clear=True)
 
+            self.selected_play_num=0
+            self.disable_treeview_cursor_changed=True
+            self.treeview.set_cursor(self.selected_play_num)
+            self.disable_treeview_cursor_changed=False
+
+
       elif self.settings['interrupt']=='play_timer_end':
+
+         self.selected_play_num=self.config['play_num']
+
          if self.checkbutton_auto_move.get_active():
             self.move(num=self.config['play_num'], dir='old')
-            self.choose_song(num=self.config['play_num'])
          else:
-            self.choose_song(num=self.config['play_num']+1)
+            self.selected_play_num+=1
+
+
+         self.choose_song(num=self.selected_play_num)
+
+
+
+      selected_play_num = self.selected_play_num
+
+      if len(self.playlist)>0:
+         self.disable_treeview_cursor_changed=True
+         self.treeview.set_cursor(selected_play_num)
+         self.disable_treeview_cursor_changed=False
+
 
 
 
@@ -579,9 +606,7 @@ class TabMusicPlayer:
 
 
 
-
-
-   def play_timer_start(self):
+   def timer_play_time_start(self):
       self.log.debug('start with play_time: %s' % self.settings['play_time'])
 
       self.play_time_counter=0
@@ -589,26 +614,18 @@ class TabMusicPlayer:
       if self.obj_timer_play_time is not None:
          GLib.source_remove(self.obj_timer_play_time)
 
-      self.obj_timer_play_time = GLib.timeout_add(1000, self.play_timer)
+      self.obj_timer_play_time = GLib.timeout_add(1000, self.timer_play_time_function)
 
 
-
-
-   def play_timer_stop(self):
-
+   def timer_play_time_stop(self):
       self.log.debug('start')
 
       if self.obj_timer_play_time is not None:
          GLib.source_remove(self.obj_timer_play_time)
          self.obj_timer_play_time=None
 
-      if self.obj_timer_slider is not None:
-         GLib.source_remove(self.obj_timer_slider)
-         self.obj_timer_slider=None
 
-
-
-   def play_timer(self):
+   def timer_play_time_function(self):
 
       if self.play_time_counter>=int(self.settings['play_time']):
 
@@ -628,55 +645,24 @@ class TabMusicPlayer:
 
 
 
-
-
-   def auto_timer(self):
+   def timer_slider_start(self):
       self.log.debug('start')
 
-      self.playlist_scan()
+      if self.obj_timer_slider is not None:
+         GLib.source_remove(self.obj_timer_slider)
 
-      state = self.player.get_state(0).state
-
-      if state == Gst.State.PLAYING:
-         pass
-      else:
-         if len(self.playlist)==0:
-            self.button_pause.set_sensitive(False)
-            self.button_stop.set_sensitive(False)
-            self.button_back.set_sensitive(False)
-            self.button_next.set_sensitive(False)
-            self.button_play.set_sensitive(False)
-            self.set_label_play_file(clear=True)
-            self.set_label_file_info(text='')
-         else:
-            self.play_file(num=0)
-
-      return True
+      self.obj_timer_slider = GLib.timeout_add(1000, self.timer_slider_function)
 
 
-
-   def auto_timer_start(self):
+   def timer_slider_stop(self):
       self.log.debug('start')
 
-      self.play_time_counter=0
-      interval = self.get_auto_timer_interval() * 990
-
-      if self.obj_timer_auto_play is not None:
-         GLib.source_remove(self.obj_timer_auto_play)
-
-      self.obj_timer_auto_play = GLib.timeout_add(interval, self.auto_timer)
+      if self.obj_timer_slider is not None:
+         GLib.source_remove(self.obj_timer_slider)
+         self.obj_timer_slider=None
 
 
-
-   def get_auto_timer_interval(self):
-      interval = int(self.settings['play_time'])
-      if interval<10:
-         interval=60
-      return interval
-
-
-
-   def slider_timer(self):
+   def timer_slider_function(self):
 
       if self.player.get_state(0).state == Gst.State.PLAYING:
 
@@ -696,13 +682,58 @@ class TabMusicPlayer:
 
 
 
-   def slider_timer_start(self):
+   def timer_auto_play_scan_stop(self):
       self.log.debug('start')
 
-      if self.obj_timer_slider is not None:
-         GLib.source_remove(self.obj_timer_slider)
+      if self.obj_timer_auto_play_scan is not None:
+         GLib.source_remove(self.obj_timer_auto_play_scan)
+         self.obj_timer_auto_play_scan=None
 
-      self.obj_timer_slider = GLib.timeout_add(1000, self.slider_timer)
+
+   def timer_auto_play_scan_start(self):
+      self.log.debug('start')
+
+      self.play_time_counter=0
+      interval = self.get_auto_timer_interval() * 990
+
+      if self.obj_timer_auto_play_scan is not None:
+         GLib.source_remove(self.obj_timer_auto_play_scan)
+
+      self.obj_timer_auto_play_scan = GLib.timeout_add(interval, self.timer_auto_play_scan_function)
+
+
+   def get_auto_timer_interval(self):
+      interval = int(self.settings['play_time'])
+      if interval<10:
+         interval=60
+      return interval
+
+
+   def timer_auto_play_scan_function(self):
+      self.log.debug('start')
+
+      self.playlist_scan()
+
+      state = self.player.get_state(0).state
+
+      if state == Gst.State.PLAYING:
+         pass
+      else:
+         if len(self.playlist)==0:
+            self.button_pause.set_sensitive(False)
+            self.button_stop.set_sensitive(False)
+            self.button_back.set_sensitive(False)
+            self.button_next.set_sensitive(False)
+            self.button_play.set_sensitive(False)
+            self.set_label_play_file(clear=True)
+            self.set_label_file_info(text='')
+         else:
+            if self.stop_pause_clicked==False:
+               self.play_file(num=0)
+
+      return True
+
+
 
 
 
@@ -737,6 +768,9 @@ class TabMusicPlayer:
 
       allfiles = self.madmin.file_scan(directories, extensions)
 
+
+      old_playlist = list(self.playlist)
+
       for item in allfiles:
          if not item in self.playlist:
             self.playlist.extend([item])
@@ -748,7 +782,13 @@ class TabMusicPlayer:
                self.config['play_num']-=1
             self.playlist.remove(item)
 
-      self.update_listmodel(clear=True)
+      diff1 = list(set(old_playlist) - set(self.playlist))
+      diff2 = list(set(self.playlist) - set(old_playlist))
+
+      if diff1 or diff2:
+         self.update_listmodel(clear=True)
+      else:
+         self.log.debug('skip update_listmodel')
 
 
 
@@ -759,13 +799,17 @@ class TabMusicPlayer:
 
       self.log.debug('start num: %s len_playlist: %s' % (num,len_playlist))
 
+      self.disable_treeview_cursor_changed=True
+      self.treeview.set_cursor(num)
+      self.disable_treeview_cursor_changed=False
 
       if len_playlist==0:
          self.slider_position=0
          self.h_scale1.set_value(self.slider_position)
          self.player.set_state(Gst.State.NULL)
          self.player.set_state(Gst.State.READY)
-         self.play_timer_stop()
+         self.timer_play_time_stop()
+         self.timer_slider_stop()
          self.set_label_play_file(clear=True)
          self.set_label_file_info(text='')
 
@@ -906,10 +950,10 @@ class TabMusicPlayer:
 
       self.config['play_num']=num
 
-      self.slider_timer_start()
+      self.timer_slider_start()
 
       if int(self.settings['play_time'])>0:
-         self.play_timer_start()
+         self.timer_play_time_start()
 
 
       if len(self.playlist)==0:
@@ -1018,14 +1062,16 @@ class TabMusicPlayer:
 
    def pause(self):
       self.log.debug('start')
-      self.play_timer_stop()
+      self.timer_play_time_stop()
+      self.timer_slider_stop()
       self.player.set_state(Gst.State.PAUSED)
 
 
 
    def stop(self):
       self.log.debug('start')
-      self.play_timer_stop()
+      self.timer_play_time_stop()
+      self.timer_slider_stop()
       self.slider_position=0
       self.h_scale1.set_value(self.slider_position)
       self.player.set_state(Gst.State.NULL)
@@ -1058,7 +1104,7 @@ class TabMusicPlayer:
 
 
 
-      if self.settings['checkbutton_auto_play']==1:
+      if self.checkbutton_auto_move.get_active():
          self.log.debug('auto_scan')
          self.playlist_scan()
       else:
@@ -1176,15 +1222,15 @@ class TabMusicPlayer:
 
 
 
+
    def checkbutton_auto_move_toggled(self, event):
       self.log.debug('start')
 
 
-   def checkbutton_auto_play_toggled(self, event):
+   def checkbutton_auto_play_scan_toggled(self, event):
       self.log.debug('start')
-
       if event.get_active():
-         self.auto_timer_start()
+         self.timer_auto_play_scan_start()
 
 
 
@@ -1194,16 +1240,17 @@ class TabMusicPlayer:
       self.log.debug('start play_time: %s' % self.settings['play_time'])
 
       interval = self.get_auto_timer_interval()
-      self.checkbutton_auto_play_update_tooltip(interval=interval)
-      self.image_auto_play_update_tooltip(interval=interval)
+      self.checkbutton_auto_play_scan_update_tooltip(interval=interval)
+      self.image_auto_play_scan_update_tooltip(interval=interval)
 
       state = self.player.get_state(0).state
 
       if int(self.settings['play_time'])==0:
-         self.play_timer_stop()
+         self.timer_play_time_stop()
+         self.timer_slider_stop()
 
       elif state==Gst.State.PLAYING:
-         self.play_timer_start()
+         self.timer_play_time_start()
 
 
 
@@ -1240,6 +1287,7 @@ class TabMusicPlayer:
    def button_scan_clicked(self, event):
       self.log.debug('start')
 
+      selected_play_num = self.selected_play_num
       self.playlist_scan()
 
       state = self.player.get_state(0).state
@@ -1249,8 +1297,7 @@ class TabMusicPlayer:
          if len(self.playlist)>1:
             self.button_back.set_sensitive(True)
             self.button_next.set_sensitive(True)
-
-
+         
       else:
          if len(self.playlist)==0:
             self.button_pause.set_sensitive(False)
@@ -1265,9 +1312,10 @@ class TabMusicPlayer:
             self.button_move_old.set_sensitive(True)
             self.button_move_new.set_sensitive(True)
 
-            self.disable_treeview_cursor_changed=True
-            self.treeview.set_cursor(self.selected_play_num)
-            self.disable_treeview_cursor_changed=False
+      if len(self.playlist)>0:
+         self.disable_treeview_cursor_changed=True
+         self.treeview.set_cursor(selected_play_num)
+         self.disable_treeview_cursor_changed=False
 
 
 
@@ -1291,10 +1339,8 @@ class TabMusicPlayer:
 
    def button_play_clicked(self, event):
       self.log.debug('start selected_play_num: %s' % self.selected_play_num)
-
+      self.stop_pause_clicked=False
       self.button_play.set_sensitive(False)
-
-      ##self.treeview.set_cursor(self.selected_play_num)
       self.play_file(num=self.selected_play_num)
 
 
@@ -1302,35 +1348,32 @@ class TabMusicPlayer:
 
    def button_next_clicked(self, event):
       self.log.debug('start')
-      if int(self.settings['checkbutton_auto_play'])==1:
+      if self.checkbutton_auto_move.get_active():
          self.playlist_scan()
-      
+
       self.selected_play_num+=1
       self.choose_song(num=self.selected_play_num)
 
-      self.disable_treeview_cursor_changed=True
-      self.treeview.set_cursor(self.selected_play_num)
-      self.disable_treeview_cursor_changed=False
+
 
 
 
    def button_back_clicked(self, event):
       self.log.debug('start')
-      if int(self.settings['checkbutton_auto_play'])==1:
+      if self.checkbutton_auto_move.get_active():
          self.playlist_scan()
+
       self.selected_play_num-=1
       if self.selected_play_num<0:
          self.selected_play_num=0
       self.choose_song(num=self.selected_play_num)
 
-      self.disable_treeview_cursor_changed=True
-      self.treeview.set_cursor(self.selected_play_num)
-      self.disable_treeview_cursor_changed=False
 
 
 
    def button_pause_clicked(self, event):
       self.log.debug('start')
+      self.stop_pause_clicked=True
       self.pause()
       self.button_pause.set_sensitive(False)
       self.button_stop.set_sensitive(False)
@@ -1342,7 +1385,9 @@ class TabMusicPlayer:
 
    def button_stop_clicked(self, event):
       self.log.debug('start len(self.playlist): %s' % len(self.playlist))
+      self.stop_pause_clicked=True
       self.stop()
+
       self.button_pause.set_sensitive(False)
       self.button_stop.set_sensitive(False)
 
@@ -1357,21 +1402,32 @@ class TabMusicPlayer:
 
 
 
+
    def button_move_old_clicked(self, event):
-      self.log.debug('start selected_play_num: %s' % self.selected_play_num)
+      self.log.debug('start selected_play_num: %s play_num: %s' % (self.selected_play_num,self.config['play_num']))
+
+      selected_play_num=self.selected_play_num
 
       self.move(num=self.selected_play_num, dir='old')
-      if self.selected_play_num==self.config['play_num']:
-         self.choose_song(num=self.config['play_num'])
 
-      self.disable_treeview_cursor_changed=True
-      self.treeview.set_cursor(self.selected_play_num)
-      self.disable_treeview_cursor_changed=False
+      if self.selected_play_num==self.config['play_num']:
+         self.choose_song(num=self.selected_play_num)
+
+      else:
+
+         selected_play_num-=1
+         if selected_play_num<0:
+            selected_play_num=0
+
+         if len(self.playlist)>0:
+            self.disable_treeview_cursor_changed=True
+            self.treeview.set_cursor(selected_play_num)
+            self.disable_treeview_cursor_changed=False
+
 
       if len(self.playlist)==0:
          self.button_move_old.set_sensitive(False)
          self.button_move_new.set_sensitive(False)
-         self.checkbutton_auto_move.set_sensitive(False)
          self.button_play.set_sensitive(False)
          self.button_next.set_sensitive(False)
          self.button_back.set_sensitive(False)
@@ -1380,16 +1436,14 @@ class TabMusicPlayer:
 
 
 
+
    def button_move_new_clicked(self, event):
-      self.log.debug('start selected_play_num: %s' % self.selected_play_num)
+      self.log.debug('start selected_play_num: %s play_num: %s' % (self.selected_play_num,self.config['play_num']))
 
       self.move(num=self.selected_play_num, dir='new')
       if self.selected_play_num==self.config['play_num']:
-         self.choose_song(num=self.config['play_num'])
+         self.choose_song(num=self.selected_play_num)
 
-      self.disable_treeview_cursor_changed=True
-      self.treeview.set_cursor(self.selected_play_num)
-      self.disable_treeview_cursor_changed=False
 
       if len(self.playlist)==0:
          self.button_move_old.set_sensitive(False)
@@ -1445,13 +1499,13 @@ class TabMusicPlayer:
 
 
 
-   def checkbutton_auto_play_update_tooltip(self, interval):
-      self.checkbutton_auto_play.set_tooltip_text('Play and Scan Directories every: %s' % interval)
+   def checkbutton_auto_play_scan_update_tooltip(self, interval):
+      self.checkbutton_auto_play_scan.set_tooltip_text('Auto Play and Scan Directories every: %s' % interval)
 
 
 
-   def image_auto_play_update_tooltip(self, interval):
-      self.image_auto_play.set_tooltip_text('Play and Scan Directories every: %s' % interval)
+   def image_auto_play_scan_update_tooltip(self, interval):
+      self.image_auto_play_scan.set_tooltip_text('Auto Play and Scan Directories every: %s' % interval)
 
 
 
