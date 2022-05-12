@@ -31,10 +31,7 @@ class Music_Admin_Start():
       #self.win.set_size_request(width=int(settings['size_x']), height=int(settings['size_y']))
       self.win.set_resizable(True)
 
-
       self.win.get_root().connect_after('notify', self.on_notify)
-      #self.win.move(int(settings['position_x']), int(settings['position_y']))
-
 
       self.log = log
       self.config = config
@@ -204,8 +201,8 @@ class Music_Admin_Start():
          if self.notebook_tab_musicplayer.obj_timer_play_time is not None:
             GLib.source_remove(self.notebook_tab_musicplayer.obj_timer_play_time)
 
-         if self.notebook_tab_musicplayer.obj_timer_auto_play is not None:
-            GLib.source_remove(self.notebook_tab_musicplayer.obj_timer_auto_play)
+         if self.notebook_tab_musicplayer.obj_timer_auto_play_scan is not None:
+            GLib.source_remove(self.notebook_tab_musicplayer.obj_timer_auto_play_scan)
 
 
 
