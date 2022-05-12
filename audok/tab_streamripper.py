@@ -98,7 +98,6 @@ class TabStreamRipper:
 
       self.renderer_url = Gtk.CellRendererText()
       self.renderer_url.set_property('editable', True)
-      #s#elf.renderer_url.set_fixed_size(800, 30)
       self.renderer_url.connect('edited', self.renderer_url_edited)
       column_url = Gtk.TreeViewColumn('Url', self.renderer_url, text=5)
       column_url.set_expand(True)
