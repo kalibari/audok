@@ -1420,6 +1420,10 @@ class TabMusicPlayer:
          if selected_play_num<0:
             selected_play_num=0
 
+         self.config['play_num']-=1
+         if self.config['play_num']<0:
+             self.config['play_num']=0
+
          if len(self.playlist)>0:
             self.disable_treeview_cursor_changed=True
             self.treeview.set_cursor(selected_play_num)
