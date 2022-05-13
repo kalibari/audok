@@ -30,6 +30,7 @@ class TabStreamRipper:
                               ['Electro', 'radio Top 40 Electro', 'http://antenne-th.divicon-stream.net/antth_top40electro_JlSz-mp3-192?sABC=58p2q700%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
                               ['Electro', 'Sunshine Live','http://sunshinelive.hoerradar.de/sunshinelive-live-mp3-hq'],
 
+                              ['Charts', 'Radio Fg', 'http://radiofg.impek.com:80/fg'],
                               ['Charts', 'radio Top 40 Weimar Charts', 'http://antenne-th.divicon-stream.net/antth_top40char_0f6x-mp3-192?sABC=58p2q6s8%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
                               ['Charts', 'Top 100 Station','http://www.top100station.de/switch/r3472.pls'],
                               ['Charts', 'radio Top 40 Weimar Live', 'http://antenne-th.divicon-stream.net/antth_top40live_SeJx-mp3-192?sABC=58p2q6rq%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
@@ -37,6 +38,7 @@ class TabStreamRipper:
                               ['Mix / Rap', 'Gizmo New 102', 'http://206.190.135.28:8302/stream'],
                               ['Pop', 'Antenne Bayern Fresh4You', 'http://mp3channels.webradio.antenne.de/fresh'],
 
+                              ['Rock', 'Antenne Bayern Rock', 'http://mp3channels.webradio.antenne.de/rockantenne'],
                               ['Rock', 'PureRock.US', 'http://167.114.64.181:8524/stream']]
 
 
