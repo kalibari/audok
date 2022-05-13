@@ -716,7 +716,9 @@ class TabMusicPlayer:
       state = self.player.get_state(0).state
 
       if state == Gst.State.PLAYING:
-         pass
+         self.disable_treeview_cursor_changed=True
+         self.treeview.set_cursor(self.config['play_num'])
+         self.disable_treeview_cursor_changed=False
       else:
          if len(self.playlist)==0:
             self.button_pause.set_sensitive(False)
