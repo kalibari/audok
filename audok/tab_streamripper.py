@@ -147,6 +147,7 @@ class TabStreamRipper:
       hbox_buttons.append(button_new_station)
       hbox_buttons.append(button_reset)
       hbox_buttons.append(button_info)
+      hbox_buttons.set_margin_start(5)
 
       self.grid.attach_next_to(hbox_buttons, self.scrolledwindow, Gtk.PositionType.BOTTOM, 1, 1)
 

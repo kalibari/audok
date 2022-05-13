@@ -325,6 +325,7 @@ class TabSettings:
       button_reset = Gtk.Button(label='Reset')
       button_reset.connect('clicked', self.button_reset_clicked)
       button_reset.set_size_request(100, -1)
+      button_reset.set_margin_start(5)
 
 
       hbox_reset = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=40)
