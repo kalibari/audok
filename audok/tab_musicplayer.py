@@ -49,7 +49,7 @@ class TabMusicPlayer:
       self.unmute = 0
 
       self.disable_treeview_cursor_changed=False
-      self.stop_pause_clicked=False
+      self.play_stop_pause_clicked=''
 
 
       self.player = Gst.ElementFactory.make('playbin3', self.config['application_id'])
@@ -84,7 +84,7 @@ class TabMusicPlayer:
 
 
 
-      self.selected_play_num = 0
+      self.selected_num = 0
       self.selected_filename = ''
 
       hbox1 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
@@ -446,18 +446,16 @@ class TabMusicPlayer:
 
       self.update_playlist(play_new_file=config['filename'])
 
-      if len(self.playlist)>=1:
-         self.update_listmodel(clear=False)
-         self.choose_song(num=self.selected_play_num, force_play=True)
+      for i,item in enumerate(self.playlist):
+         self.update_listmodel(do='add', num=i)
 
-      else:
-         self.button_next.set_sensitive(False)
-         self.button_back.set_sensitive(False)
-         self.button_play.set_sensitive(False)
-         self.button_pause.set_sensitive(False)
-         self.button_stop.set_sensitive(False)
-         self.button_move_old.set_sensitive(False)
-         self.button_move_new.set_sensitive(False)
+      if len(self.playlist)>=1:
+         self.choose_song(num=self.selected_num, force_play=True)
+
+      self.update_control_playlist_buttons()
+      self.update_move_buttons()
+
+
 
 
 
@@ -516,9 +514,9 @@ class TabMusicPlayer:
 
       if self.checkbutton_auto_move.get_active()==True:
          self.move(num=self.config['play_num'], dir='old')
-         self.selected_play_num=self.config['play_num']
+         self.selected_num=self.config['play_num']
       else:
-         self.selected_play_num=self.config['play_num']+1
+         self.selected_num=self.config['play_num']+1
 
 
       self.log.debug('state ready')
@@ -530,8 +528,7 @@ class TabMusicPlayer:
 
 
       if len(self.playlist)>=1:
-         self.button_play.set_sensitive(True)
-         self.choose_song(num=self.selected_play_num)
+         self.choose_song(num=self.selected_num)
 
 
 
@@ -547,35 +544,41 @@ class TabMusicPlayer:
 
       if self.settings['interrupt']=='play_new_file':
          if self.playlist:
-            self.selected_play_num=0
-            self.choose_song(num=self.selected_play_num, force_play=True)
-            self.update_listmodel(clear=True)
+            self.selected_num=0
+            self.choose_song(num=self.selected_num, force_play=True)
 
-            self.selected_play_num=0
             self.disable_treeview_cursor_changed=True
-            self.treeview.set_cursor(self.selected_play_num)
+            self.update_listmodel(do='clear')
+            for i,item in enumerate(self.playlist):
+               self.update_listmodel(do='add', num=i)
+            self.selected_num=0
+            self.treeview.set_cursor(self.selected_num)
+
             self.disable_treeview_cursor_changed=False
+
+            self.update_control_playlist_buttons()
+            self.update_move_buttons()
 
 
       elif self.settings['interrupt']=='play_timer_end':
 
-         self.selected_play_num=self.config['play_num']
+         self.selected_num=self.config['play_num']
 
          if self.checkbutton_auto_move.get_active():
             self.move(num=self.config['play_num'], dir='old')
          else:
-            self.selected_play_num+=1
+            self.selected_num+=1
 
 
-         self.choose_song(num=self.selected_play_num)
+         self.choose_song(num=self.selected_num)
 
 
 
-      selected_play_num = self.selected_play_num
+      selected_num = self.selected_num
 
       if len(self.playlist)>0:
          self.disable_treeview_cursor_changed=True
-         self.treeview.set_cursor(selected_play_num)
+         self.treeview.set_cursor(selected_num)
          self.disable_treeview_cursor_changed=False
 
 
@@ -720,20 +723,150 @@ class TabMusicPlayer:
          self.treeview.set_cursor(self.config['play_num'])
          self.disable_treeview_cursor_changed=False
       else:
-         if len(self.playlist)==0:
-            self.button_pause.set_sensitive(False)
-            self.button_stop.set_sensitive(False)
-            self.button_back.set_sensitive(False)
-            self.button_next.set_sensitive(False)
-            self.button_play.set_sensitive(False)
-            self.set_label_play_file(clear=True)
-            self.set_label_file_info(text='')
-         else:
-            if self.stop_pause_clicked==False:
-               self.play_file(num=0)
+         if self.play_stop_pause_clicked=='play':
+            self.play_file(num=0)
+
+
+      self.update_control_playlist_buttons()
 
       return True
 
+
+
+
+   def update_move_buttons(self):
+
+      len_playlist = len(self.playlist)
+      selected_num=self.selected_num
+
+      filename=''
+      if (selected_num+1) <= len_playlist:
+         filename=self.playlist[selected_num]
+
+      self.log.debug('start selected_num: %s len_playlist: %s' % (self.selected_num,len_playlist))
+
+
+      if len_playlist==0:
+         self.button_move_old.set_sensitive(False)
+         self.button_move_new.set_sensitive(False)
+
+      else:
+
+         filename_start_dir_new=False
+         filename_start_dir_old=False
+
+         dir_new = self.config['music_path'] + '/' + self.settings['directory_new']
+         dir_old = self.config['music_path'] + '/' + self.settings['directory_old']
+
+         if filename.startswith(dir_new):
+            filename_start_dir_new=True
+
+         if filename.startswith(dir_old):
+            filename_start_dir_old=True
+
+         self.log.debug('start filename_start_dir_new: %s filename_start_dir_old: %s' % (filename_start_dir_new,filename_start_dir_old))
+
+         
+         if filename_start_dir_new and filename_start_dir_old:
+
+            if len(dir_new)>len(dir_old):
+               self.button_move_new.set_sensitive(False)
+               self.button_move_old.set_sensitive(True)
+
+            elif len(dir_new)<len(dir_old):
+               self.button_move_new.set_sensitive(True)
+               self.button_move_old.set_sensitive(False)
+
+            else:
+               self.button_move_new.set_sensitive(False)
+               self.button_move_old.set_sensitive(False)
+
+         elif filename_start_dir_new:
+            self.button_move_new.set_sensitive(False)
+            self.button_move_old.set_sensitive(True)
+
+         elif filename_start_dir_old:
+            self.button_move_new.set_sensitive(True)
+            self.button_move_old.set_sensitive(False)
+
+         else:
+            self.button_move_new.set_sensitive(False)
+            self.button_move_old.set_sensitive(False)
+
+
+
+   def update_control_playlist_buttons(self):
+
+      state = self.player.get_state(0).state
+      len_playlist = len(self.playlist)
+
+      self.log.debug('start state: %s len_playlist: %s' % (state,len_playlist))
+
+      if state == Gst.State.PLAYING or state == Gst.State.READY:
+
+         self.button_pause.set_sensitive(True)
+         self.button_stop.set_sensitive(True)
+         self.button_play.set_sensitive(False)
+
+         if len(self.playlist)==1:
+            self.button_back.set_sensitive(False)
+            self.button_next.set_sensitive(False)
+            self.button_playlist.set_sensitive(True)
+
+         elif len(self.playlist)>=1:
+            self.button_back.set_sensitive(True)
+            self.button_next.set_sensitive(True)
+            self.button_playlist.set_sensitive(True)
+
+         else:
+            self.button_back.set_sensitive(False)
+            self.button_next.set_sensitive(False)
+            self.button_pause.set_sensitive(False)
+            self.button_playlist.set_sensitive(False)
+
+
+      elif state == Gst.State.PAUSED:
+         self.button_pause.set_sensitive(False)
+         self.button_stop.set_sensitive(False)
+         self.button_back.set_sensitive(False)
+         self.button_next.set_sensitive(False)
+
+         if len(self.playlist)==1:
+            self.button_play.set_sensitive(True)
+            self.button_playlist.set_sensitive(True)
+
+         elif len(self.playlist)>=1:
+            self.button_play.set_sensitive(True)
+            self.button_playlist.set_sensitive(True)
+
+         else:
+            self.button_play.set_sensitive(False)
+            self.button_playlist.set_sensitive(False)
+
+
+      else:
+         self.button_pause.set_sensitive(False)
+         self.button_stop.set_sensitive(False)
+         self.set_label_play_file(clear=True)
+         self.set_label_file_info(text='')
+
+         if len(self.playlist)==1:
+            self.button_back.set_sensitive(False)
+            self.button_next.set_sensitive(False)
+            self.button_play.set_sensitive(True)
+            self.button_playlist.set_sensitive(True)
+
+         elif len(self.playlist)>=1:
+            self.button_back.set_sensitive(True)
+            self.button_next.set_sensitive(True)
+            self.button_play.set_sensitive(True)
+            self.button_playlist.set_sensitive(True)
+
+         else:
+            self.button_back.set_sensitive(False)
+            self.button_next.set_sensitive(False)
+            self.button_play.set_sensitive(False)
+            self.button_playlist.set_sensitive(False)
 
 
 
@@ -770,27 +903,50 @@ class TabMusicPlayer:
       allfiles = self.madmin.file_scan(directories, extensions)
 
 
-      old_playlist = list(self.playlist)
+
+      playlist_num = len(self.playlist)
 
       for item in allfiles:
-         if not item in self.playlist:
-            self.playlist.extend([item])
+         #if not item in self.playlist:
+         self.playlist.extend([item])
+         self.update_listmodel(do='add', num=playlist_num)
+         playlist_num+=1
+
+
+
+
 
       # check playlist
+      new_playlist = list(self.playlist)
+      rm_min_num_list=[]
+
+
       for i,item in enumerate(self.playlist):
          if not os.path.exists(item):
             if i<self.config['play_num']:
                self.config['play_num']-=1
-            self.playlist.remove(item)
+            new_playlist.remove(item)
+            rm_min_num_list.extend([i])
 
-      diff1 = list(set(old_playlist) - set(self.playlist))
-      diff2 = list(set(self.playlist) - set(old_playlist))
 
-      if diff1 or diff2:
-         self.update_listmodel(clear=True)
-      else:
-         self.log.debug('skip update_listmodel')
+      # update listmodel
+      if rm_min_num_list:
 
+         rm_min_nun = rm_min_num_list.sort()[0]
+         count = int(rm_min_nun)
+
+         for item in self.playlist[rm_min_num:]:
+            self.update_listmodel(do='remove', num=count)
+            count+=1
+
+         count = int(rm_min_nun) + 1 
+
+         for item in self.playlist[(rm_min_num+1):]:
+            self.update_listmodel(do='add', num=count)
+            count+=1
+
+
+      self.playlist = new_playlist
 
 
 
@@ -811,8 +967,6 @@ class TabMusicPlayer:
          self.player.set_state(Gst.State.READY)
          self.timer_play_time_stop()
          self.timer_slider_stop()
-         self.set_label_play_file(clear=True)
-         self.set_label_file_info(text='')
 
       else:
 
@@ -957,30 +1111,9 @@ class TabMusicPlayer:
          self.timer_play_time_start()
 
 
-      if len(self.playlist)==0:
-         self.button_move_old.set_sensitive(False)
-         self.button_move_new.set_sensitive(False)
-
-      elif len(self.playlist)==1:
-         self.button_play.set_sensitive(False)
-         self.button_next.set_sensitive(False)
-         self.button_back.set_sensitive(False)
-         self.button_move_old.set_sensitive(True)
-         self.button_move_new.set_sensitive(True)
-
-      elif len(self.playlist)>1:
-         self.button_play.set_sensitive(False)
-         self.button_next.set_sensitive(True)
-         self.button_back.set_sensitive(True)
-         self.button_move_old.set_sensitive(True)
-         self.button_move_new.set_sensitive(True)
-
-
       state = self.player.get_state(0).state
 
-
       self.log.debug('num: %s state: %s len(self.playlist): %s' % (num,state,len(self.playlist)))
-
 
       if state == Gst.State.PAUSED:
          pass
@@ -992,13 +1125,8 @@ class TabMusicPlayer:
 
 
          if len(self.playlist)==0:
-            self.set_label_play_file(clear=True)
-            self.set_label_file_info(text='')
-            self.button_pause.set_sensitive(False)
-            self.button_stop.set_sensitive(False)
             self.slider_position=0
             self.h_scale1.set_value(self.slider_position)
-
 
          elif len(self.playlist)>=1:
             filepath = os.path.realpath(self.playlist[num])
@@ -1042,13 +1170,13 @@ class TabMusicPlayer:
 
 
       if len(self.playlist)>=1:
-         self.button_pause.set_sensitive(True)
-         self.button_stop.set_sensitive(True)
-         # back / next
          self.disable_treeview_cursor_changed=True
          self.treeview.set_cursor(num)
          self.disable_treeview_cursor_changed=False
          self.player.set_state(Gst.State.PLAYING)
+
+      self.update_move_buttons()
+
 
 
 
@@ -1081,7 +1209,8 @@ class TabMusicPlayer:
 
    def move(self, dir, num):
 
-      self.log.debug('dir: %s len(self.playlist): %s play_num: %s' % (dir,len(self.playlist),num))
+      self.log.debug('num: %s play_num: %s dir: %s' % (num,self.config['play_num'],dir))
+
 
       path=self.config['music_path'] + '/' + self.settings['directory_new']
       if dir=='old':
@@ -1102,6 +1231,11 @@ class TabMusicPlayer:
             os.rename(mv_path_filename,'%s/%s' % (path,filename))
          except Exception as e:
             self.log.debug('error: %s' % str(e))
+         else:
+            if num < self.config['play_num']:
+               self.config['play_num']-=1
+               if self.config['play_num']<0:
+                  self.config['play_num']=0
 
 
 
@@ -1109,13 +1243,28 @@ class TabMusicPlayer:
          self.log.debug('auto_scan')
          self.playlist_scan()
       else:
+
+         self.disable_treeview_cursor_changed=True
+
+         len_playlist = len(self.playlist)
+
+         self.log.debug('len_playlist: %s selected_num: %s' % (len_playlist,self.selected_num))
+
+         rm_num=0
+         for rm_num in range(len_playlist-1, self.selected_num-1, -1):
+            self.update_listmodel(do='remove', num=rm_num)
+
+         self.log.debug('rm_num: %s' % rm_num)
+
          self.playlist.remove(mv_path_filename)
-         self.update_listmodel(clear=True)
+
+         for i in range(rm_num, len(self.playlist)):
+            self.update_listmodel(do='add', num=i)
+
+         self.disable_treeview_cursor_changed=False
 
 
       if len(self.playlist)==0:
-         self.set_label_play_file(clear=True)
-         self.set_label_file_info(text='')
          self.stop()
 
 
@@ -1144,8 +1293,12 @@ class TabMusicPlayer:
             #num = int(path.to_string())
             play_num = item1.get_value(item2, 0)
 
-            self.button_play.set_sensitive(False)
             self.play_file(num=int(play_num) -1)
+
+            self.update_control_playlist_buttons()
+            self.update_move_buttons()
+
+
 
 
 
@@ -1155,51 +1308,47 @@ class TabMusicPlayer:
 
          self.log.debug('start disable_treeview_cursor_changed: %s' % self.disable_treeview_cursor_changed)
 
-
          path, focus_column = treeview.get_cursor()
          if path and focus_column:
 
-            selected_play_num=0
-            selected_filename=''
             TreeIter = self.liststore.get_iter(path)
-            selected_num = self.liststore.get_value(TreeIter, 0)
-            if selected_num:
-               selected_num_int = int(selected_num)
-               if selected_num_int>0:
-                  selected_play_num=selected_num_int-1
 
-            selected_filename = self.liststore.get_value(TreeIter, 1)
+            self.selected_num = int(self.liststore.get_value(TreeIter, 0))-1
+            self.selected_filename = self.liststore.get_value(TreeIter, 1)
+            button_clear = focus_column.get_title()
 
-            if focus_column.get_title()=='Clear':
+            self.log.debug('button_clear: %s selected_num: %s selected_filename: %s ' % (button_clear,self.selected_num,self.selected_filename))
 
-               self.log.debug('clear filename: %s' % selected_filename)
 
-               if selected_filename in self.playlist:
+            if button_clear=='Clear':
+
+               if not self.selected_filename in self.playlist:
+                  self.log.debug('selected_filename not in playlist')
+
+               else:
 
                   self.disable_treeview_cursor_changed=True
-                  for x in range (selected_play_num+1, len(self.playlist)):
-                     p = Gtk.TreePath(x)
-                     treeiter = self.liststore.get_iter(p)
-                     self.liststore.set_value(treeiter, column=0, value=str(x))
-                  self.playlist.remove(selected_filename)
-                  self.liststore.remove (TreeIter)
+
+                  len_playlist = len(self.playlist)
+
+                  self.log.debug('len_playlist: %s selected_num: %s' % (len_playlist,self.selected_num))
+
+                  rm_num=0
+                  for rm_num in range(len_playlist-1, self.selected_num-1, -1):
+                     self.update_listmodel(do='remove', num=rm_num)
+
+                  self.log.debug('rm_num: %s' % rm_num)
+
+                  self.playlist.remove(self.selected_filename)
+
+                  for i in range(rm_num, len(self.playlist)):
+                     self.update_listmodel(do='add', num=i)
+
                   self.disable_treeview_cursor_changed=False
 
 
-               if len(self.playlist)==0:
-                  self.button_play.set_sensitive(False)
-
-               if self.selected_play_num==self.config['play_num']:
-                  self.button_move_old.set_sensitive(False)
-                  self.button_move_new.set_sensitive(False)
-                  self.button_back.set_sensitive(False)
-                  self.button_next.set_sensitive(False)
-
-            else:
-               self.selected_play_num=selected_play_num
-               self.selected_filename=selected_filename
-
-            self.log.debug('selected_play_num: %s filename: %s' % (self.selected_play_num,self.selected_filename))
+            self.update_control_playlist_buttons()
+            self.update_move_buttons()
 
 
 
@@ -1223,9 +1372,9 @@ class TabMusicPlayer:
 
 
 
-
    def checkbutton_auto_move_toggled(self, event):
       self.log.debug('start')
+
 
 
    def checkbutton_auto_play_scan_toggled(self, event):
@@ -1269,18 +1418,28 @@ class TabMusicPlayer:
 
 
 
-   def update_listmodel(self, clear=False):
-      self.log.debug('start clear: %s' % clear)
 
-      if clear==True:
+   def update_listmodel(self, do='add', num=0):
+      self.log.debug('start do: %s num: %s' % (do,num))
+
+      if do=='clear':
          self.disable_treeview_cursor_changed=True
          self.liststore.clear()
          self.disable_treeview_cursor_changed=False
 
-      for i,item in enumerate(self.playlist):
-         self.liststore.insert_with_values(i, (0, 1, 2), (i+1, item, 'list-remove'))
+
+      elif do=='add':
+         add = self.playlist[num]
+         self.liststore.insert_with_values(num, (0, 1, 2), (num+1, add, 'list-remove'))
+
+
+      elif do=='remove':
+         TreeIter = self.liststore.get_iter(num)
+         self.liststore.remove (TreeIter)
+
 
       self.entry_file_sum.set_text('%s' % len(self.playlist))
+
 
 
 
@@ -1288,35 +1447,16 @@ class TabMusicPlayer:
    def button_scan_clicked(self, event):
       self.log.debug('start')
 
-      selected_play_num = self.selected_play_num
       self.playlist_scan()
 
-      state = self.player.get_state(0).state
-
-      if state == Gst.State.PLAYING:
-
-         if len(self.playlist)>1:
-            self.button_back.set_sensitive(True)
-            self.button_next.set_sensitive(True)
-         
-      else:
-         if len(self.playlist)==0:
-            self.button_pause.set_sensitive(False)
-            self.button_stop.set_sensitive(False)
-            self.button_play.set_sensitive(False)
-            self.set_label_play_file(clear=True)
-            self.set_label_file_info(text='')
-         else:
-            self.button_next.set_sensitive(True)
-            self.button_back.set_sensitive(True)
-            self.button_play.set_sensitive(True)
-            self.button_move_old.set_sensitive(True)
-            self.button_move_new.set_sensitive(True)
+      self.update_control_playlist_buttons()
+      self.update_move_buttons()
 
       if len(self.playlist)>0:
          self.disable_treeview_cursor_changed=True
-         self.treeview.set_cursor(selected_play_num)
+         self.treeview.set_cursor(self.selected_num)
          self.disable_treeview_cursor_changed=False
+
 
 
 
@@ -1328,32 +1468,27 @@ class TabMusicPlayer:
 
       self.liststore.clear()
 
-      self.button_move_old.set_sensitive(False)
-      self.button_move_new.set_sensitive(False)
-      self.button_play.set_sensitive(False)
-      self.button_next.set_sensitive(False)
-      self.button_back.set_sensitive(False)
-
+      self.update_control_playlist_buttons()
       self.entry_file_sum.set_text('%s' % len(self.playlist))
 
 
 
    def button_play_clicked(self, event):
-      self.log.debug('start selected_play_num: %s' % self.selected_play_num)
-      self.stop_pause_clicked=False
-      self.button_play.set_sensitive(False)
-      self.play_file(num=self.selected_play_num)
+      self.log.debug('start selected_num: %s' % self.selected_num)
+      self.play_stop_pause_clicked='play'
+      self.play_file(num=self.selected_num)
+      self.update_control_playlist_buttons()
 
 
 
 
    def button_next_clicked(self, event):
-      self.log.debug('start')
+      self.log.debug('start selected_num: %s' % self.selected_num)
       if self.checkbutton_auto_move.get_active():
          self.playlist_scan()
 
-      self.selected_play_num+=1
-      self.choose_song(num=self.selected_play_num)
+      self.selected_num+=1
+      self.choose_song(num=self.selected_num)
 
 
 
@@ -1364,101 +1499,92 @@ class TabMusicPlayer:
       if self.checkbutton_auto_move.get_active():
          self.playlist_scan()
 
-      self.selected_play_num-=1
-      if self.selected_play_num<0:
-         self.selected_play_num=0
-      self.choose_song(num=self.selected_play_num)
+      self.selected_num-=1
+      if self.selected_num<0:
+         self.selected_num=0
+      self.choose_song(num=self.selected_num)
 
 
 
 
    def button_pause_clicked(self, event):
       self.log.debug('start')
-      self.stop_pause_clicked=True
+      self.play_stop_pause_clicked='pause'
       self.pause()
-      self.button_pause.set_sensitive(False)
-      self.button_stop.set_sensitive(False)
-      self.button_play.set_sensitive(True)
-      self.button_back.set_sensitive(False)
-      self.button_next.set_sensitive(False)
-
+      self.update_control_playlist_buttons()
 
 
    def button_stop_clicked(self, event):
       self.log.debug('start len(self.playlist): %s' % len(self.playlist))
-      self.stop_pause_clicked=True
+      self.play_stop_pause_clicked='stop'
       self.stop()
-
-      self.button_pause.set_sensitive(False)
-      self.button_stop.set_sensitive(False)
-
-      if len(self.playlist)==0:
-         self.button_play.set_sensitive(False)
-         self.button_back.set_sensitive(False)
-         self.button_next.set_sensitive(False)
-         self.set_label_play_file(clear=True)
-         self.set_label_file_info(text='')
-      else:
-         self.button_play.set_sensitive(True)
+      self.update_control_playlist_buttons()
 
 
 
 
    def button_move_old_clicked(self, event):
-      self.log.debug('start selected_play_num: %s play_num: %s' % (self.selected_play_num,self.config['play_num']))
+      self.log.debug('start selected_num: %s play_num: %s' % (self.selected_num,self.config['play_num']))
 
-      selected_play_num=self.selected_play_num
+      choose=False
+      if self.selected_num==self.config['play_num']:
+         choose=True
 
-      self.move(num=self.selected_play_num, dir='old')
+      len_playlist = len(self.playlist)
 
-      if self.selected_play_num==self.config['play_num']:
-         self.choose_song(num=self.selected_play_num)
+      self.move(num=self.selected_num, dir='old')
 
-      else:
+      self.log.debug('len_playlist: %s' % len_playlist)
 
-         selected_play_num-=1
-         if selected_play_num<0:
-            selected_play_num=0
-
-         self.config['play_num']-=1
-         if self.config['play_num']<0:
-             self.config['play_num']=0
-
-         if len(self.playlist)>0:
-            self.disable_treeview_cursor_changed=True
-            self.treeview.set_cursor(selected_play_num)
-            self.disable_treeview_cursor_changed=False
+      if (self.selected_num+1)==len_playlist:
+         self.selected_num-=1
+         if self.selected_num<0:
+            self.selected_num=0
 
 
-      if len(self.playlist)==0:
-         self.button_move_old.set_sensitive(False)
-         self.button_move_new.set_sensitive(False)
-         self.button_play.set_sensitive(False)
-         self.button_next.set_sensitive(False)
-         self.button_back.set_sensitive(False)
-         self.button_stop.set_sensitive(False)
-         self.button_pause.set_sensitive(False)
+      if choose==True:
+         self.choose_song(num=self.selected_num)
 
+
+      if len(self.playlist)>=1:
+         self.disable_treeview_cursor_changed=True
+         self.treeview.set_cursor(self.selected_num)
+         self.disable_treeview_cursor_changed=False
+
+      self.update_control_playlist_buttons()
+      self.update_move_buttons()
 
 
 
    def button_move_new_clicked(self, event):
-      self.log.debug('start selected_play_num: %s play_num: %s' % (self.selected_play_num,self.config['play_num']))
+      self.log.debug('start selected_num: %s play_num: %s' % (self.selected_num,self.config['play_num']))
 
-      self.move(num=self.selected_play_num, dir='new')
-      if self.selected_play_num==self.config['play_num']:
-         self.choose_song(num=self.selected_play_num)
+      choose=False
+      if self.selected_num==self.config['play_num']:
+         choose=True
 
+      len_playlist = len(self.playlist)
 
-      if len(self.playlist)==0:
-         self.button_move_old.set_sensitive(False)
-         self.button_move_new.set_sensitive(False)
-         self.checkbutton_auto_move.set_sensitive(False)
-         self.button_play.set_sensitive(False)
-         self.button_next.set_sensitive(False)
-         self.button_back.set_sensitive(False)
-         self.button_stop.set_sensitive(False)
-         self.button_pause.set_sensitive(False)
+      self.move(num=self.selected_num, dir='new')
+
+      self.log.debug('len_playlist: %s' % len_playlist)
+
+      if (self.selected_num+1)==len_playlist:
+         self.selected_num-=1
+         if self.selected_num<0:
+            self.selected_num=0
+
+      if choose==True:
+         self.choose_song(num=self.selected_num)
+
+      if len(self.playlist)>=1:
+         self.disable_treeview_cursor_changed=True
+         self.treeview.set_cursor(self.selected_num)
+         self.disable_treeview_cursor_changed=False
+
+      self.update_control_playlist_buttons()
+      self.update_move_buttons()
+
 
 
 
