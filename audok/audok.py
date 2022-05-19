@@ -23,12 +23,12 @@ from argparse import ArgumentParser, RawTextHelpFormatter
 
 
 
-def parse_args(name: str):
+def parse_args(name: str, version: str):
 
-    argparser = ArgumentParser(prog=name, formatter_class=RawTextHelpFormatter)
+    argparser = ArgumentParser(prog='%s' % name, formatter_class=RawTextHelpFormatter)
+    argparser.description = 'Audok Music Player Version: %s' % version
     argparser.add_argument('-d', action='store_true', dest='debug', help="debug to tty")
     argparser.add_argument('-l', action='store_true', dest='log', help="redirect debug to journald log")
-    argparser.add_argument('-v', action='store_true', dest='version', help="show version and exit")
     argparser.add_argument('filename', metavar='filename', nargs='?')
 
     result = argparser.parse_args()
@@ -51,7 +51,9 @@ if __name__ == '__main__':
 
    config['app_path'] = app_path
 
-   config['play_num'] = 0
+   config['play_num_filename_tag'] = (0,'','')
+   config['play_duration_bitrate_codec'] = ('','','')
+   config['check_new_file'] = ''
 
    config['stations_changed'] = False
 
@@ -77,41 +79,32 @@ if __name__ == '__main__':
    config['log'] = 0
 
 
-   result = parse_args(name=config['name'])
+   result = parse_args(name=config['name'], version=config['version'])
    if result.debug:
       config['debug'] = 1
-
    if result.log:
       config['log'] = 1
-
-   if result.version:
-      config['debug'] = 1
 
 
 
    log = logging.getLogger(config['name'])
-   log.setLevel(logging.DEBUG)
+   log.propagate = False
 
    fm='%(module)s - %(funcName)s - %(message)s'
+   formatter = logging.Formatter(fm)
 
    if config['debug'] == 1:
       sh = logging.StreamHandler()
-      formatter = logging.Formatter(fm)
       sh.setFormatter(formatter)
       log.addHandler(sh)
 
-
    if config['log'] == 1:
       from systemd.journal import JournalHandler
-      jh = log.addHandler(JournalHandler())
-      formatter = logging.Formatter(fm)
-      jh.setFormatter(formatter)
-      log.addHandler(jh)
+      jo = JournalHandler(SYSLOG_IDENTIFIER=config['application_id'])
+      jo.setFormatter(formatter)
+      log.addHandler(jo)
 
-
-   if result.version:
-      log.debug('Version: %s' % config['version'])
-      sys.exit()
+   log.setLevel(logging.DEBUG)
 
 
 
@@ -172,7 +165,7 @@ if __name__ == '__main__':
 
    settings['stations_toogle_on'] = ['']
 
-   settings['label_play_file_tag'] = '0'
+   settings['label_play_show_tag'] = '0'
 
 
 
@@ -230,14 +223,14 @@ if __name__ == '__main__':
 
 
 
-   config['filename']=''
    if result.filename and os.path.exists(result.filename):
-      config['filename']=result.filename
+      config['check_new_file']=result.filename
 
 
 
    # if audok is running + playlist
    if os.path.exists('%s/%s' % (settings['config_path'],settings['filename_ipcport'])):
+
 
       # cat /tmp/audok/audok_port
       ipc_port=settings['ipc_port']
@@ -247,23 +240,24 @@ if __name__ == '__main__':
             ipc_port = port
 
 
-      log.debug('name: %s is already running - try send filename: %s via socket port: %s' % (config['name'],config['filename'],ipc_port))
+      log.debug('name: %s is already running - try send filename: %s via socket port: %s' % (config['name'],config['check_new_file'],ipc_port))
 
 
-      if not config['filename']:
+      if not config['check_new_file']:
          os.remove('%s/%s' % (settings['config_path'],settings['filename_ipcport']))
          sys.exit(0)
       else:
          try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect(('localhost', int(ipc_port)))
-            sock.sendall(('play_new_file=' + config['filename']).encode())
+            sock.sendall(('new-file=' + config['check_new_file']).encode())
          except:
             os.remove('%s/%s' % (settings['config_path'],settings['filename_ipcport']))
          else:
             sys.exit(0)
          finally:
             sock.close()
+
 
 
    log.debug('name: %s try to start -> Music_Admin_Start' % config['name'])
