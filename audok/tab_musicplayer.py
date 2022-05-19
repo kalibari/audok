@@ -616,6 +616,7 @@ class TabMusicPlayer:
          self.disable_treeview_cursor_changed=False
 
 
+
       ########
       elif do=='remove' and fm=='mp3':
 
@@ -641,6 +642,7 @@ class TabMusicPlayer:
          self.disable_treeview_cursor_changed=True
          self.liststore.clear()
          self.disable_treeview_cursor_changed=False
+
 
 
       ########
@@ -1232,8 +1234,6 @@ class TabMusicPlayer:
             self.log.debug('error: %s' % str(e))
 
 
-
-      self.log.debug('len playlist: %s selected_num: %s' % (len(self.playlist),self.selected_num))
       self.update_playlist_listmodel(do='remove', num=num, filename=filename)
 
       self.entry_file_sum.set_text('%s' % len(self.playlist))
@@ -1459,7 +1459,19 @@ class TabMusicPlayer:
       if self.checkbutton_auto_move.get_active():
          self.playlist_scan()
 
-      if len(self.playlist)>0:
+
+      if len(self.playlist)==0:
+         self.timer_slider_stop()
+         self.slider_position=0
+         self.h_scale1.set_value(self.slider_position)
+         self.player.set_state(Gst.State.NULL)  # ?? print ('READY')
+         self.config['play_num_filename_tag'] = (0,'','')
+         self.config['play_duration_bitrate_codec'] = ('','','')
+         self.update_control_play_buttons()
+         self.update_move_buttons()
+         self.update_label_play(clear=True)
+
+      else:
 
          self.selected_num+=1
          if self.selected_num>=len(self.playlist):
@@ -1536,7 +1548,10 @@ class TabMusicPlayer:
 
       if change_song==True:
          if self.selected_num>=len(self.playlist):
-            self.selected_num=len(self.playlist)-1
+            if len(self.playlist)==0:
+               self.selected_num=0
+            else:
+               self.selected_num=len(self.playlist)-1
 
          if self.selected_num<len(self.playlist):
             self.selected_filename = self.playlist[self.selected_num]
@@ -1571,7 +1586,10 @@ class TabMusicPlayer:
 
       if change_song==True:
          if self.selected_num>=len(self.playlist):
-            self.selected_num=len(self.playlist)-1
+            if len(self.playlist)==0:
+               self.selected_num=0
+            else:
+               self.selected_num=len(self.playlist)-1
 
          if self.selected_num<len(self.playlist):
             self.selected_filename = self.playlist[self.selected_num]
