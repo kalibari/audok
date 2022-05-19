@@ -15,13 +15,13 @@ gi.require_version('Gst', '1.0')
 from gi.repository import Gst
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
+gi.require_version('Adw', '1')
+from gi.repository import Adw
 gi.require_version('GLib', '2.0')
 from gi.repository import GLib
 import logging
 import main
 from argparse import ArgumentParser, RawTextHelpFormatter
-
-
 
 def parse_args(name: str, version: str):
 
@@ -293,6 +293,6 @@ if __name__ == '__main__':
       main.Music_Admin_Start(app, log, config, settings, playlist, stationlist)
 
 
-   app = Gtk.Application(application_id=config['application_id'])
+   app = Adw.Application(application_id=config['application_id'])
    app.connect('activate', on_activate)
    app.run(None)
