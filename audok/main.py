@@ -447,37 +447,16 @@ class Music_Admin_Start():
 
                   self.log.debug('thread received "%s"' % data)
 
+                  if data=='next-song':
+                     self.notebook_tab_musicplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_musicplayer.player,Gst.Structure.new_empty('next-song')))
 
-                  if data=='play_timer_end':
-                     self.log.debug('play_timer_end')
-
-                     self.settings['interrupt']='play_timer_end'
-                     self.notebook_tab_musicplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_musicplayer.player,Gst.Structure.new_empty('song-changed')))
-
-
-                  elif data.startswith('play_new_file='):
-                     self.log.debug('play_new_file -> bus_application_message')
-
-                     self.settings['interrupt']='play_new_file'
-                     data=data.replace('play_new_file=','',1)
-
-
-                     # update playlist
-                     self.notebook_tab_musicplayer.update_playlist(play_new_file=data)
-
-
-                     state = self.notebook_tab_musicplayer.player.get_state(0).state
-
-                     if state==Gst.State.PAUSED or state==Gst.State.NULL:
-                        self.notebook_tab_musicplayer.button_play.set_sensitive(False)
-                        self.notebook_tab_musicplayer.play_file()
-
-
-                     self.notebook_tab_musicplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_musicplayer.player,Gst.Structure.new_empty('song-changed')))
+                  elif data.startswith('new-file='):
+                     self.config['check_new_file'] = data.replace('new-file=','',1)
+                     self.notebook_tab_musicplayer.player.post_message(Gst.Message.new_application(self.notebook_tab_musicplayer.player,Gst.Structure.new_empty('new-file')))
 
 
                else:
-                  self.log.debug('received data')
+                  self.log.debug('thread received done')
                   receive_data=False
 
             self.log.debug('thread wait...')
