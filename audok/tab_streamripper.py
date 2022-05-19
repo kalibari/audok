@@ -35,7 +35,6 @@ class TabStreamRipper:
                               ['Charts', 'Top 100 Station','http://www.top100station.de/switch/r3472.pls'],
                               ['Charts', 'radio Top 40 Weimar Live', 'http://antenne-th.divicon-stream.net/antth_top40live_SeJx-mp3-192?sABC=58p2q6rq%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
 
-                              ['Mix / Rap', 'Gizmo New 102', 'http://206.190.135.28:8302/stream'],
                               ['Pop', 'Antenne Bayern Fresh4You', 'http://mp3channels.webradio.antenne.de/fresh'],
 
                               ['Rock', 'Antenne Bayern Rock', 'http://mp3channels.webradio.antenne.de/rockantenne'],
