@@ -1464,7 +1464,7 @@ class TabMusicPlayer:
          self.timer_slider_stop()
          self.slider_position=0
          self.h_scale1.set_value(self.slider_position)
-         self.player.set_state(Gst.State.NULL)  # ?? print ('READY')
+         self.player.set_state(Gst.State.NULL)
          self.config['play_num_filename_tag'] = (0,'','')
          self.config['play_duration_bitrate_codec'] = ('','','')
          self.update_control_play_buttons()
@@ -1529,21 +1529,30 @@ class TabMusicPlayer:
 
 
    def button_move_old_clicked(self, event):
-      self.log.debug('start selected_num: %s' % self.selected_num)
+      self.log.debug('start')
 
       num, filename, tag = self.config['play_num_filename_tag']
+
+      self.log.debug('selected_num: %s num: %s' % (self.selected_num,num))
 
       change_song=False
       if self.selected_num==num:
          change_song=True
 
-
-      self.log.debug('change_song: %s len(self.playlist): %s' % (change_song,len(self.playlist)))
+      self.log.debug('change_song: %s' % change_song)
 
 
       if self.selected_num<len(self.playlist):
+
          self.selected_filename = self.playlist[self.selected_num]
          self.move(num=self.selected_num, filename=self.selected_filename, dir='old')
+
+         if self.selected_num < num:
+            if num<0:
+               num=0
+            self.config['play_num_filename_tag']=((num-1), filename, tag)
+            self.log.debug('decrease num to: %s' % (num-1))
+            self.update_label_play()
 
 
       if change_song==True:

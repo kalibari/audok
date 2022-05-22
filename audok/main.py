@@ -159,12 +159,6 @@ class Music_Admin_Start():
          f.write('<?xml version="1.0"?>\n')
          f.write('<data>\n')
          for genre,station,url in stationlist:
-            #print (genre)
-            #print (type(genre))
-            #print (station)
-            #print (type(station))
-            #print (url)
-            #print (type(url))
             f.write('\t<stations>\n' + '\t\t<genre>' + genre + '</genre>\n'  + '\t\t<station>' + station + '</station>\n'  + '\t\t<url>' + url +  '</url>\n' +  '\t</stations>\n')
          f.write('</data>\n')
          f.close()

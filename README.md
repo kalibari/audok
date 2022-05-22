@@ -12,36 +12,17 @@ Current Version is 1.0.17
 
 Requirements
 ======
-- gtk4
 - pulseaudio or pipewire
 - ffmpeg
 - youtube-dl
 - streamripper
+- gtk4
+- python cairo, python gstreamer, python systemd
+- gstreamer plugins base, gstreamer plugins bad
 
 
 Installation
 ======
-Dependencies Debian:<br/>
-sudo apt install --no-install-recommends libgtk-4-1 python3-cairo python3-gst-1.0 python3-systemd ffmpeg youtube-dl wget unzip<br/>
-sudo apt install --no-install-recommends libgstreamer-plugins-base1.0-0 libgstreamer-plugins-bad1.0-0<br/>
-sudo apt install --no-install-recommends streamripper<br/>
-
-Dependencies Fedora:<br/>
-sudo dnf install gtk4 python3-cairo python3-gstreamer1 python3-systemd ffmpeg youtube-dl wget unzip<br/>
-sudo dnf install gstreamer1-plugins-base gstreamer1-plugins-bad-free<br/>
-sudo dnf install streamripper<br/>
-
-Dependencies Manjaro:<br/>
-sudo pamac install gtk4 python-cairo gst-python python-systemd ffmpeg youtube-dl wget unzip<br/>
-sudo pamac install gst-plugins-base-libs gst-plugins-bad-libs<br/>
-sudo pamac build streamripper<br/>
-
-Dependencies Archlinux:<br/>
-sudo pacman -S --needed gtk4 python-cairo gst-python python-systemd ffmpeg youtube-dl wget unzip<br/>
-sudo pacman -S --needed gst-plugins-base-libs gst-plugins-bad-libs yay<br/>
-yay -S streamripper<br/>
-
-
 wget https://github.com/kalibari/audok/archive/refs/heads/master.zip<br/>
 unzip master.zip<br/>
 cd audok-master<br/>
