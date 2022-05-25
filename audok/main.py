@@ -171,39 +171,22 @@ class Music_Admin_Start():
 
       if hasattr(self, 'notebook_tab_converter'):
 
-         if self.notebook_tab_converter.obj_timer_file2flac is not None:
-            GLib.source_remove(self.notebook_tab_converter.obj_timer_file2flac)
-
-         if self.notebook_tab_converter.obj_timer_record is not None:
-            GLib.source_remove(self.notebook_tab_converter.obj_timer_record)
-
-         if self.notebook_tab_converter.obj_timer_file2mp3 is not None:
-            GLib.source_remove(self.notebook_tab_converter.obj_timer_file2mp3)
-
-         if self.notebook_tab_converter.obj_timer_you2mp3 is not None:
-            GLib.source_remove(self.notebook_tab_converter.obj_timer_you2mp3)
-
+         self.notebook_tab_converter.timer_file2flac_stop()
+         self.notebook_tab_converter.timer_record_stop()
+         self.notebook_tab_converter.timer_you2mp3_stop()
+         self.notebook_tab_converter.timer_file2mp3_stop()
 
       if hasattr(self, 'notebook_tab_musicplayer'):
 
          if self.notebook_tab_musicplayer.player:
             self.notebook_tab_musicplayer.player.set_state(Gst.State.NULL)
 
-         if self.notebook_tab_musicplayer.obj_timer_slider is not None:
-            GLib.source_remove(self.notebook_tab_musicplayer.obj_timer_slider)
-
-         if self.notebook_tab_musicplayer.obj_timer_play_time is not None:
-            GLib.source_remove(self.notebook_tab_musicplayer.obj_timer_play_time)
-
-         if self.notebook_tab_musicplayer.obj_timer_auto_play_scan is not None:
-            GLib.source_remove(self.notebook_tab_musicplayer.obj_timer_auto_play_scan)
-
-
+         self.notebook_tab_musicplayer.timer_slider_stop()
+         self.notebook_tab_musicplayer.timer_play_time_stop()
+         self.notebook_tab_musicplayer.timer_auto_play_scan_stop()
 
       if hasattr(self, 'notebook_tab_streamripper'):
-
-         if self.notebook_tab_streamripper.obj_timer_streamripper is not None:
-            GLib.source_remove(self.notebook_tab_streamripper.obj_timer_streamripper)
+         self.notebook_tab_streamripper.timer_streamripper_stop()
 
 
       self.process_all_killer()

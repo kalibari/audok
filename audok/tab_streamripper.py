@@ -337,6 +337,17 @@ class TabStreamRipper:
 
 
 
+
+   def timer_streamripper_stop(self, debug=True):
+      if debug==True:
+         self.log.debug('start')
+
+      if self.obj_timer_streamripper is not None:
+         GLib.source_remove(self.obj_timer_streamripper)
+         self.obj_timer_streamripper=None
+
+
+
    def check_streamripper(self):
 
       self.count+=1
@@ -347,9 +358,7 @@ class TabStreamRipper:
       if not self.record_station:
          self.log.debug('stop')
 
-         if self.obj_timer_streamripper is not None:
-            GLib.source_remove(self.obj_timer_streamripper)
-            self.obj_timer_streamripper=None
+         self.timer_streamripper_stop()
 
          self.record_status=False
          self.update_listmodel()

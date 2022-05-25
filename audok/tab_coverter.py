@@ -549,25 +549,53 @@ class TabConverter:
 
 
 
-   def button_stop_chlicked(self, event):
-
-      self.log.debug('start')
+   def timer_file2flac_stop(self, debug=True):
+      if debug==True:
+         self.log.debug('start')
 
       if self.obj_timer_file2flac is not None:
          GLib.source_remove(self.obj_timer_file2flac)
          self.obj_timer_file2flac=None
 
+
+
+   def timer_record_stop(self, debug=True):
+      if debug==True:
+         self.log.debug('start')
+
       if self.obj_timer_record is not None:
          GLib.source_remove(self.obj_timer_record)
          self.obj_timer_record=None
+
+
+   def timer_you2mp3_stop(self, debug=True):
+      if debug==True:
+         self.log.debug('start')
+
+      if self.obj_timer_you2mp3 is not None:
+         GLib.source_remove(self.obj_timer_you2mp3)
+         self.obj_timer_you2mp3=None
+
+
+   def timer_file2mp3_stop(self, debug=True):
+      if debug==True:
+         self.log.debug('start')
 
       if self.obj_timer_file2mp3 is not None:
          GLib.source_remove(self.obj_timer_file2mp3)
          self.obj_timer_file2mp3=None
 
-      if self.obj_timer_you2mp3 is not None:
-         GLib.source_remove(self.obj_timer_you2mp3)
-         self.obj_timer_you2mp3=None
+
+
+
+   def button_stop_chlicked(self, event):
+
+      self.log.debug('start')
+
+      self.timer_file2flac_stop()
+      self.timer_record_stop()
+      self.timer_you2mp3_stop()
+      self.timer_file2mp3_stop()
 
 
       self.madmin.process_job_killer(job='you2mp3')

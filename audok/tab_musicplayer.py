@@ -457,6 +457,7 @@ class TabMusicPlayer:
          self.update_playlist_listmodel(do='cursor', num=0)
 
 
+      self.entry_file_sum.set_text('%s' % len(self.playlist))
       self.update_control_play_buttons()
       self.update_move_buttons()
 
@@ -661,15 +662,15 @@ class TabMusicPlayer:
 
       self.play_time_counter=0
 
-      if self.obj_timer_play_time is not None:
-         GLib.source_remove(self.obj_timer_play_time)
+      self.timer_play_time_stop(debug=False)
 
       self.obj_timer_play_time = GLib.timeout_add(1000, self.timer_play_time_function)
 
 
 
-   def timer_play_time_stop(self):
-      self.log.debug('start')
+   def timer_play_time_stop(self, debug=True):
+      if debug==True:
+         self.log.debug('start')
 
       if self.obj_timer_play_time is not None:
          GLib.source_remove(self.obj_timer_play_time)
@@ -689,6 +690,10 @@ class TabMusicPlayer:
             self.log.debug('error: %s' % str(e))
          finally:
             sock.close()
+            self.play_time_counter=0
+
+
+      self.play_time_counter+=1
 
       return True
 
@@ -697,18 +702,20 @@ class TabMusicPlayer:
    def timer_slider_start(self):
       self.log.debug('start')
 
-      if self.obj_timer_slider is not None:
-         GLib.source_remove(self.obj_timer_slider)
+      self.timer_slider_stop(debug=False)
 
       self.obj_timer_slider = GLib.timeout_add(1000, self.timer_slider_function)
 
 
-   def timer_slider_stop(self):
-      self.log.debug('start')
+
+   def timer_slider_stop(self, debug=True):
+      if debug==True:
+         self.log.debug('start')
 
       if self.obj_timer_slider is not None:
          GLib.source_remove(self.obj_timer_slider)
          self.obj_timer_slider=None
+
 
 
    def timer_slider_function(self):
@@ -734,8 +741,9 @@ class TabMusicPlayer:
 
 
 
-   def timer_auto_play_scan_stop(self):
-      self.log.debug('start')
+   def timer_auto_play_scan_stop(self, debug=True):
+      if debug==True:
+         self.log.debug('start')
 
       if self.obj_timer_auto_play_scan is not None:
          GLib.source_remove(self.obj_timer_auto_play_scan)
@@ -749,7 +757,7 @@ class TabMusicPlayer:
       self.play_time_counter=0
       interval = self.get_auto_timer_interval() * 990
 
-      self.timer_auto_play_scan_stop()
+      self.timer_auto_play_scan_stop(debug=False)
 
       self.obj_timer_auto_play_scan = GLib.timeout_add(interval, self.timer_auto_play_scan_function)
 
@@ -783,6 +791,7 @@ class TabMusicPlayer:
             if self.selected_num<len(self.playlist):
                self.selected_filename=self.playlist[self.selected_num]
                self.play_file(num=self.selected_num, filename=self.selected_filename)
+               self.update_playlist_listmodel(do='cursor', num=self.selected_num, filename=self.selected_filename)
 
       self.update_control_play_buttons()
       self.update_move_buttons()
@@ -1023,6 +1032,7 @@ class TabMusicPlayer:
 
       uri = self.player.get_property('uri')         
       self.discoverer = GstPbutils.Discoverer()
+
       info = self.discoverer.discover_uri(uri)
 
       duration = info.get_duration()
@@ -1157,16 +1167,22 @@ class TabMusicPlayer:
       elif len(self.playlist)>=1:
 
          self.player.set_property('uri', 'file://%s' % filename)
-         (artist,title,duration,bitrate,codec) = self.analyze_stream()
 
-         tag=''
-         if artist and title:
-            tag = '%s - %s' % (artist,title)
-         elif artist:
-            tag = '%s' % artist
-         elif title:
-            tag = '%s' % title
+         tag='-'
+         duration=0
+         bitrate=0
+         codec='-'
 
+         try:
+            (artist,title,duration,bitrate,codec) = self.analyze_stream()
+            if artist and title:
+               tag = '%s - %s' % (artist,title)
+            elif artist:
+               tag = '%s' % artist
+            elif title:
+               tag = '%s' % title
+         except:
+            pass
 
          self.config['play_num_filename_tag']=(num,filename,tag)
          self.config['play_duration_bitrate_codec']=(duration,bitrate,codec)
@@ -1386,12 +1402,15 @@ class TabMusicPlayer:
 
       state = self.player.get_state(0).state
 
-      if int(self.settings['play_time'])==0:
-         self.timer_play_time_stop()
-         self.timer_slider_stop()
+      if state == Gst.State.PLAYING or state == Gst.State.READY:
+         if int(self.settings['play_time'])==0:
+            self.timer_play_time_stop()
+         else:
+            self.timer_play_time_start()
 
-      elif state == Gst.State.PLAYING or state == Gst.State.READY:
-         self.timer_play_time_start()
+      else:
+         self.timer_play_time_stop()
+
 
 
 
@@ -1445,6 +1464,8 @@ class TabMusicPlayer:
    def button_play_clicked(self, event):
       self.log.debug('start selected_num: %s' % self.selected_num)
 
+      self.auto_play=True
+
       if self.selected_num<len(self.playlist):
          self.selected_filename = self.playlist[self.selected_num]
          self.play_file(num=self.selected_num, filename=self.selected_filename)
@@ -1452,13 +1473,17 @@ class TabMusicPlayer:
 
 
 
-   def next_song(self):
+   def next_song(self, check_move=True):
 
       self.log.debug('start')
 
-      if self.checkbutton_auto_move.get_active():
-         self.playlist_scan()
+      song_move=False
 
+      if check_move==True and self.checkbutton_auto_move.get_active():
+         num, filename, tag = self.config['play_num_filename_tag']
+         if len(self.playlist)>0:
+            self.move(num=num, filename=filename, dir='old')
+            song_move=True
 
       if len(self.playlist)==0:
          self.timer_slider_stop()
@@ -1472,8 +1497,13 @@ class TabMusicPlayer:
          self.update_label_play(clear=True)
 
       else:
+         if song_move==False:
+            self.selected_num+=1
+         else:
+            if self.selected_num>num:
+               self.selected_num-=1
 
-         self.selected_num+=1
+
          if self.selected_num>=len(self.playlist):
             self.selected_num=0
 
@@ -1488,7 +1518,7 @@ class TabMusicPlayer:
 
    def button_next_clicked(self, event):
       self.log.debug('start selected_num: %s' % self.selected_num)
-      self.next_song()
+      self.next_song(check_move=False)
 
 
 
