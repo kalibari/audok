@@ -1,9 +1,8 @@
 import os
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk
 gi.require_version('GLib', '2.0')
-from gi.repository import GLib
+from gi.repository import Gtk, GLib
 
 class TabStreamRipper:
 

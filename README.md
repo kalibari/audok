@@ -17,7 +17,7 @@ Requirements
 - youtube-dl
 - streamripper
 - gtk4
-- python cairo, python gstreamer, python systemd
+- python gstreamer, python systemd
 - gstreamer plugins base, gstreamer plugins bad
 
 

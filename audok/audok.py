@@ -11,14 +11,9 @@ import xml.etree.ElementTree
 app_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, app_path)
 import gi
-gi.require_version('Gst', '1.0')
-from gi.repository import Gst
-gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk
-gi.require_version('Adw', '1')
-from gi.repository import Adw
 gi.require_version('GLib', '2.0')
-from gi.repository import GLib
+gi.require_version('Adw', '1')
+from gi.repository import Adw, GLib 
 import logging
 import main
 from argparse import ArgumentParser, RawTextHelpFormatter
@@ -52,7 +47,7 @@ if __name__ == '__main__':
    config['app_path'] = app_path
 
    config['play_num_filename_tag'] = (0,'','')
-   config['play_duration_bitrate_codec'] = ('','','')
+   config['play_duration_bitrate_codec'] = (0,'','')
    config['check_new_file'] = ''
 
    config['stations_changed'] = False
@@ -147,6 +142,9 @@ if __name__ == '__main__':
 
    settings['device_record'] = ''
    settings['device_record_list'] = ['']
+
+   settings['color_scheme'] = 'prefer_light'
+   settings['color_scheme_list'] = ['force_light','prefer_light','force_dark']
 
    settings['play_time'] = '0'
    settings['choice_play_time'] = ['0','10','20','35','50','65']
@@ -292,7 +290,7 @@ if __name__ == '__main__':
    def on_activate(app):
       main.Music_Admin_Start(app, log, config, settings, playlist, stationlist)
 
-
+   Adw.init()
    app = Adw.Application(application_id=config['application_id'])
    app.connect('activate', on_activate)
    app.run(None)

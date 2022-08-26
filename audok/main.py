@@ -13,39 +13,47 @@ import gi
 from time import sleep
 from threading import Thread
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk
 gi.require_version('Gst', '1.0')
-from gi.repository import Gst
 gi.require_version('GLib', '2.0')
-from gi.repository import GLib
+gi.require_version('Adw', '1')
+from gi.repository import Adw, GLib, Gtk, Gst
+
 
 class Music_Admin_Start():
 
    def __init__(self, app, log, config, settings, playlist, stationlist):
 
-      app.connect('window_removed', self.on_destroy)
-
-      self.win = Gtk.ApplicationWindow(application=app)
-      self.win.set_title(config['name'].capitalize())
-      self.win.set_default_size(width=int(settings['size_x']), height=int(settings['size_y']))
-      #self.win.set_size_request(width=int(settings['size_x']), height=int(settings['size_y']))
-      self.win.set_resizable(True)
-
-      self.win.get_root().connect_after('notify', self.on_notify)
-
+      self.app = app
       self.log = log
       self.config = config
       self.settings = settings
       self.playlist = playlist
       self.stationlist = stationlist
 
+      self.app.connect('window_removed', self.on_destroy)
+
+      sm = self.app.get_style_manager()
+      if self.settings['color_scheme']=='force_light':
+         sm.set_color_scheme(Adw.ColorScheme.FORCE_LIGHT)
+
+      elif self.settings['color_scheme']=='prefer_dark':
+         sm.set_color_scheme(Adw.ColorScheme.PREFER_DARK)
+
+      elif self.settings['color_scheme']=='force_dark':
+         sm.set_color_scheme(Adw.ColorScheme.FORCE_DARK)
+
+
+      self.win = Gtk.ApplicationWindow(application=self.app)
+      self.win.set_title(self.config['name'].capitalize())
+      self.win.set_default_size(width=int(self.settings['size_x']), height=int(self.settings['size_y']))
+      #self.win.set_size_request(width=int(settings['size_x']), height=int(settings['size_y']))
+      self.win.set_resizable(True)
+
+      self.win.get_root().connect_after('notify', self.on_notify)
+
       gtk_settings = Gtk.Settings.get_default()
       gtk_theme_name = gtk_settings.get_property('gtk-theme-name')
       self.log.debug('gtk_theme_name: %s' % gtk_theme_name)
-      #gtk_settings.set_property('gtk-theme-name', 'Adwaita-dark')
-      #gtk_settings.set_property('gtk-theme-name', 'Adwaita')
-
-
 
       self.pnum = 0
 
@@ -108,6 +116,13 @@ class Music_Admin_Start():
 
 
 
+   def on_close(self):
+      self.log.debug('start')
+      self.save_settings()
+      self.clean_shutdown()
+      sys.exit()
+
+
    def on_destroy(self, app, win):
       self.log.debug('start')
       self.save_settings()
@@ -118,6 +133,14 @@ class Music_Admin_Start():
 
    def on_reset_close(self):
       self.log.debug('start')
+
+      settings_file = self.settings['config_path'] + '/' + self.settings['filename_settings']
+
+      self.log.debug('settings_file: %s' % settings_file)
+
+      if os.path.exists(settings_file):
+         os.remove(settings_file)
+
       self.clean_shutdown()
       sys.exit()
 
