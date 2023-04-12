@@ -27,11 +27,11 @@ class TabStreamRipper:
                               ['Mix / Alternative', 'Gorilla FM', 'http://185.33.21.112:80/gorillafm_128'],
 
                               ['Electro', 'radio Top 40 Electro', 'http://antenne-th.divicon-stream.net/antth_top40electro_JlSz-mp3-192?sABC=58p2q700%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
-                              ['Electro', 'Sunshine Live','http://sunshinelive.hoerradar.de/sunshinelive-live-mp3-hq'],
+                              ['Electro', 'Sunshine Live','http://stream.sunshine-live.de/live/mp3-192'],
 
                               ['Charts', 'Radio Fg', 'http://radiofg.impek.com:80/fg'],
                               ['Charts', 'radio Top 40 Weimar Charts', 'http://antenne-th.divicon-stream.net/antth_top40char_0f6x-mp3-192?sABC=58p2q6s8%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
-                              ['Charts', 'Top 100 Station','http://www.top100station.de/switch/r3472.pls'],
+                              ['Charts', 'Top 100 Station','https://streams.rautemusik.fm/top100station/?ref=t100swebsite'],
                               ['Charts', 'radio Top 40 Weimar Live', 'http://antenne-th.divicon-stream.net/antth_top40live_SeJx-mp3-192?sABC=58p2q6rq%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
                               ['Charts', 'Energy Bremen Germany Top40', 'https://edge63.streamonkey.net/energy-top40'],
 
