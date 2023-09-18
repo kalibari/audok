@@ -278,12 +278,8 @@ class TabConverter:
 
          self.obj_timer_you2mp3 = GLib.timeout_add(1000, self.refresh_output_textctrl_timer)
 
-         # youtube-dl --no-warnings --no-call-home --audio-quality=4 --extract-audio --audio-format=mp3 --title [url]
-         #cmd=[self.config['bin_you2mp3'],'--audio-quality=4','--no-warnings','--no-call-home','--extract-audio','--audio-format=mp3','--title',source]
-
          # yt-dlp --extract-audio  --audio-format mp3 [url]
-         cmd=[self.config['bin_you2mp3'],'--extract-audio','--audio-format','mp3',source]
-
+         cmd=[self.config['bin_you2mp3'], *self.config['options_you2mp3'], source]
 
          cwd=self.config['music_path'] + '/' + self.settings['directory_new']
          self.madmin.process_starter(cmd=cmd, cwd=cwd, job='you2mp3', identifier='', source='')
@@ -330,14 +326,14 @@ class TabConverter:
                # pw  alsa_output.pci-0000_00_1f.3.analog-stereo   Audio/Sink   44
                target=int(idnum)
                if target:
-                  source_cmd=[self.config['bin_pwrecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99', '--target=%s' % target]
+                  source_cmd=[self.config['bin_pwrecord'], *self.config['options_pwrecord'], '--target=%s' % target]
 
 
             elif audio=='pa':
 
                # pa   alsa_input.pci-0000_00_1b.0.analog-stereo   Quelle   1
                if node:
-                  source_cmd=[self.config['bin_parecord'],'--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99', '--file-format=wav', '--device=%s' % node]
+                  source_cmd=[self.config['bin_parecord'], *self.config['options_parecord'], '--device=%s' % node]
 
 
 
@@ -474,8 +470,8 @@ class TabConverter:
                   else:
                      break
 
-               cwd=self.config['music_path'] + '/' + self.settings['directory_new']
-               cmd=[self.config['bin_nice'],'-n','19',self.config['bin_ffmpeg'],'-v','error','-i',item,'-ab', '%s' % str(self.settings['bitrate']),'-n',newfilename]
+               cwd = self.config['music_path'] + '/' + self.settings['directory_new']
+               cmd = [self.config['bin_nice'], *self.config['options_nice'], self.config['bin_ffmpeg'], *self.config['options_ffmpeg'], '-i' ,item, '-ab', str(self.settings['bitrate']), '-n', newfilename]
                self.madmin.process_starter(cmd=cmd, cwd=cwd, job='file2mp3', identifier='', source=item)
 
 

@@ -433,11 +433,9 @@ class TabStreamRipper:
 
                self.log.debug('toogle_on i: %s' % i)
 
-               useragent='WinampMPEG/5.0'
-
                # streamripper [URL] -u WinampMPEG/5.0 -d /Music/Streamripper/
-               cmd=[self.config['bin_streamripper'], self.liststore[i][5],'-u',useragent,'-d','%s/%s' % (self.config['music_path'],self.settings['directory_str'])]
-               cwd=self.config['music_path'] + '/' + self.settings['directory_str']
+               cmd = [self.config['bin_streamripper'], self.liststore[i][5], *self.config['options_streamripper'], '-d', '%s/%s' % (self.config['music_path'],self.settings['directory_str'])]
+               cwd = self.config['music_path'] + '/' + self.settings['directory_str']
                self.madmin.process_starter(cmd=cmd, cwd=cwd, job='streamripper', identifier=str(i), source=self.liststore[i][5])
 
          self.update_listmodel()

@@ -468,7 +468,7 @@ class TabSettings:
 
       if which(self.config['bin_pwcli']):
 
-         out = subprocess.check_output([self.config['bin_pwcli'], 'list-objects'])
+         out = subprocess.check_output([self.config['bin_pwcli'], *self.config['options_pwcli']])
          if out:
             output=out.decode('utf-8').split('\n')
 
@@ -504,7 +504,7 @@ class TabSettings:
 
       if which(self.config['bin_pactl']):
 
-         out = subprocess.check_output([self.config['bin_pactl'],'list'])
+         out = subprocess.check_output([self.config['bin_pactl'], *self.config['options_pactl']])
          if out:
             output=out.decode('utf-8').split('\n')
 

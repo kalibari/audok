@@ -52,19 +52,29 @@ if __name__ == '__main__':
 
    config['stations_changed'] = False
 
-   #config['bin_you2mp3'] = 'youtube-dl'
    config['bin_you2mp3'] = 'yt-dlp'
+   config['options_you2mp3'] = ['--extract-audio', '--audio-format', 'mp3']
 
    config['bin_streamripper'] = 'streamripper'
+   config['options_streamripper'] = ['-u', 'WinampMPEG/5.0']
+
    config['bin_ffmpeg'] = 'ffmpeg'
+   config['options_ffmpeg'] = ['-v', 'error']
 
    config['bin_pwcli'] = 'pw-cli'
+   config['options_pwcli'] = ['list-objects']
+
    config['bin_pwrecord'] = 'pw-record'
+   config['options_pwrecord'] = ['--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99']
+
+   config['bin_parecord'] = 'parecord'
+   config['options_parecord'] = ['--verbose','--record','--channels=2', '--format=s32', '--rate=48000', '--volume=0.99', '--file-format=wav']
 
    config['bin_pactl'] = 'pactl'
-   config['bin_parecord'] = 'parecord'
+   config['options_pactl'] = ['list']
 
    config['bin_nice'] = 'nice'
+   config['options_nice'] = ['-n', '19']
 
    config['supported_audio_files'] = ['mp3','ogg','aac','flac','midi','mp4','mpeg','wma','asx','wav','mpegurl']
 
@@ -155,7 +165,7 @@ if __name__ == '__main__':
    settings['random_time_max'] = '0'
    settings['choice_random_time'] = ['0','10-30','30-50','50-70','70-90']
 
-   settings['bitrate'] = '192k'
+   settings['bitrate'] = '320k'
    settings['choice_bitrate'] = ['128k','192k','224k','320k']
 
    settings['directory_playlist'] = ''
