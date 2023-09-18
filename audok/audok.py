@@ -52,7 +52,9 @@ if __name__ == '__main__':
 
    config['stations_changed'] = False
 
-   config['bin_youtubedl'] = 'youtube-dl'
+   #config['bin_you2mp3'] = 'youtube-dl'
+   config['bin_you2mp3'] = 'yt-dlp'
+
    config['bin_streamripper'] = 'streamripper'
    config['bin_ffmpeg'] = 'ffmpeg'
 

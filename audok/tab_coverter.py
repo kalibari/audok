@@ -279,10 +279,14 @@ class TabConverter:
          self.obj_timer_you2mp3 = GLib.timeout_add(1000, self.refresh_output_textctrl_timer)
 
          # youtube-dl --no-warnings --no-call-home --audio-quality=4 --extract-audio --audio-format=mp3 --title [url]
-         cmd=[self.config['bin_youtubedl'],'--audio-quality=4','--no-warnings','--no-call-home','--extract-audio','--audio-format=mp3','--title',source]
+         #cmd=[self.config['bin_you2mp3'],'--audio-quality=4','--no-warnings','--no-call-home','--extract-audio','--audio-format=mp3','--title',source]
+
+         # yt-dlp --extract-audio  --audio-format mp3 [url]
+         cmd=[self.config['bin_you2mp3'],'--extract-audio','--audio-format','mp3',source]
+
+
          cwd=self.config['music_path'] + '/' + self.settings['directory_new']
          self.madmin.process_starter(cmd=cmd, cwd=cwd, job='you2mp3', identifier='', source='')
-
 
 
 
