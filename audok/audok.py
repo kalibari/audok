@@ -76,7 +76,7 @@ if __name__ == '__main__':
    config['bin_nice'] = 'nice'
    config['options_nice'] = ['-n', '19']
 
-   config['supported_audio_files'] = ['mp3','ogg','aac','flac','midi','mp4','mpeg','wma','asx','wav','mpegurl']
+   config['supported_audio_files'] = ['mp3','ogg','aac','flac','midi','mp4','mpeg','wma','asx','wav','mpegurl','webm']
 
    config['music_path'] = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_MUSIC)
    if not config['music_path']:
