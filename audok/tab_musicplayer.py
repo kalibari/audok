@@ -460,7 +460,6 @@ class TabMusicPlayer:
 
 
 
-
    def update_label_play(self, clear=False):
 
       num, filename, tag = self.config['play_num_filename_tag']
@@ -482,9 +481,11 @@ class TabMusicPlayer:
       if clear==False:
 
          if duration>1000000000 and codec:
-            x = re.search('\((.*)\)', codec)
-            if x and x.group(1):
-               codec=x.group(1)
+
+            match = re.findall(r'\((.*?)\)', codec)
+            if match:
+               codec=', '.join(match)
+
 
             if bitrate>1000:
                text='[%s / %sk / %ss]' % (codec,int(bitrate/1000),int(duration/1000000000))

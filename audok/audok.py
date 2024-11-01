@@ -42,7 +42,7 @@ if __name__ == '__main__':
    config['name'] = 'audok'
    config['application_id'] = 'com.github.kalibari.audok'
 
-   config['version'] = '1.0.24'
+   config['version'] = '1.0.25'
 
    config['app_path'] = app_path
 
