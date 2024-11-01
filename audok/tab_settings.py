@@ -478,17 +478,17 @@ class TabSettings:
 
             for item in output:
 
-               x = re.search('^\s+id (\d+),', item)
+               x = re.search(r'^\s+id (\d+),', item)
                if x and x.group(1):
                   idnum=x.group(1)
                   node=''
                   media=''
 
-               x = re.search('node\.name\ \=\ "(.*)"\s*$', item)
+               x = re.search(r'node\.name\ \=\ "(.*)"\s*$', item)
                if x and x.group(1):
                   node=x.group(1)
 
-               x = re.search('media\.class\ \=\ "(.*)"\s*$', item)
+               x = re.search(r'media\.class\ \=\ "(.*)"\s*$', item)
                if x and x.group(1):
                   if 'audio' in x.group(1).lower():
                      media=x.group(1)
@@ -514,16 +514,16 @@ class TabSettings:
 
             for item in output:
 
-               x = re.search('^([a-zA-Z0-9]*)\s+#(\d+)\s*$', item)
+               x = re.search(r'^([a-zA-Z0-9]*)\s+#(\d+)\s*$', item)
                if x and x.group(1) and x.group(2):
                   idnum=x.group(2)
                   node=''
 
-               x = re.search('^\s+Name:\s*(.*)\s*$', item)
+               x = re.search(r'^\s+Name:\s*(.*)\s*$', item)
                if x and x.group(1):
                   node=x.group(1)
 
-               x = re.search('^\s+device\.class\ =\ "(.*)"\s*$', item)
+               x = re.search(r'^\s+device\.class\ =\ "(.*)"\s*$', item)
                if x and x.group(1):
                   media=x.group(1)
 

@@ -371,11 +371,11 @@ class TabConverter:
             num=0
             fexist=False
             for item in allfiles:
-               x = re.search('%s\.%s\s*$' % (pre_filename,post_filename), os.path.basename(item))
+               x = re.search(r'%s\.%s\s*$' % (pre_filename,post_filename), os.path.basename(item))
                if x:
                   fexist=True
 
-               x = re.search('%s-(\d+)\.%s\s*$' % (pre_filename,post_filename), os.path.basename(item))
+               x = re.search(r'%s-(\d+)\.%s\s*$' % (pre_filename,post_filename), os.path.basename(item))
                if x and x.group(1):
                   fexist=True
                   if int(x.group(1))>num:
@@ -454,7 +454,7 @@ class TabConverter:
 
          for item in files_to_change:
 
-            x = re.search('^(.*)(-\d)?\.(%s)' % '|'.join(extensions), item)
+            x = re.search(r'^(.*)(-\d)?\.(%s)' % '|'.join(extensions), item)
             if x and x.group(1) and x.group(3):
 
                if x.group(2):
@@ -522,7 +522,7 @@ class TabConverter:
 
          for item in files_to_change:
 
-            x = re.search('^(.*)(-\d)?\.(%s)' % '|'.join(extensions), item)
+            x = re.search(r'^(.*)(-\d)?\.(%s)' % '|'.join(extensions), item)
             if x and x.group(1) and x.group(3):
 
                if x.group(2):
