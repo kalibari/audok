@@ -11,9 +11,11 @@ import xml.etree.ElementTree
 app_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, app_path)
 import gi
+gi.require_version('Gtk', '4.0')
+gi.require_version('Gdk', '4.0')
 gi.require_version('GLib', '2.0')
 gi.require_version('Adw', '1')
-from gi.repository import Adw, GLib 
+from gi.repository import Adw, GLib, Gtk, Gdk
 import logging
 import main
 from argparse import ArgumentParser, RawTextHelpFormatter
@@ -304,5 +306,23 @@ if __name__ == '__main__':
 
    Adw.init()
    app = Adw.Application(application_id=config['application_id'])
+
+   # Load custom CSS
+   css_provider = Gtk.CssProvider()
+   css_provider.load_from_data(b"""
+      .custom-label {
+            color: #FF5733; /* Orange-red text color */
+            font-weight: bold;
+      }
+   """)
+
+
+   # Apply the CSS to the default display
+   Gtk.StyleContext.add_provider_for_display(
+      Gdk.Display.get_default(),
+      css_provider,
+      Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+   )
+
    app.connect('activate', on_activate)
    app.run(None)
