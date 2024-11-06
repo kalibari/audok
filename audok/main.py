@@ -182,8 +182,8 @@ class Music_Admin_Start():
          f = open('%s/%s' % (self.settings['config_path'],self.settings['filename_stations']), 'w')
          f.write('<?xml version="1.0"?>\n')
          f.write('<data>\n')
-         for genre,station,url in stationlist:
-            f.write('\t<stations>\n' + '\t\t<genre>' + genre + '</genre>\n'  + '\t\t<station>' + station + '</station>\n'  + '\t\t<url>' + url +  '</url>\n' +  '\t</stations>\n')
+         for genre,station,ripperoptions,url in stationlist:
+            f.write('\t<stations>\n' + '\t\t<genre>' + genre + '</genre>\n'  + '\t\t<station>' + station + '</station>\n' + '\t\t<ripperoptions>' + ripperoptions + '</ripperoptions>\n' + '\t\t<url>' + url +  '</url>\n' +  '\t</stations>\n')
          f.write('</data>\n')
          f.close()
 

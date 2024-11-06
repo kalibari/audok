@@ -2,6 +2,7 @@ import os
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('GLib', '2.0')
+gi.require_version('GdkPixbuf', '2.0')
 from gi.repository import Gtk, GLib, GdkPixbuf
 
 class TabStreamRipper:
@@ -18,27 +19,31 @@ class TabStreamRipper:
 
       self.record_status=False
 
-      self.pre_stationlist = [['Alternative', 'Radio freeFM Ulm', 'http://stream.freefm.de:7000/Studio'],
-                              ['Alternative', 'Radio FM 4 at', 'https://orf-live.ors-shoutcast.at/fm4-q2a'],
-                              ['Alternative', 'Zeilsteen Radio', 'http://live.zeilsteen.com:80'],
-
-                              ['Mix / Alternative', 'Gorilla FM', 'http://185.33.21.112:80/gorillafm_128'],
-
-                              ['Electro', 'radio Top 40 Electro', 'http://antenne-th.divicon-stream.net/antth_top40electro_JlSz-mp3-192?sABC=58p2q700%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
-                              ['Electro', 'Sunshine Live','http://stream.sunshine-live.de/live/mp3-192'],
-
-                              ['Charts', 'Radio Fg', 'http://radiofg.impek.com:80/fg'],
-                              ['Charts', 'radio Top 40 Weimar Charts', 'http://antenne-th.divicon-stream.net/antth_top40char_0f6x-mp3-192?sABC=58p2q6s8%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
-                              ['Charts', 'Top 100 Station','https://streams.rautemusik.fm/top100station/?ref=t100swebsite'],
-                              ['Charts', 'radio Top 40 Weimar Live', 'http://antenne-th.divicon-stream.net/antth_top40live_SeJx-mp3-192?sABC=58p2q6rq%230%232pn8rp1qoro76pp9n0r46nspn714s714%23fgernz.enqvbgbc40.qr'],
-                              ['Charts', 'Energy Bremen Germany Top40', 'https://edge63.streamonkey.net/energy-top40'],
-
-                              ['Pop', 'Antenne Bayern Fresh4You', 'http://mp3channels.webradio.antenne.de/fresh'],
-
-                              ['Rock', 'Antenne Bayern Rock', 'http://mp3channels.webradio.antenne.de/rockantenne'],
-                              ['Rock', 'PureRock.US', 'http://167.114.64.181:8524/stream']]
+      """
+      Links:
+      https://www.radiotop40.de/empfang
+      https://www.radiofg.com/
+      """
 
 
+      self.pre_stationlist = [['Alternative', 'Radio freeFM Ulm', '', 'http://stream.freefm.de:7000/Studio'],
+                              ['Alternative', 'Radio FM 4 at', '', 'https://orf-live.ors-shoutcast.at/fm4-q2a'],
+                              ['Alternative', 'Zeilsteen Radio', '-u WinampMPEG/5.0', 'http://live.zeilsteen.com:80'],
+
+                              ['Mix / Alternative', 'Gorilla FM', '', 'http://185.33.21.112:80/gorillafm_128'],
+
+                              ['Electro', 'Radio Top 40 Clubsound', '', 'https://frontend.streamonkey.net/antthue-radiotop40clubsound/stream/mp3'],
+                              ['Electro', 'Sunshine Live', '', 'http://sunsl.streamabc.net/sunsl-sslsimulcast-mp3-192-4434053'],
+
+                              ['Charts', 'Radio Fg', '-u FreeAmp/2.x', 'https://n11a-eu.rcs.revma.com/wknqhm4yuchvv'],
+                              ['Charts', 'Radio Top 40 Charts', '', 'https://frontend.streamonkey.net/antthue-radiotop40charts/stream/mp3'],
+                              ['Charts', 'Top 100 Station', '', 'https://streams.rautemusik.fm/top100station/?ref=t100swebsite'],
+                              ['Charts', 'Radio Top 40 Live', '', 'https://frontend.streamonkey.net/antthue-radiotop40/stream/mp3'],
+                              ['Charts', 'Energy Bremen Germany Top40', '', 'https://edge63.streamonkey.net/energy-top40'],
+
+                              ['Pop', 'Antenne Bayern Fresh4You', '', 'http://mp3channels.webradio.antenne.de/fresh'],
+
+                              ['Rock', 'Antenne Bayern Rock', '', 'http://mp3channels.webradio.antenne.de/rockantenne']]
 
 
       self.grid = Gtk.Grid()
@@ -51,7 +56,8 @@ class TabStreamRipper:
       self.pixbuf_record_active = GdkPixbuf.Pixbuf.new_from_file("%s/record_active.png" % self.config['app_path'])
       self.pixbuf_record_inactive = GdkPixbuf.Pixbuf.new_from_file("%s/record_inactive.png" % self.config['app_path'])
 
-      self.liststore = Gtk.ListStore(GdkPixbuf.Pixbuf, bool, str, str, str, str)
+      # Rec | Sel | Del | Genre | Station | Ripper Options | Url
+      self.liststore = Gtk.ListStore(GdkPixbuf.Pixbuf, bool, str, str, str, str, str)
       self.update_listmodel()
 
 
@@ -95,10 +101,18 @@ class TabStreamRipper:
       self.treeview.append_column(column_station)
 
 
+      self.renderer_ripper_options = Gtk.CellRendererText()
+      self.renderer_ripper_options.set_property('editable', True)
+      self.renderer_ripper_options.set_fixed_size(200, 30)
+      self.renderer_ripper_options.connect('edited', self.renderer_ripper_options_edited)
+      column_station = Gtk.TreeViewColumn('Ripper Options', self.renderer_ripper_options, text=5)
+      self.treeview.append_column(column_station)
+
+
       self.renderer_url = Gtk.CellRendererText()
       self.renderer_url.set_property('editable', True)
       self.renderer_url.connect('edited', self.renderer_url_edited)
-      column_url = Gtk.TreeViewColumn('Url', self.renderer_url, text=5)
+      column_url = Gtk.TreeViewColumn('Url', self.renderer_url, text=6)
       column_url.set_expand(True)
       self.treeview.append_column(column_url)
 
@@ -199,10 +213,12 @@ class TabStreamRipper:
          if row>=len(self.stationlist):
             self.renderer_genre.set_property('editable', False)
             self.renderer_stations.set_property('editable', False)
+            self.renderer_ripper_options.set_property('editable', False)
             self.renderer_url.set_property('editable', False)
          else:
             self.renderer_genre.set_property('editable', True)
             self.renderer_stations.set_property('editable', True)
+            self.renderer_ripper_options.set_property('editable', True)
             self.renderer_url.set_property('editable', True)
 
             if column is self.column_delete:
@@ -227,9 +243,9 @@ class TabStreamRipper:
             toogle_on=True
          url=stlist[2]
          if self.record_status==False:
-            self.liststore.append([self.pixbuf_record_inactive, toogle_on, 'list-remove', stlist[0], stlist[1], stlist[2]])
+            self.liststore.append([self.pixbuf_record_inactive, toogle_on, 'list-remove', stlist[0], stlist[1], stlist[2], stlist[3]])
          else:
-            self.liststore.append([self.pixbuf_record_inactive, toogle_on, '', stlist[0], stlist[1], stlist[2]])
+            self.liststore.append([self.pixbuf_record_inactive, toogle_on, '', stlist[0], stlist[1], stlist[2], stlist[3]])
 
 
       for i, stlist in enumerate(self.pre_stationlist):
@@ -237,7 +253,7 @@ class TabStreamRipper:
          toogle_on=False
          if str(i) in self.settings['stations_toogle_on']:
             toogle_on=True
-         self.liststore.insert_with_values(i, (0, 1, 2, 3, 4, 5), (self.pixbuf_record_inactive, toogle_on, '', stlist[0], stlist[1], stlist[2]))
+         self.liststore.insert_with_values(i, (0, 1, 2, 3, 4, 5, 6), (self.pixbuf_record_inactive, toogle_on, '', stlist[0], stlist[1], stlist[2], stlist[3]))
 
 
 
@@ -266,13 +282,25 @@ class TabStreamRipper:
 
 
 
-   def renderer_url_edited(self, widget, row, text):
+   def renderer_ripper_options_edited(self, widget, row, text):
 
       self.log.debug('start row: %s text: %s len(self.stationlist): %s' % (row, text, len(self.stationlist)))
 
       row=int(row)
       self.liststore[row][5] = text
       self.stationlist[row][2] = text
+      self.config['stations_changed']=True
+
+
+
+
+   def renderer_url_edited(self, widget, row, text):
+
+      self.log.debug('start row: %s text: %s len(self.stationlist): %s' % (row, text, len(self.stationlist)))
+
+      row=int(row)
+      self.liststore[row][6] = text
+      self.stationlist[row][3] = text
       self.config['stations_changed']=True
 
 
@@ -285,7 +313,6 @@ class TabStreamRipper:
       for i, item in enumerate(self.liststore):
          self.liststore[i][1] = True
          self.settings['stations_toogle_on'].extend([str(i)])
-
 
 
 
@@ -427,8 +454,10 @@ class TabStreamRipper:
 
                self.log.debug('toogle_on i: %s' % i)
 
+               options_streamripper = self.liststore[i][5].split()
+
                # streamripper [URL] -u WinampMPEG/5.0 -d /Music/Streamripper/
-               cmd = [self.config['bin_streamripper'], self.liststore[i][5], *self.config['options_streamripper'], '-d', '%s/%s' % (self.config['music_path'],self.settings['directory_str'])]
+               cmd = [self.config['bin_streamripper'], self.liststore[i][6], *options_streamripper, '-d', '%s/%s' % (self.config['music_path'],self.settings['directory_str'])]
                cwd = self.config['music_path'] + '/' + self.settings['directory_str']
                self.madmin.process_starter(cmd=cmd, cwd=cwd, job='streamripper', identifier=str(i), source=self.liststore[i][5])
 
@@ -461,8 +490,8 @@ class TabStreamRipper:
       self.log.debug('start')
       station='New Station %s' % (len(self.stationlist)+1)
 
-      self.liststore.insert(position=0, row=[self.pixbuf_record_inactive, False, 'list-remove', '', station, ''])
-      self.stationlist.insert(0, ['', station ,''])
+      self.liststore.insert(position=0, row=[self.pixbuf_record_inactive, False, 'list-remove', '', station, '', ''])
+      self.stationlist.insert(0, ['', station ,'',''])
 
       self.settings['stations_toogle_on'] = []
       self.config['stations_changed']=True

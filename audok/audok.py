@@ -57,7 +57,6 @@ if __name__ == '__main__':
    config['options_you2mp3'] = ['--extract-audio', '--audio-format', 'mp3']
 
    config['bin_streamripper'] = 'streamripper'
-   config['options_streamripper'] = ['-u', 'WinampMPEG/5.0']
 
    config['bin_ffmpeg'] = 'ffmpeg'
    config['options_ffmpeg'] = ['-v', 'error']
@@ -289,7 +288,9 @@ if __name__ == '__main__':
                col1=child[1].text.strip()
             if child[2].text:
                col2=child[2].text.strip()
-            stationlist.extend([[col0,col1,col2]])
+            if child[3].text:
+               col3=child[3].text.strip()
+            stationlist.extend([[col0,col1,col2,col3]])
 
       except Exception as e:
          log.debug('wrong format stations.xml -> backup error: %s' % e)
