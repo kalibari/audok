@@ -112,9 +112,6 @@ class TabConverter:
 
 
 
-
-
-
    def refresh_output_textctrl_timer(self):
 
       self.log.debug('\ndef refresh_output_textctrl_timer start')
@@ -614,15 +611,12 @@ class TabConverter:
       self.button_you2mp3.set_tooltip_text('Convert a Youtube url to mp3 - Destination Directory: %s' % directory)
 
 
-
    def button_record_update_tooltip(self, filename, directory):
       self.button_record.set_tooltip_text('Record via Pipewire - Destination Filename: %s Directory: %s' % (filename,directory))
 
 
-
    def button_file2mp3_update_tooltip(self, directory):
       self.button_file2mp3.set_tooltip_text('Convert all Files from Directory: %s to mp3' % directory)
-
 
 
    def button_file2flac_update_tooltip(self, directory):

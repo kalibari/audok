@@ -28,14 +28,14 @@ class TabStreamRipper:
 
       self.pre_stationlist = [['Alternative', 'Radio freeFM Ulm', '', 'http://stream.freefm.de:7000/Studio'],
                               ['Alternative', 'Radio FM 4 at', '', 'https://orf-live.ors-shoutcast.at/fm4-q2a'],
-                              ['Alternative', 'Zeilsteen Radio', '-u WinampMPEG/5.0', 'http://live.zeilsteen.com:80'],
+                              ['Alternative', 'Zeilsteen Radio', 'WinampMPEG/5.0', 'http://live.zeilsteen.com:80'],
 
                               ['Mix / Alternative', 'Gorilla FM', '', 'http://185.33.21.112:80/gorillafm_128'],
 
                               ['Electro', 'Radio Top 40 Clubsound', '', 'https://frontend.streamonkey.net/antthue-radiotop40clubsound/stream/mp3'],
                               ['Electro', 'Sunshine Live', '', 'http://sunsl.streamabc.net/sunsl-sslsimulcast-mp3-192-4434053'],
 
-                              ['Charts', 'Radio Fg', '-u FreeAmp/2.x', 'https://n11a-eu.rcs.revma.com/wknqhm4yuchvv'],
+                              ['Charts', 'Radio Fg', 'FreeAmp/2.x', 'https://n11a-eu.rcs.revma.com/wknqhm4yuchvv'],
                               ['Charts', 'Radio Top 40 Charts', '', 'https://frontend.streamonkey.net/antthue-radiotop40charts/stream/mp3'],
                               ['Charts', 'Top 100 Station', '', 'https://streams.rautemusik.fm/top100station/?ref=t100swebsite'],
                               ['Charts', 'Radio Top 40 Live', '', 'https://frontend.streamonkey.net/antthue-radiotop40/stream/mp3'],
@@ -56,7 +56,7 @@ class TabStreamRipper:
       self.pixbuf_record_active = GdkPixbuf.Pixbuf.new_from_file("%s/record_active.png" % self.config['app_path'])
       self.pixbuf_record_inactive = GdkPixbuf.Pixbuf.new_from_file("%s/record_inactive.png" % self.config['app_path'])
 
-      # Rec | Sel | Del | Genre | Station | Ripper Options | Url
+      # Rec | Sel | Del | Genre | Station | Useragent | Url
       self.liststore = Gtk.ListStore(GdkPixbuf.Pixbuf, bool, str, str, str, str, str)
       self.update_listmodel()
 
@@ -101,11 +101,11 @@ class TabStreamRipper:
       self.treeview.append_column(column_station)
 
 
-      self.renderer_ripper_options = Gtk.CellRendererText()
-      self.renderer_ripper_options.set_property('editable', True)
-      self.renderer_ripper_options.set_fixed_size(200, 30)
-      self.renderer_ripper_options.connect('edited', self.renderer_ripper_options_edited)
-      column_station = Gtk.TreeViewColumn('Ripper Options', self.renderer_ripper_options, text=5)
+      self.renderer_useragent = Gtk.CellRendererText()
+      self.renderer_useragent.set_property('editable', True)
+      self.renderer_useragent.set_fixed_size(150, 30)
+      self.renderer_useragent.connect('edited', self.renderer_useragent_edited)
+      column_station = Gtk.TreeViewColumn('Useragent', self.renderer_useragent, text=5)
       self.treeview.append_column(column_station)
 
 
@@ -213,12 +213,12 @@ class TabStreamRipper:
          if row>=len(self.stationlist):
             self.renderer_genre.set_property('editable', False)
             self.renderer_stations.set_property('editable', False)
-            self.renderer_ripper_options.set_property('editable', False)
+            self.renderer_useragent.set_property('editable', False)
             self.renderer_url.set_property('editable', False)
          else:
             self.renderer_genre.set_property('editable', True)
             self.renderer_stations.set_property('editable', True)
-            self.renderer_ripper_options.set_property('editable', True)
+            self.renderer_useragent.set_property('editable', True)
             self.renderer_url.set_property('editable', True)
 
             if column is self.column_delete:
@@ -282,7 +282,7 @@ class TabStreamRipper:
 
 
 
-   def renderer_ripper_options_edited(self, widget, row, text):
+   def renderer_useragent_edited(self, widget, row, text):
 
       self.log.debug('start row: %s text: %s len(self.stationlist): %s' % (row, text, len(self.stationlist)))
 
@@ -454,14 +454,21 @@ class TabStreamRipper:
 
                self.log.debug('toogle_on i: %s' % i)
 
-               options_streamripper = self.liststore[i][5].split()
+               station = self.liststore[i][4]
+
+               useragent = ''
+               uswitch = ''
+               if self.liststore[i][5]:
+                  uswitch = '-u'
+                  useragent = self.liststore[i][5]
 
                # streamripper [URL] -u WinampMPEG/5.0 -d /Music/Streamripper/
-               cmd = [self.config['bin_streamripper'], self.liststore[i][6], *options_streamripper, '-d', '%s/%s' % (self.config['music_path'],self.settings['directory_str'])]
+               cmd = [self.config['bin_streamripper'], self.liststore[i][6], uswitch, useragent, '-s', '-d', '%s/%s/%s' % (self.config['music_path'],self.settings['directory_str'],station)]
                cwd = self.config['music_path'] + '/' + self.settings['directory_str']
                self.madmin.process_starter(cmd=cmd, cwd=cwd, job='streamripper', identifier=str(i), source=self.liststore[i][5])
 
          self.update_listmodel()
+
 
 
    def stop_ripper_process(self):
@@ -475,7 +482,6 @@ class TabStreamRipper:
       for i in toogle_on:
          self.madmin.process_job_identifier_killer(job='streamripper', identifier=str(i))
 
-      
 
 
    def button_stop_clicked(self, event):
