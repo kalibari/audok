@@ -48,8 +48,8 @@ class TabStreamRipper:
 
       self.record_station = []
 
-      self.pixbuf_record_active = GdkPixbuf.Pixbuf.new_from_file("record_active.png")
-      self.pixbuf_record_inactive = GdkPixbuf.Pixbuf.new_from_file("record_inactive.png")
+      self.pixbuf_record_active = GdkPixbuf.Pixbuf.new_from_file("%s/record_active.png" % self.config['app_path'])
+      self.pixbuf_record_inactive = GdkPixbuf.Pixbuf.new_from_file("%s/record_inactive.png" % self.config['app_path'])
 
       self.liststore = Gtk.ListStore(GdkPixbuf.Pixbuf, bool, str, str, str, str)
       self.update_listmodel()
