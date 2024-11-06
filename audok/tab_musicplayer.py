@@ -10,9 +10,8 @@ from time import sleep
 gi.require_version('Gst', '1.0')
 gi.require_version('Gtk', '4.0')
 gi.require_version('GLib', '2.0')
-gi.require_version('Gdk', '4.0')
 gi.require_version('GstPbutils', '1.0')
-from gi.repository import Gst, Gtk, GLib, Gdk, GstPbutils
+from gi.repository import Gst, Gtk, GLib, GstPbutils
 
 
 class TabMusicPlayer:

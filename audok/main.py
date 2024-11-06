@@ -33,11 +33,12 @@ class Music_Admin_Start():
       self.app.connect('window_removed', self.on_destroy)
 
       sm = self.app.get_style_manager()
-      if self.settings['color_scheme']=='force_light':
-         sm.set_color_scheme(Adw.ColorScheme.FORCE_LIGHT)
 
-      elif self.settings['color_scheme']=='prefer_dark':
-         sm.set_color_scheme(Adw.ColorScheme.PREFER_DARK)
+      if self.settings['color_scheme']=='default':
+         sm.set_color_scheme(Adw.ColorScheme.DEFAULT)
+
+      elif self.settings['color_scheme']=='force_light':
+         sm.set_color_scheme(Adw.ColorScheme.FORCE_LIGHT)
 
       elif self.settings['color_scheme']=='force_dark':
          sm.set_color_scheme(Adw.ColorScheme.FORCE_DARK)

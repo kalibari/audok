@@ -2,7 +2,7 @@ import os
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('GLib', '2.0')
-from gi.repository import Gtk, GLib
+from gi.repository import Gtk, GLib, GdkPixbuf
 
 class TabStreamRipper:
 
@@ -17,8 +17,6 @@ class TabStreamRipper:
       self.obj_timer_streamripper=None
 
       self.record_status=False
-
-      self.count=0
 
       self.pre_stationlist = [['Alternative', 'Radio freeFM Ulm', 'http://stream.freefm.de:7000/Studio'],
                               ['Alternative', 'Radio FM 4 at', 'https://orf-live.ors-shoutcast.at/fm4-q2a'],
@@ -50,22 +48,22 @@ class TabStreamRipper:
 
       self.record_station = []
 
-      self.liststore = Gtk.ListStore(int, bool, str, str, str, str)
+      self.pixbuf_record_active = GdkPixbuf.Pixbuf.new_from_file("record_active.png")
+      self.pixbuf_record_inactive = GdkPixbuf.Pixbuf.new_from_file("record_inactive.png")
+
+      self.liststore = Gtk.ListStore(GdkPixbuf.Pixbuf, bool, str, str, str, str)
       self.update_listmodel()
 
 
       self.treeview = Gtk.TreeView.new_with_model(model=self.liststore)
-      #self.treeview.connect('button-press-event', self.treeview_press_event)
       self.treeview.connect('row-activated', self.treeview_row_activated)
       self.treeview.set_activate_on_single_click(True)
 
 
-
-      self.renderer_spinner = Gtk.CellRendererSpinner()  
-      self.renderer_spinner.set_fixed_size(50, 30)
-      self.column_spinner = Gtk.TreeViewColumn('Rec', self.renderer_spinner, active=0)
-      self.treeview.append_column(self.column_spinner)
-      self.column_spinner.add_attribute(self.renderer_spinner, 'pulse' , 0)
+      renderer_pixbuf_rec = Gtk.CellRendererPixbuf()
+      renderer_pixbuf_rec.set_fixed_size(50, 30)
+      self.column_delete = Gtk.TreeViewColumn('Rec', renderer_pixbuf_rec, pixbuf=0)
+      self.treeview.append_column(self.column_delete)
 
 
       renderer_rec = Gtk.CellRendererToggle()
@@ -75,9 +73,9 @@ class TabStreamRipper:
       self.treeview.append_column(column_rec)
 
 
-      renderer_pixbuf = Gtk.CellRendererPixbuf()
-      renderer_pixbuf.set_fixed_size(50, 30)
-      self.column_delete = Gtk.TreeViewColumn('Del', renderer_pixbuf, icon_name=2)
+      renderer_pixbuf_del = Gtk.CellRendererPixbuf()
+      renderer_pixbuf_del.set_fixed_size(50, 30)
+      self.column_delete = Gtk.TreeViewColumn('Del', renderer_pixbuf_del, icon_name=2)
       self.treeview.append_column(self.column_delete)
 
 
@@ -229,9 +227,9 @@ class TabStreamRipper:
             toogle_on=True
          url=stlist[2]
          if self.record_status==False:
-            self.liststore.append([0, toogle_on, 'list-remove', stlist[0], stlist[1], stlist[2]])
+            self.liststore.append([self.pixbuf_record_inactive, toogle_on, 'list-remove', stlist[0], stlist[1], stlist[2]])
          else:
-            self.liststore.append([0, toogle_on, '', stlist[0], stlist[1], stlist[2]])
+            self.liststore.append([self.pixbuf_record_inactive, toogle_on, '', stlist[0], stlist[1], stlist[2]])
 
 
       for i, stlist in enumerate(self.pre_stationlist):
@@ -239,7 +237,7 @@ class TabStreamRipper:
          toogle_on=False
          if str(i) in self.settings['stations_toogle_on']:
             toogle_on=True
-         self.liststore.insert_with_values(i, (0, 1, 2, 3, 4, 5), (0, toogle_on, '', stlist[0], stlist[1], stlist[2]))
+         self.liststore.insert_with_values(i, (0, 1, 2, 3, 4, 5), (self.pixbuf_record_inactive, toogle_on, '', stlist[0], stlist[1], stlist[2]))
 
 
 
@@ -337,7 +335,6 @@ class TabStreamRipper:
 
 
 
-
    def timer_streamripper_stop(self, debug=True):
       if debug==True:
          self.log.debug('start')
@@ -350,10 +347,7 @@ class TabStreamRipper:
 
    def check_streamripper(self):
 
-      self.count+=1
-
       self.log.debug('record_station: %s' % self.record_station)
-
 
       if not self.record_station:
          self.log.debug('stop')
@@ -367,7 +361,7 @@ class TabStreamRipper:
 
       for i, item in enumerate(self.liststore):
          if i in self.record_station:
-            self.liststore[i][0]=self.count
+            self.liststore[i][0]=self.pixbuf_record_active
 
 
       remove_pnum=[]
@@ -390,7 +384,7 @@ class TabStreamRipper:
 
                if self.madmin.process_database[pnum]['status']=='inactive':
                   remove_pnum.extend([pnum])
-                  self.liststore[int(identifier)][0]=0
+                  self.liststore[int(identifier)][0]=self.pixbuf_record_inactive
                   self.record_station.remove(int(identifier))
 
 
@@ -467,7 +461,7 @@ class TabStreamRipper:
       self.log.debug('start')
       station='New Station %s' % (len(self.stationlist)+1)
 
-      self.liststore.insert(position=0, row=[0, False, 'list-remove', '', station, ''])
+      self.liststore.insert(position=0, row=[self.pixbuf_record_inactive, False, 'list-remove', '', station, ''])
       self.stationlist.insert(0, ['', station ,''])
 
       self.settings['stations_toogle_on'] = []
