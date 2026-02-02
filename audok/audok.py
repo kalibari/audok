@@ -19,6 +19,7 @@ import logging
 import main
 from argparse import ArgumentParser, RawTextHelpFormatter
 
+
 def parse_args(name: str, version: str):
 
     argparser = ArgumentParser(prog='%s' % name, formatter_class=RawTextHelpFormatter)
@@ -30,7 +31,6 @@ def parse_args(name: str, version: str):
     result = argparser.parse_args()
 
     return result
-
 
 
 if __name__ == '__main__':
@@ -58,7 +58,7 @@ if __name__ == '__main__':
 
    config['bin_streamripper'] = 'streamripper'
 
-   config['bin_ffmpeg'] = 'ffmpeg'
+   config['bin_ffmpeg'] = 'ffmpeg-free'
    config['options_ffmpeg'] = ['-v', 'error']
 
    config['bin_pwcli'] = 'pw-cli'
@@ -111,13 +111,11 @@ if __name__ == '__main__':
       jo.setFormatter(formatter)
       log.addHandler(jo)
 
+
    log.setLevel(logging.DEBUG)
 
 
-
-   settings={}
-
-   settings['version'] = config['version']
+   settings={'version': config['version']}
 
 
    # setup default settings
